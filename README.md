@@ -64,11 +64,21 @@ $ pdu stats_data
 ...
 ```
 
+Where each line gives:
+
+```
+<bytes used> : <metric family>
+```
+
 It may be convenient to sort this output, e.g., with
 
 ```
 $ pdu stats_data | sort -hr | head -n 40
 ```
+
+This only considers bytes within chunk files - the index file is not included, and WALs are ignored.
+
+Expect the output to be an underestimate!
 
 
 ## Prerequisites
