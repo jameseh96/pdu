@@ -67,7 +67,7 @@ $ pdu stats_data
 It may be convenient to sort this output, e.g., with
 
 ```
-$ pdu post_stats | sort -hr | head -n 40
+$ pdu stats_data | sort -hr | head -n 40
 ```
 
 
