@@ -8,15 +8,30 @@
 template <class T>
 T to_host(T);
 
+#if (defined __APPLE__)
+#include <arpa/inet.h>
 template <>
 inline uint32_t to_host(uint32_t v) {
-    return ntohll(v);
+    return ntohl(v);
 }
 
 template <>
 inline uint64_t to_host(uint64_t v) {
     return ntohll(v);
 }
+#elif (defined __linux__)
+#include <endian.h>
+
+template <>
+inline uint32_t to_host(uint32_t v) {
+    return be32toh(v);
+}
+
+template <>
+inline uint64_t to_host(uint64_t v) {
+    return be64toh(v);
+}
+#endif
 
 class Decoder {
 public:
@@ -31,14 +46,14 @@ public:
     T read_int() {
         char bytes[sizeof(T)];
         stream.read(bytes, sizeof(T));
-        return T(ntohl(*reinterpret_cast<T*>(bytes)));
+        return T(to_host(*reinterpret_cast<T*>(bytes)));
     }
 
     template <class T>
     void read_int_to(T& v) {
         char bytes[sizeof(T)];
         stream.read(bytes, sizeof(T));
-        v = T(ntohll(*reinterpret_cast<T*>(bytes)));
+        v = T(to_host(*reinterpret_cast<T*>(bytes)));
     }
 
     void consume_null();
