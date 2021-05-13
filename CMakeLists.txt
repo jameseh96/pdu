@@ -25,6 +25,6 @@ list(PREPEND CMAKE_MODULE_PATH "${CMAKE_BINARY_DIR}")
 find_package(Boost REQUIRED)
 find_package(fmt REQUIRED)
 
-add_executable(prometheus_disk_usage src/main.cpp src/decoder.cc src/index.cc)
+add_executable(pdu src/main.cpp src/decoder.cc src/index.cc)
 
-target_link_libraries(prometheus_disk_usage PUBLIC Boost::boost Boost::program_options Boost::filesystem fmt::fmt)
+target_link_libraries(pdu PUBLIC Boost::boost Boost::program_options Boost::filesystem fmt::fmt)
