@@ -50,9 +50,9 @@ Index loadIndex(std::string fname) {
     return index;
 }
 
-class ChunkCache {
+class ChunkFileCache {
 public:
-    ChunkCache(boost::filesystem::path chunkDir)
+    ChunkFileCache(boost::filesystem::path chunkDir)
         : chunkDir(std::move(chunkDir)) {
     }
     std::ifstream& get(uint32_t segmentId) {
@@ -82,7 +82,7 @@ private:
 
 void aggregate(std::map<std::string, size_t>& timeSeries,
                const Index& index,
-               ChunkCache cache) {
+               ChunkFileCache cache) {
     for (const auto& tableEntry : index.series) {
         const auto& series = tableEntry.second;
         const auto& labels = series.labels;
@@ -121,7 +121,7 @@ int main(int argc, char* argv[]) {
 
         auto index = loadIndex(indexFile.string());
 
-        ChunkCache cache(subdir / "chunks");
+        ChunkFileCache cache(subdir / "chunks");
 
         aggregate(timeSeries, index, cache);
     }
