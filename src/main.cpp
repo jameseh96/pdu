@@ -1,3 +1,4 @@
+#include "chunk_file_cache.h"
 #include "decoder.h"
 #include "index.h"
 
@@ -49,36 +50,6 @@ Index loadIndex(std::string fname) {
     index.load(indexDec);
     return index;
 }
-
-class ChunkFileCache {
-public:
-    ChunkFileCache(boost::filesystem::path chunkDir)
-        : chunkDir(std::move(chunkDir)) {
-    }
-    std::ifstream& get(uint32_t segmentId) {
-        if (auto itr = cache.find(segmentId); itr != cache.end()) {
-            return *itr->second;
-        }
-
-        auto path = chunkDir / fmt::format("{:0>6}", segmentId);
-        if (!boost::filesystem::is_regular_file(path)) {
-            throw std::runtime_error(
-                    fmt::format("Index references missing chunk file: {}\n",
-                                path.string()));
-        }
-        auto& ptr = cache[segmentId];
-        ptr = std::make_shared<std::ifstream>(path.string(),
-                                              std::ios_base::binary);
-
-        return *ptr;
-    }
-
-private:
-    const boost::filesystem::path chunkDir;
-    // using copyable shared_ptr as std::map refused being constructed
-    // with a non-copyable type (buggy?)
-    std::map<uint32_t, std::shared_ptr<std::ifstream>> cache;
-};
 
 void aggregate(std::map<std::string, size_t>& timeSeries,
                const Index& index,
