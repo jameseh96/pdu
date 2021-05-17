@@ -38,17 +38,17 @@ void TOC::load(Decoder& dec) {
     dec.read_int_to(postings_offset_table_offset);
 }
 
-Chunk& Chunk::operator+=(const Chunk& other) {
+ChunkReference& ChunkReference::operator+=(const ChunkReference& other) {
     minTime += other.minTime;
     maxTime += other.maxTime;
     fileReference += other.fileReference;
     return *this;
 }
 
-uint32_t Chunk::getSegmentFileId() const {
+uint32_t ChunkReference::getSegmentFileId() const {
     return uint32_t(fileReference >> 32) + 1;
 }
-uint32_t Chunk::getOffset() const {
+uint32_t ChunkReference::getOffset() const {
     return fileReference & 0xFFFFFFFF;
 }
 
@@ -71,7 +71,7 @@ void Series::load(Decoder& dec, const SymbolTable& symbols) {
     chunks.reserve(chunkCount);
 
     {
-        Chunk first;
+        ChunkReference first;
 
         first.minTime = dec.read_varint(); //// IS SIGNED
         first.maxTime = dec.read_varuint() + first.minTime;
@@ -81,7 +81,7 @@ void Series::load(Decoder& dec, const SymbolTable& symbols) {
     }
 
     for (int i = 1; i < chunkCount; ++i) {
-        Chunk chunk;
+        ChunkReference chunk;
         chunk.minTime = dec.read_varint(); /// IS SIGNED
         chunk.maxTime = dec.read_varuint();
         chunk.fileReference = dec.read_varint(); /// IS SIGNED

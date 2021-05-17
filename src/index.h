@@ -25,12 +25,12 @@ struct TOC {
     void load(Decoder& dec);
 };
 
-struct Chunk {
+struct ChunkReference {
     uint64_t minTime;
     uint64_t maxTime;
     size_t fileReference;
 
-    Chunk& operator+=(const Chunk& other);
+    ChunkReference& operator+=(const ChunkReference& other);
 
     uint32_t getSegmentFileId() const;
     uint32_t getOffset() const;
@@ -38,7 +38,7 @@ struct Chunk {
 
 struct Series {
     std::map<std::string_view, std::string_view> labels;
-    std::vector<Chunk> chunks;
+    std::vector<ChunkReference> chunks;
 
     void load(Decoder& dec, const SymbolTable& symbols);
 };
