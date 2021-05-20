@@ -88,7 +88,7 @@ $ pdu --sort=size stats_data
   -r [ --reverse ]      Reverse sort order
 ```
 
-This only considers bytes within chunk files - the index file is not included, and WALs are ignored.
+This only considers bytes within chunk files - space used by the index file itself is not included, and WALs are ignored.
 
 Expect the output to be an underestimate!
 
