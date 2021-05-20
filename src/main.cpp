@@ -22,7 +22,8 @@ struct params_t {
         options.add_options()
             ("dir,d", po::value(&statsDir)->required(), "Prometheus stats directory")
             ("total,c", po::bool_switch(&summary), "Print total")
-            ("human,h", po::bool_switch(&human), "Use \"human-readable\" units");
+            ("human,h", po::bool_switch(&human), "Use \"human-readable\" units")
+            ("percent,p", po::bool_switch(&percent), "Display percentage of total usage");
 
         pos_options.add("dir", 1);
         // clang-format on
@@ -44,6 +45,7 @@ struct params_t {
     std::string statsDir = "";
     bool summary = false;
     bool human = false;
+    bool percent = false;
     bool valid = false;
 };
 
@@ -102,24 +104,36 @@ int main(int argc, char* argv[]) {
         aggregate(timeSeries, index, cache);
     }
 
-    auto maybeFormat = [&params](size_t bytes) {
+    size_t total = 0;
+    for (const auto& series : timeSeries) {
+        total += series.second;
+    }
+
+    auto print = [total, &params](size_t value, std::string_view name) {
+        // print the value
         if (params.human) {
-            auto [scaled, unit] = format::humanReadableBytes(bytes);
-            return fmt::format("{}{}", scaled, unit);
+            auto [scaled, unit] = format::humanReadableBytes(value);
+            fmt::print("{:<7}", fmt::format("{}{}", scaled, unit));
+        } else {
+            fmt::print("{:<7}", value);
         }
-        return fmt::format("{}", bytes);
+
+        // maybe print a percentage of the total
+        if (params.percent) {
+            fmt::print(" {:>7}",
+                       fmt::format("{:.2f}%", double(value * 100) / total));
+        }
+
+        // print name
+        fmt::print(" {}\n", name);
     };
 
     if (params.summary) {
-        size_t total = 0;
-        for (const auto& series : timeSeries) {
-            total += series.second;
-        }
-        fmt::print("{:<8} total\n", maybeFormat(total));
+        print(total, "total");
     }
 
     for (const auto& [name, count] : timeSeries) {
-        fmt::print("{:<8} {}\n", maybeFormat(count), name);
+        print(count, name);
     }
 
     return 0;

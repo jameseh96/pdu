@@ -11,7 +11,7 @@ inline constexpr size_t PB = TB * 1024;
 
 inline std::pair<size_t, std::string> humanReadableBytes(size_t bytes) {
     if (bytes < KB) {
-        return {bytes, ""};
+        return {bytes, "   "};
     }
     if (bytes < MB) {
         return {bytes / KB, " KB"};
