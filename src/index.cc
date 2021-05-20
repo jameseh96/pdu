@@ -6,7 +6,7 @@ std::string_view SymbolTable::lookup(size_t index) const {
     if (index == 0) {
         throw std::domain_error("SymbolTable: 0 is an impossible index");
     }
-    if (index >= symbols.size()) {
+    if (index > symbols.size()) {
         throw std::domain_error("SymbolTable: too high index");
     }
     // for some reason symbols are treated as 1-indexed. adjust accordingly.
@@ -16,13 +16,15 @@ std::string_view SymbolTable::lookup(size_t index) const {
 void SymbolTable::load(Decoder& dec) {
     dec.read_int<uint32_t>(); // len
     auto numSymbols = dec.read_int<uint32_t>();
-    dec.consume_null();
 
     symbols.reserve(numSymbols);
 
     std::string value;
     for (int i = 0; i < numSymbols; ++i) {
         auto strLen = dec.read_varuint();
+        if (strLen == 0) {
+            continue;
+        }
         value.resize(strLen);
         dec.read(value.data(), strLen);
         symbols.push_back(value);
