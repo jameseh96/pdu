@@ -78,6 +78,7 @@ struct params_t {
 
 Index loadIndex(std::string fname) {
     std::ifstream f(fname, std::ios_base::binary);
+    f.exceptions(std::ifstream::failbit | std::ifstream::badbit);
     Decoder indexDec(f);
 
     Index index;
