@@ -42,38 +42,50 @@ With a directory like that, pdu can be launched with:
 
 ```
 $ pdu stats_data
-12065592 : kv_cmd_duration_seconds_bucket
-542258   : kv_cmd_duration_seconds_sum
-436696   : kv_cmd_duration_seconds_count
-431900   : kv_disk_seconds_bucket
-259140   : kv_sync_write_commit_duration_seconds_bucket
-231249   : kv_checkpoint_remover_seconds_bucket
-214276   : scrape_duration_seconds
-172918   : kv_cursor_get_all_items_time_seconds_bucket
-123301   : sysproc_page_faults_raw
-123147   : sysproc_minor_faults_raw
-89701    : kv_expiry_pager_seconds_bucket
-86380    : kv_storage_age_seconds_bucket
-86380    : kv_pending_ops_seconds_bucket
-86380    : kv_notify_io_seconds_bucket
-86380    : kv_item_pager_seconds_bucket
-86380    : kv_bg_wait_seconds_bucket
-86380    : kv_bg_load_seconds_bucket
-72311    : sysproc_mem_resident
-66095    : exposer_request_latencies
+12065592 kv_cmd_duration_seconds_bucket
+542258   kv_cmd_duration_seconds_sum
+436696   kv_cmd_duration_seconds_count
+431900   kv_disk_seconds_bucket
+259140   kv_sync_write_commit_duration_seconds_bucket
+231249   kv_checkpoint_remover_seconds_bucket
+214276   scrape_duration_seconds
+172918   kv_cursor_get_all_items_time_seconds_bucket
+123301   sysproc_page_faults_raw
+123147   sysproc_minor_faults_raw
+89701    kv_expiry_pager_seconds_bucket
+86380    kv_storage_age_seconds_bucket
+86380    kv_pending_ops_seconds_bucket
+86380    kv_notify_io_seconds_bucket
+86380    kv_item_pager_seconds_bucket
+86380    kv_bg_wait_seconds_bucket
+86380    kv_bg_load_seconds_bucket
+72311    sysproc_mem_resident
+66095    exposer_request_latencies
 ...
 ```
 
 Where each line gives:
 
 ```
-<bytes used> : <metric family>
+<bytes used> <metric family>
 ```
 
 It may be convenient to sort this output, e.g., with
 
 ```
-$ pdu stats_data | sort -hr | head -n 40
+$ pdu --sort=size stats_data
+```
+
+#### Options
+
+```
+  -d [ --dir ] arg      Prometheus stats directory
+  -c [ --total ]        Print total
+  -h [ --human ]        Use "human-readable" units
+  -p [ --percent ]      Display percentage of total usage
+  -S [ --sort ] arg     Sort output, valid values: "default", "size",
+                        "percentage"
+  -r [ --reverse ]      Reverse sort order
 ```
 
 This only considers bytes within chunk files - the index file is not included, and WALs are ignored.
