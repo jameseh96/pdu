@@ -63,7 +63,13 @@ struct params_t {
             po::notify(vm);
             valid = true;
         } catch (const po::error& e) {
-            fmt::print("{}\n{}\n", e.what(), options);
+            fmt::print("{}\n", e.what());
+            fmt::print(
+                    "Usage:\n"
+                    "    pdu <options> <dir>\n"
+                    "e.g.,\n"
+                    "    pdu -ch ./stats_data\n\n");
+            fmt::print("{}\n", options);
             valid = false;
         }
     }
