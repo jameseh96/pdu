@@ -3,13 +3,36 @@
 #include "display_units.h"
 #include "index.h"
 
+#include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 #include <fstream>
+#include <iostream>
 #include <map>
 #include <memory>
+
+enum class SortOrder { Default, Size, Percentage };
+
+std::istream& operator>>(std::istream& in, SortOrder& sort) {
+    std::string token;
+    in >> token;
+
+    // modifies token
+    boost::algorithm::to_lower(token);
+
+    if (token == "default") {
+        sort = SortOrder::Default;
+    } else if (token == "size") {
+        sort = SortOrder::Size;
+    } else if (token == "percentage") {
+        sort = SortOrder::Percentage;
+    } else {
+        in.setstate(std::ios_base::failbit);
+    }
+    return in;
+}
 
 struct params_t {
     params_t(int argc, char* argv[]) {
@@ -23,7 +46,9 @@ struct params_t {
             ("dir,d", po::value(&statsDir)->required(), "Prometheus stats directory")
             ("total,c", po::bool_switch(&summary), "Print total")
             ("human,h", po::bool_switch(&human), "Use \"human-readable\" units")
-            ("percent,p", po::bool_switch(&percent), "Display percentage of total usage");
+            ("percent,p", po::bool_switch(&percent), "Display percentage of total usage")
+            ("sort,S", po::value(&sort), "Sort output, valid values: \"default\", \"size\", \"percentage\"")
+            ("reverse,r", po::bool_switch(&reverse), "Reverse sort order");
 
         pos_options.add("dir", 1);
         // clang-format on
@@ -46,6 +71,8 @@ struct params_t {
     bool summary = false;
     bool human = false;
     bool percent = false;
+    SortOrder sort = SortOrder::Default;
+    bool reverse = false;
     bool valid = false;
 };
 
@@ -132,8 +159,44 @@ int main(int argc, char* argv[]) {
         print(total, "total");
     }
 
-    for (const auto& [name, count] : timeSeries) {
-        print(count, name);
+    if (params.sort == SortOrder::Default) {
+        for (const auto& [name, count] : timeSeries) {
+            print(count, name);
+        }
+    } else {
+        // name, size, percentage
+        using Value = std::tuple<std::string_view, size_t, double>;
+        std::vector<Value> values;
+        for (const auto& [name, count] : timeSeries) {
+            values.emplace_back(name, count, double(count * 100) / total);
+        }
+
+        std::function<bool(Value, Value)> comparator;
+
+        if (params.sort == SortOrder::Size) {
+            comparator = [](const auto& a, const auto& b) {
+                return std::get<1>(a) < std::get<1>(b);
+            };
+        } else if (params.sort == SortOrder::Percentage) {
+            comparator = [](const auto& a, const auto& b) {
+                return std::get<2>(a) < std::get<2>(b);
+            };
+        } else {
+            throw std::logic_error("Unknown sort order");
+        }
+
+        if (params.reverse) {
+            comparator = [inner = std::move(comparator)](const auto& a,
+                                                         const auto& b) {
+                return inner(b, a);
+            };
+        }
+
+        std::sort(values.begin(), values.end(), comparator);
+
+        for (const auto& val : values) {
+            print(std::get<1>(val), std::get<0>(val));
+        }
     }
 
     return 0;
