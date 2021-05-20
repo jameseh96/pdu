@@ -115,11 +115,11 @@ int main(int argc, char* argv[]) {
         for (const auto& series : timeSeries) {
             total += series.second;
         }
-        fmt::print("{:<8} : total\n", maybeFormat(total));
+        fmt::print("{:<8} total\n", maybeFormat(total));
     }
 
     for (const auto& [name, count] : timeSeries) {
-        fmt::print("{:<8} : {}\n", maybeFormat(count), name);
+        fmt::print("{:<8} {}\n", maybeFormat(count), name);
     }
 
     return 0;
