@@ -1,5 +1,6 @@
 #include "chunk_file_cache.h"
 #include "decoder.h"
+#include "display_units.h"
 #include "index.h"
 
 #include <boost/filesystem.hpp>
@@ -20,7 +21,8 @@ struct params_t {
         // clang-format off
         options.add_options()
             ("dir,d", po::value(&statsDir)->required(), "Prometheus stats directory")
-            ("total,c", po::bool_switch(&summary), "Print total");
+            ("total,c", po::bool_switch(&summary), "Print total")
+            ("human,h", po::bool_switch(&human), "Use \"human-readable\" units");
 
         pos_options.add("dir", 1);
         // clang-format on
@@ -41,6 +43,7 @@ struct params_t {
     }
     std::string statsDir = "";
     bool summary = false;
+    bool human = false;
     bool valid = false;
 };
 
@@ -99,16 +102,24 @@ int main(int argc, char* argv[]) {
         aggregate(timeSeries, index, cache);
     }
 
+    auto maybeFormat = [&params](size_t bytes) {
+        if (params.human) {
+            auto [scaled, unit] = format::humanReadableBytes(bytes);
+            return fmt::format("{}{}", scaled, unit);
+        }
+        return fmt::format("{}", bytes);
+    };
+
     if (params.summary) {
         size_t total = 0;
         for (const auto& series : timeSeries) {
             total += series.second;
         }
-        fmt::print("{:<8} : total\n", total);
+        fmt::print("{:<8} : total\n", maybeFormat(total));
     }
 
     for (const auto& [name, count] : timeSeries) {
-        fmt::print("{:<8} : {}\n", count, name);
+        fmt::print("{:<8} : {}\n", maybeFormat(count), name);
     }
 
     return 0;
