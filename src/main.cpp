@@ -19,7 +19,8 @@ struct params_t {
 
         // clang-format off
         options.add_options()
-            ("dir,d", po::value(&statsDir)->required(), "Prometheus stats directory");
+            ("dir,d", po::value(&statsDir)->required(), "Prometheus stats directory")
+            ("total,c", po::bool_switch(&summary), "Print total");
 
         pos_options.add("dir", 1);
         // clang-format on
@@ -39,6 +40,7 @@ struct params_t {
         }
     }
     std::string statsDir = "";
+    bool summary = false;
     bool valid = false;
 };
 
@@ -95,6 +97,14 @@ int main(int argc, char* argv[]) {
         ChunkFileCache cache(subdir / "chunks");
 
         aggregate(timeSeries, index, cache);
+    }
+
+    if (params.summary) {
+        size_t total = 0;
+        for (const auto& series : timeSeries) {
+            total += series.second;
+        }
+        fmt::print("{:<8} : total\n", total);
     }
 
     for (const auto& [name, count] : timeSeries) {
