@@ -25,7 +25,7 @@ public:
             remainingBits -= bitsToRead;
         };
 
-        return result;
+        return result & ((1 << count) - 1);
     }
 
     bool readBit() {
