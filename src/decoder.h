@@ -8,30 +8,17 @@
 template <class T>
 T to_host(T);
 
-#if (defined __APPLE__)
-#include <arpa/inet.h>
 template <>
-inline uint32_t to_host(uint32_t v) {
-    return ntohl(v);
-}
+uint8_t to_host(uint8_t v);
 
 template <>
-inline uint64_t to_host(uint64_t v) {
-    return ntohll(v);
-}
-#elif (defined __linux__)
-#include <endian.h>
+uint16_t to_host(uint16_t v);
 
 template <>
-inline uint32_t to_host(uint32_t v) {
-    return be32toh(v);
-}
+uint32_t to_host(uint32_t v);
 
 template <>
-inline uint64_t to_host(uint64_t v) {
-    return be64toh(v);
-}
-#endif
+uint64_t to_host(uint64_t v);
 
 class Decoder {
 public:
