@@ -3,6 +3,7 @@
 #include "display_units.h"
 #include "file_map.h"
 #include "index.h"
+#include "index_iterator.h"
 
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
@@ -115,15 +116,7 @@ int main(int argc, char* argv[]) {
 
     std::map<std::string, size_t> timeSeries;
 
-    for (const auto& file : fs::directory_iterator(dirPath)) {
-        const auto& subdir = file.path();
-        const auto& indexFile = subdir / "index";
-        if (!fs::is_regular_file(indexFile)) {
-            continue;
-        }
-
-        auto index = loadIndex(indexFile.string());
-
+    for (const auto& [index, subdir] : IndexIterator(dirPath)) {
         ChunkFileCache cache(subdir / "chunks");
 
         aggregate(timeSeries, index, cache);
