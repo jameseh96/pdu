@@ -1,6 +1,7 @@
 #include "chunk_file_cache.h"
 #include "decoder.h"
 #include "display_units.h"
+#include "file_map.h"
 #include "index.h"
 
 #include <boost/algorithm/string.hpp>
@@ -83,9 +84,8 @@ struct params_t {
 };
 
 Index loadIndex(std::string fname) {
-    std::ifstream f(fname, std::ios_base::binary);
-    f.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-    Decoder indexDec(f);
+    FileMap fmap(fname);
+    Decoder indexDec(*fmap);
 
     Index index;
     index.load(indexDec);

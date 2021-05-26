@@ -31,6 +31,7 @@ add_executable(pdu
         src/index.cc
         src/chunk_file_cache.cc
         src/chunk_view.cc
-        src/bit_decoder.cc)
+        src/bit_decoder.cc
+        src/file_map.cc)
 
 target_link_libraries(pdu PUBLIC Boost::boost Boost::program_options Boost::filesystem fmt::fmt)

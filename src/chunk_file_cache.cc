@@ -1,4 +1,5 @@
 #include "chunk_file_cache.h"
+#include "file_map.h"
 
 #include <fmt/format.h>
 #include <stdexcept>
@@ -6,9 +7,9 @@
 ChunkFileCache::ChunkFileCache(boost::filesystem::path chunkDir)
     : chunkDir(std::move(chunkDir)) {
 }
-std::ifstream& ChunkFileCache::get(uint32_t segmentId) {
+std::istream& ChunkFileCache::get(uint32_t segmentId) {
     if (auto itr = cache.find(segmentId); itr != cache.end()) {
-        return *itr->second;
+        return itr->second->getStream();
     }
 
     auto path = chunkDir / fmt::format("{:0>6}", segmentId);
@@ -16,8 +17,8 @@ std::ifstream& ChunkFileCache::get(uint32_t segmentId) {
         throw std::runtime_error(fmt::format(
                 "Index references missing chunk file: {}\n", path.string()));
     }
-    auto& ptr = cache[segmentId];
-    ptr = std::make_shared<std::ifstream>(path.string(), std::ios_base::binary);
+    auto res = cache.try_emplace(segmentId, std::make_shared<FileMap>(path));
+    auto itr = res.first;
 
-    return *ptr;
+    return itr->second->getStream();
 }
