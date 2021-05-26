@@ -83,15 +83,6 @@ struct params_t {
     bool valid = false;
 };
 
-Index loadIndex(std::string fname) {
-    FileMap fmap(fname);
-    Decoder indexDec(*fmap);
-
-    Index index;
-    index.load(indexDec);
-    return index;
-}
-
 void aggregate(std::map<std::string, size_t>& timeSeries,
                const Index& index,
                ChunkFileCache cache) {

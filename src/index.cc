@@ -1,6 +1,9 @@
 #include "index.h"
 
 #include "decoder.h"
+#include "file_map.h"
+
+#include <boost/filesystem.hpp>
 
 std::string_view SymbolTable::lookup(size_t index) const {
     if (index == 0) {
@@ -125,4 +128,13 @@ void Index::load(Decoder& dec) {
 
     dec.seekg(toc.series_offset);
     series.load(dec, symbols, toc.label_indices_offset);
+}
+
+Index loadIndex(const std::string& fname) {
+    FileMap fmap(fname);
+    Decoder indexDec(*fmap);
+
+    Index index;
+    index.load(indexDec);
+    return index;
 }

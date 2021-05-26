@@ -64,3 +64,5 @@ struct Index {
 
     void load(Decoder& dec);
 };
+
+Index loadIndex(const std::string& fname);
