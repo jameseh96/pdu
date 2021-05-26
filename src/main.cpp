@@ -35,6 +35,31 @@ std::istream& operator>>(std::istream& in, SortOrder& sort) {
     }
     return in;
 }
+// name, size, percentage
+using Value = std::tuple<std::string_view, size_t, double>;
+std::function<bool(Value, Value)> makeComparator(SortOrder order,
+                                                 bool reverse = false) {
+    std::function<bool(Value, Value)> comparator;
+    if (order == SortOrder::Size) {
+        comparator = [](const auto& a, const auto& b) {
+            return std::get<1>(a) < std::get<1>(b);
+        };
+    } else if (order == SortOrder::Percentage) {
+        comparator = [](const auto& a, const auto& b) {
+            return std::get<2>(a) < std::get<2>(b);
+        };
+    } else {
+        throw std::logic_error("Unknown sort order");
+    }
+
+    if (reverse) {
+        comparator = [inner = std::move(comparator)](const auto& a,
+                                                     const auto& b) {
+            return inner(b, a);
+        };
+    }
+    return comparator;
+}
 
 struct params_t {
     params_t(int argc, char* argv[]) {
@@ -155,33 +180,12 @@ int main(int argc, char* argv[]) {
             print(count, name);
         }
     } else {
-        // name, size, percentage
-        using Value = std::tuple<std::string_view, size_t, double>;
         std::vector<Value> values;
         for (const auto& [name, count] : timeSeries) {
             values.emplace_back(name, count, double(count * 100) / total);
         }
 
-        std::function<bool(Value, Value)> comparator;
-
-        if (params.sort == SortOrder::Size) {
-            comparator = [](const auto& a, const auto& b) {
-                return std::get<1>(a) < std::get<1>(b);
-            };
-        } else if (params.sort == SortOrder::Percentage) {
-            comparator = [](const auto& a, const auto& b) {
-                return std::get<2>(a) < std::get<2>(b);
-            };
-        } else {
-            throw std::logic_error("Unknown sort order");
-        }
-
-        if (params.reverse) {
-            comparator = [inner = std::move(comparator)](const auto& a,
-                                                         const auto& b) {
-                return inner(b, a);
-            };
-        }
+        auto comparator = makeComparator(params.sort, params.reverse);
 
         std::sort(values.begin(), values.end(), comparator);
 
