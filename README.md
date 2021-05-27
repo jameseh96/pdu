@@ -81,11 +81,13 @@ $ pdu --sort=size stats_data
 ```
   -d [ --dir ] arg      Prometheus stats directory
   -c [ --total ]        Print total
+  -s [ --summary ]      Print only summary
   -h [ --human ]        Use "human-readable" units
   -p [ --percent ]      Display percentage of total usage
-  -S [ --sort ] arg     Sort output, valid values: "default", "size",
-                        "percentage"
+  -S [ --sort ] arg     Sort output, valid values: "default", "size"
   -r [ --reverse ]      Reverse sort order
+  -b [ --bitwidth ]     Display timestamp/value encoding bit width
+                        distributions
 ```
 
 This only considers bytes within chunk files - space used by the index file itself is not included, and WALs are ignored.
