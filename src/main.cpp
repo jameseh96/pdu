@@ -193,8 +193,8 @@ void printBytesUsed(std::string_view key,
 
     // maybe print a percentage of the total
     if (params.percent) {
-        fmt::print(" {:>7}",
-                   fmt::format("{:.2f}%", double(value * 100) / total));
+        auto percent = total ? double(value * 100) / total : 100.0;
+        fmt::print(" {:>7}", fmt::format("{:.2f}%", percent));
     }
 
     // print name
