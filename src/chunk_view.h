@@ -9,6 +9,10 @@ class ChunkReference;
 struct Sample {
     int64_t timestamp;
     double value;
+    struct {
+        uint16_t timestampBitWidth = 0;
+        uint16_t valueBitWidth = 0;
+    } meta;
 };
 
 struct SampleIterator : public generator_iterator<SampleIterator, Sample> {

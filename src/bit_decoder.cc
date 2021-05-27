@@ -1,5 +1,12 @@
 #include "bit_decoder.h"
 
+BitCounter::BitCounter(const BitDecoder& bits, uint16_t& dest)
+    : bits(bits), initial(bits.tell()), dest(dest) {
+}
+BitCounter::~BitCounter() {
+    dest = uint16_t(bits.tell() - initial);
+}
+
 BitDecoder::BitDecoder(Decoder& dec) : dec(dec) {
 }
 
@@ -27,6 +34,14 @@ uint64_t BitDecoder::readBits(size_t count) {
 
 bool BitDecoder::readBit() {
     return bool(readBits(1) & 1);
+}
+
+size_t BitDecoder::tell() const {
+    return size_t(dec.tellg()) * 8 - remainingBits;
+}
+
+BitCounter BitDecoder::counter(uint16_t& dest) const {
+    return {*this, dest};
 }
 
 uint8_t BitDecoder::getMask(size_t bitCount) {

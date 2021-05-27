@@ -12,18 +12,36 @@ bool SampleIterator::next(Sample& s) {
         return false;
     }
     if (currentIndex == 0) {
-        prev.ts = s.timestamp = dec.read_varint();
+        {
+            auto bc = bits.counter(s.meta.timestampBitWidth);
+            prev.ts = s.timestamp = dec.read_varint();
+        }
         auto val = dec.read_int<uint64_t>();
         prev.value = s.value = reinterpret_cast<double&>(val);
 
+        s.meta.valueBitWidth = 64;
+
     } else if (currentIndex == 1) {
-        prev.tsDelta = dec.read_varuint();
+        auto startIdx = bits.tell();
+        {
+            auto bc = bits.counter(s.meta.timestampBitWidth);
+            prev.tsDelta = dec.read_varuint();
+        }
         prev.ts = s.timestamp = prev.ts + prev.tsDelta;
 
-        s.value = readValue();
+        {
+            auto bc = bits.counter(s.meta.valueBitWidth);
+            s.value = readValue();
+        }
     } else {
-        s.timestamp = readTS();
-        s.value = readValue();
+        {
+            auto bc = bits.counter(s.meta.timestampBitWidth);
+            s.timestamp = readTS();
+        }
+        {
+            auto bc = bits.counter(s.meta.valueBitWidth);
+            s.value = readValue();
+        }
     }
 
     ++currentIndex;
