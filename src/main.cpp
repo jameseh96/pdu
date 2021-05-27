@@ -211,10 +211,10 @@ void printKV(std::string_view key,
     fmt::print("{}\n", key);
 
     fmt::print("  Timestamps\n");
-    printHistogram(hists.timestamps, params.percent);
+    printHistogram(hists.timestamps, params.percent, params.human);
 
     fmt::print("  Values\n");
-    printHistogram(hists.values, params.percent);
+    printHistogram(hists.values, params.percent, params.human);
 }
 
 /**
