@@ -16,7 +16,7 @@
 #include <map>
 #include <memory>
 
-enum class SortOrder { Default, Size, Percentage };
+enum class SortOrder { Default, Size };
 
 std::istream& operator>>(std::istream& in, SortOrder& sort) {
     std::string token;
@@ -29,29 +29,22 @@ std::istream& operator>>(std::istream& in, SortOrder& sort) {
         sort = SortOrder::Default;
     } else if (token == "size") {
         sort = SortOrder::Size;
-    } else if (token == "percentage") {
-        sort = SortOrder::Percentage;
     } else {
         in.setstate(std::ios_base::failbit);
     }
     return in;
 }
 // name, size, percentage
-using Value = std::tuple<std::string_view, size_t, double>;
+using Value = std::tuple<std::string_view, size_t>;
 std::function<bool(Value, Value)> makeComparator(SortOrder order,
                                                  bool reverse = false) {
-    std::function<bool(Value, Value)> comparator;
-    if (order == SortOrder::Size) {
-        comparator = [](const auto& a, const auto& b) {
-            return std::get<1>(a) < std::get<1>(b);
-        };
-    } else if (order == SortOrder::Percentage) {
-        comparator = [](const auto& a, const auto& b) {
-            return std::get<2>(a) < std::get<2>(b);
-        };
-    } else {
+    if (order != SortOrder::Size) {
         throw std::logic_error("Unknown sort order");
     }
+    std::function<bool(Value, Value)> comparator = [](const auto& a,
+                                                      const auto& b) {
+        return std::get<1>(a) < std::get<1>(b);
+    };
 
     if (reverse) {
         comparator = [inner = std::move(comparator)](const auto& a,
@@ -75,7 +68,7 @@ struct params_t {
             ("total,c", po::bool_switch(&summary), "Print total")
             ("human,h", po::bool_switch(&human), "Use \"human-readable\" units")
             ("percent,p", po::bool_switch(&percent), "Display percentage of total usage")
-            ("sort,S", po::value(&sort), "Sort output, valid values: \"default\", \"size\", \"percentage\"")
+            ("sort,S", po::value(&sort), "Sort output, valid values: \"default\", \"size\"")
             ("reverse,r", po::bool_switch(&reverse), "Reverse sort order");
 
         pos_options.add("dir", 1);
@@ -154,7 +147,7 @@ void display(const T& data, const params_t& params) {
     } else {
         std::vector<Value> values;
         for (const auto& [key, value] : data) {
-            values.emplace_back(key, value, double(value * 100) / total);
+            values.emplace_back(key, value);
         }
 
         auto comparator = makeComparator(params.sort, params.reverse);
