@@ -15,6 +15,8 @@ uint64_t BitDecoder::readBits(size_t count) {
         throw std::logic_error("Only support reading 64 bits at a time");
     }
 
+    // track the count before it is modified
+    auto bitsRead = count;
     size_t result = 0;
     while (count > 0) {
         if (remainingBits == 0) {
@@ -29,7 +31,7 @@ uint64_t BitDecoder::readBits(size_t count) {
         remainingBits -= bitsToRead;
     };
 
-    return result & ((1 << count) - 1);
+    return result & ((1 << bitsRead) - 1);
 }
 
 bool BitDecoder::readBit() {
