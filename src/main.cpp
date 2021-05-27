@@ -15,6 +15,7 @@
 #include <iostream>
 #include <map>
 #include <memory>
+#include <regex>
 
 enum class SortOrder { Default, Size };
 
@@ -71,7 +72,8 @@ struct params_t {
             ("percent,p", po::bool_switch(&percent), "Display percentage of total usage")
             ("sort,S", po::value(&sort), "Sort output, valid values: \"default\", \"size\"")
             ("reverse,r", po::bool_switch(&reverse), "Reverse sort order")
-            ("bitwidth,b", po::bool_switch(&showBitwidth), "Display timestamp/value encoding bit width distributions");
+            ("bitwidth,b", po::bool_switch(&showBitwidth), "Display timestamp/value encoding bit width distributions")
+            ("filter,f", po::value(&filter), "Regex filter applied to metric family names");
 
         pos_options.add("dir", 1);
         // clang-format on
@@ -110,6 +112,7 @@ struct params_t {
     SortOrder sort = SortOrder::Default;
     bool reverse = false;
     bool showBitwidth = false;
+    std::string filter = "";
     bool valid = false;
 };
 
@@ -274,17 +277,26 @@ int main(int argc, char* argv[]) {
 
     namespace fs = boost::filesystem;
 
+    std::function<bool(const std::string&)> filter;
+
+    if (params.filter.empty()) {
+        filter = [](const std::string& name) { return true; };
+    } else {
+        filter = [re = std::regex(params.filter)](const std::string& name) {
+            return bool(std::regex_match(name, re));
+        };
+    }
+
     fs::path dirPath = params.statsDir;
 
     // std::less<> allows for hetrogenous lookup
     std::map<std::string, SampleData, std::less<>> perSeriesValues;
 
-    auto findSeries = [&perSeriesValues](std::string_view name) {
+    auto findSeries = [&perSeriesValues](const std::string& name) {
         auto itr = perSeriesValues.find(name);
 
         if (itr == perSeriesValues.end()) {
-            itr = perSeriesValues.try_emplace(std::string(name), SampleData{})
-                          .first;
+            itr = perSeriesValues.try_emplace(name, SampleData{}).first;
         }
 
         return itr;
@@ -300,7 +312,11 @@ int main(int argc, char* argv[]) {
         // iterate over each time series in the index
         for (const auto& tableEntry : index.series) {
             const auto& series = tableEntry.second;
-            auto name = series.labels.at("__name__");
+            auto name = std::string(series.labels.at("__name__"));
+
+            if (!filter(name)) {
+                continue;
+            }
 
             auto& data = findSeries(name)->second;
 
