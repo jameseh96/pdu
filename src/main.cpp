@@ -70,7 +70,8 @@ struct params_t {
             ("human,h", po::bool_switch(&human), "Use \"human-readable\" units")
             ("percent,p", po::bool_switch(&percent), "Display percentage of total usage")
             ("sort,S", po::value(&sort), "Sort output, valid values: \"default\", \"size\"")
-            ("reverse,r", po::bool_switch(&reverse), "Reverse sort order");
+            ("reverse,r", po::bool_switch(&reverse), "Reverse sort order")
+            ("bitwidth,b", po::bool_switch(&showBitwidth), "Display timestamp/value encoding bit width distributions");
 
         pos_options.add("dir", 1);
         // clang-format on
@@ -108,8 +109,113 @@ struct params_t {
     bool percent = false;
     SortOrder sort = SortOrder::Default;
     bool reverse = false;
+    bool showBitwidth = false;
     bool valid = false;
 };
+
+struct BitWidthHistogram {
+    void record(uint16_t value) {
+        ++values[value];
+    }
+
+    size_t totalSize() const {
+        size_t total = 0;
+        for (const auto& [size, count] : values) {
+            total += size * count;
+        }
+        return total;
+    }
+
+    BitWidthHistogram& operator+=(const BitWidthHistogram& other) {
+        for (const auto& [size, count] : other.values) {
+            values[size] += count;
+        }
+        return *this;
+    }
+
+    std::map<uint16_t, uint64_t> values;
+};
+
+void printHistogram(const BitWidthHistogram& hist,
+                    bool percent = false,
+                    bool human = false) {
+    size_t totalCount = 0;
+    size_t totalSize = 0;
+
+    for (const auto& [size, count] : hist.values) {
+        totalCount += count;
+        totalSize += size * count;
+    }
+    fmt::print("  total size: ");
+    if (human) {
+        auto [scaled, unit] = format::humanReadableBytes(totalSize);
+        fmt::print("{:<7}", fmt::format("{}{}", scaled, unit));
+    } else {
+        fmt::print("{:<7}", totalSize);
+    }
+    fmt::print("\n");
+    for (const auto& [bits, count] : hist.values) {
+        fmt::print("    {:>2}b: {:>10}", bits, count);
+        if (percent) {
+            fmt::print(" {:>7.2f}% count, {:>7.2f}% size",
+                       double(count * 100) / totalCount,
+                       double(bits * count * 100) / totalSize);
+        }
+
+        fmt::print("\n");
+    }
+}
+
+struct SampleWidthHistograms {
+    BitWidthHistogram timestamps;
+    BitWidthHistogram values;
+
+    SampleWidthHistograms& operator+=(const SampleWidthHistograms& other) {
+        timestamps += other.timestamps;
+        values += other.values;
+        return *this;
+    }
+
+    operator size_t() const {
+        return timestamps.totalSize() + values.totalSize();
+    }
+};
+
+void printKV(std::string_view key,
+             size_t value,
+             size_t total,
+             const params_t& params) {
+    // print the value
+    if (params.human) {
+        auto [scaled, unit] = format::humanReadableBytes(value);
+        fmt::print("{:<7}", fmt::format("{}{}", scaled, unit));
+    } else {
+        fmt::print("{:<7}", value);
+    }
+
+    // maybe print a percentage of the total
+    if (params.percent) {
+        fmt::print(" {:>7}",
+                   fmt::format("{:.2f}%", double(value * 100) / total));
+    }
+
+    // print name
+    fmt::print(" {}\n", key);
+}
+
+void printKV(std::string_view key,
+             const SampleWidthHistograms& hists,
+             SampleWidthHistograms,
+             const params_t& params) {
+    // print name
+    fmt::print("{}\n", key);
+
+    fmt::print("  Timestamps\n");
+    printHistogram(hists.timestamps, params.percent);
+
+    fmt::print("  Values\n");
+    printHistogram(hists.values, params.percent);
+}
 
 /**
  * Write a collection of key-value pairs to stdout in a configurable, du-esque
@@ -126,22 +232,7 @@ void display(const T& data, const params_t& params) {
     }
 
     auto print = [total, &params](auto&& key, auto&& value) {
-        // print the value
-        if (params.human) {
-            auto [scaled, unit] = format::humanReadableBytes(value);
-            fmt::print("{:<7}", fmt::format("{}{}", scaled, unit));
-        } else {
-            fmt::print("{:<7}", value);
-        }
-
-        // maybe print a percentage of the total
-        if (params.percent) {
-            fmt::print(" {:>7}",
-                       fmt::format("{:.2f}%", double(value * 100) / total));
-        }
-
-        // print name
-        fmt::print(" {}\n", key);
+        printKV(key, value, total, params);
     };
 
     if (params.total) {
@@ -160,7 +251,7 @@ void display(const T& data, const params_t& params) {
     } else {
         std::vector<Value> values;
         for (const auto& [key, value] : data) {
-            values.emplace_back(key, value);
+            values.emplace_back(key, size_t(value));
         }
 
         auto comparator = makeComparator(params.sort, params.reverse);
@@ -168,23 +259,16 @@ void display(const T& data, const params_t& params) {
         std::sort(values.begin(), values.end(), comparator);
 
         for (const auto& val : values) {
-            print(std::get<0>(val), std::get<1>(val));
+            auto key = std::get<0>(val);
+            print(key, data.find(key)->second);
         }
     }
 }
 
-int main(int argc, char* argv[]) {
-    params_t params(argc, argv);
-    if (!params.valid) {
-        return 1;
-    }
-
-    namespace fs = boost::filesystem;
-
-    fs::path dirPath = params.statsDir;
-
+template <class Value, class Callable>
+auto accumulate(const boost::filesystem::path& dirPath, Callable&& cb) {
     // std::less<> allows for hetrogenous lookup
-    std::map<std::string, size_t, std::less<>> timeSeriesUsage;
+    std::map<std::string, Value, std::less<>> result;
 
     // iterate over every chunk index in the provided directory
     for (const auto& [index, subdir] : IndexIterator(dirPath)) {
@@ -198,23 +282,54 @@ int main(int argc, char* argv[]) {
             const auto& series = tableEntry.second;
             auto name = series.labels.at("__name__");
 
-            auto itr = timeSeriesUsage.find(name);
+            auto itr = result.find(name);
 
-            if (itr == timeSeriesUsage.end()) {
-                itr = timeSeriesUsage.try_emplace(std::string(name), 0).first;
+            if (itr == result.end()) {
+                itr = result.try_emplace(std::string(name), Value{}).first;
             }
 
             for (const auto& chunk : series.chunks) {
                 // ChunkView parses the chunk start info, but will not read
                 // all samples unless they are iterated over.
                 ChunkView view(cache, chunk);
-                // accumulate the total chunk file bytes used by a given series
-                itr->second += view.dataLen;
+                cb(view, itr->second);
             }
         }
     }
 
-    display(timeSeriesUsage, params);
+    return result;
+}
+
+int main(int argc, char* argv[]) {
+    params_t params(argc, argv);
+    if (!params.valid) {
+        return 1;
+    }
+
+    namespace fs = boost::filesystem;
+
+    fs::path dirPath = params.statsDir;
+
+    if (params.showBitwidth) {
+        display(accumulate<SampleWidthHistograms>(
+                        dirPath,
+                        [](ChunkView& chunk, auto& accumulatedValue) {
+                            for (const auto& sample : chunk.samples()) {
+                                accumulatedValue.timestamps.record(
+                                        sample.meta.timestampBitWidth);
+                                accumulatedValue.values.record(
+                                        sample.meta.valueBitWidth);
+                            }
+                        }),
+                params);
+    } else {
+        display(accumulate<size_t>(
+                        dirPath,
+                        [](ChunkView& chunk, auto& accumulatedValue) {
+                            accumulatedValue += chunk.dataLen;
+                        }),
+                params);
+    }
 
     return 0;
 }
