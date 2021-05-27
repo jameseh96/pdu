@@ -115,7 +115,8 @@ ChunkView::ChunkView(ChunkFileCache& cfc, const ChunkReference& chunkRef)
 
     auto encoding = dec.read_int<uint8_t>();
     if (encoding != 1) {
-        throw std::runtime_error("Chunk file has unknown encoding");
+        throw std::runtime_error("Chunk file has unknown encoding: " +
+                                 std::to_string(encoding));
     }
 
     sampleCount = dec.read_int<uint16_t>();
