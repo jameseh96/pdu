@@ -65,7 +65,8 @@ struct params_t {
         // clang-format off
         options.add_options()
             ("dir,d", po::value(&statsDir)->required(), "Prometheus stats directory")
-            ("total,c", po::bool_switch(&summary), "Print total")
+            ("total,c", po::bool_switch(&total), "Print total")
+            ("summary,s", po::bool_switch(&summary), "Print only summary")
             ("human,h", po::bool_switch(&human), "Use \"human-readable\" units")
             ("percent,p", po::bool_switch(&percent), "Display percentage of total usage")
             ("sort,S", po::value(&sort), "Sort output, valid values: \"default\", \"size\"")
@@ -93,8 +94,15 @@ struct params_t {
             fmt::print("{}\n", options);
             valid = false;
         }
+
+        // printing the summary implies printing the total without
+        // the rest of the breakdown.
+        if (summary) {
+            total = true;
+        }
     }
     std::string statsDir = "";
+    bool total = false;
     bool summary = false;
     bool human = false;
     bool percent = false;
@@ -111,7 +119,7 @@ template <class T>
 void display(const T& data, const params_t& params) {
     // sum up all values if total or percentage required
     typename T::mapped_type total{};
-    if (params.summary || params.percent) {
+    if (params.total || params.percent) {
         for (const auto& series : data) {
             total += series.second;
         }
@@ -136,8 +144,13 @@ void display(const T& data, const params_t& params) {
         fmt::print(" {}\n", key);
     };
 
-    if (params.summary) {
+    if (params.total) {
         print("total", total);
+    }
+
+    if (params.summary) {
+        // stop here, don't print the rest of the data
+        return;
     }
 
     if (params.sort == SortOrder::Default) {
