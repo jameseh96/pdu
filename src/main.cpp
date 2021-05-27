@@ -1,4 +1,5 @@
 #include "chunk_file_cache.h"
+#include "chunk_view.h"
 #include "decoder.h"
 #include "display_units.h"
 #include "file_map.h"
@@ -109,50 +110,21 @@ struct params_t {
     bool valid = false;
 };
 
-void aggregate(std::map<std::string, size_t>& timeSeries,
-               const Index& index,
-               ChunkFileCache cache) {
-    for (const auto& tableEntry : index.series) {
-        const auto& series = tableEntry.second;
-        const auto& labels = series.labels;
-
-        std::string_view name = labels.at("__name__");
-
-        auto itr = timeSeries.emplace(name, 0).first;
-
-        for (const auto& chunk : series.chunks) {
-            Decoder d{cache.get(chunk.getSegmentFileId())};
-            d.seekg(chunk.getOffset());
-            auto len = d.read_varuint();
-            itr->second += len;
+/**
+ * Write a collection of key-value pairs to stdout in a configurable, du-esque
+ * format.
+ */
+template <class T>
+void display(const T& data, const params_t& params) {
+    // sum up all values if total or percentage required
+    typename T::mapped_type total{};
+    if (params.summary || params.percent) {
+        for (const auto& series : data) {
+            total += series.second;
         }
     }
-}
 
-int main(int argc, char* argv[]) {
-    params_t params(argc, argv);
-    if (!params.valid) {
-        return 1;
-    }
-
-    namespace fs = boost::filesystem;
-
-    fs::path dirPath = params.statsDir;
-
-    std::map<std::string, size_t> timeSeries;
-
-    for (const auto& [index, subdir] : IndexIterator(dirPath)) {
-        ChunkFileCache cache(subdir / "chunks");
-
-        aggregate(timeSeries, index, cache);
-    }
-
-    size_t total = 0;
-    for (const auto& series : timeSeries) {
-        total += series.second;
-    }
-
-    auto print = [total, &params](size_t value, std::string_view name) {
+    auto print = [total, &params](auto&& key, auto&& value) {
         // print the value
         if (params.human) {
             auto [scaled, unit] = format::humanReadableBytes(value);
@@ -168,21 +140,21 @@ int main(int argc, char* argv[]) {
         }
 
         // print name
-        fmt::print(" {}\n", name);
+        fmt::print(" {}\n", key);
     };
 
     if (params.summary) {
-        print(total, "total");
+        print("total", total);
     }
 
     if (params.sort == SortOrder::Default) {
-        for (const auto& [name, count] : timeSeries) {
-            print(count, name);
+        for (const auto& [key, value] : data) {
+            print(key, value);
         }
     } else {
         std::vector<Value> values;
-        for (const auto& [name, count] : timeSeries) {
-            values.emplace_back(name, count, double(count * 100) / total);
+        for (const auto& [key, value] : data) {
+            values.emplace_back(key, value, double(value * 100) / total);
         }
 
         auto comparator = makeComparator(params.sort, params.reverse);
@@ -190,9 +162,53 @@ int main(int argc, char* argv[]) {
         std::sort(values.begin(), values.end(), comparator);
 
         for (const auto& val : values) {
-            print(std::get<1>(val), std::get<0>(val));
+            print(std::get<0>(val), std::get<1>(val));
         }
     }
+}
+
+int main(int argc, char* argv[]) {
+    params_t params(argc, argv);
+    if (!params.valid) {
+        return 1;
+    }
+
+    namespace fs = boost::filesystem;
+
+    fs::path dirPath = params.statsDir;
+
+    // std::less<> allows for hetrogenous lookup
+    std::map<std::string, size_t, std::less<>> timeSeriesUsage;
+
+    // iterate over every chunk index in the provided directory
+    for (const auto& [index, subdir] : IndexIterator(dirPath)) {
+        // Once a chunk file reference is encountered in the index, the
+        // appropriate chunk file will be mmapped and inserted into the cache
+        // as they are likely to be used again.
+        ChunkFileCache cache(subdir / "chunks");
+
+        // iterate over each time series in the index
+        for (const auto& tableEntry : index.series) {
+            const auto& series = tableEntry.second;
+            auto name = series.labels.at("__name__");
+
+            auto itr = timeSeriesUsage.find(name);
+
+            if (itr == timeSeriesUsage.end()) {
+                itr = timeSeriesUsage.try_emplace(std::string(name), 0).first;
+            }
+
+            for (const auto& chunk : series.chunks) {
+                // ChunkView parses the chunk start info, but will not read
+                // all samples unless they are iterated over.
+                ChunkView view(cache, chunk);
+                // accumulate the total chunk file bytes used by a given series
+                itr->second += view.dataLen;
+            }
+        }
+    }
+
+    display(timeSeriesUsage, params);
 
     return 0;
 }
