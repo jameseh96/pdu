@@ -151,7 +151,7 @@ void printHistogram(const BitWidthHistogram& hist,
     }
     fmt::print("  total size: ");
     if (human) {
-        auto [scaled, unit] = format::humanReadableBytes(totalSize);
+        auto [scaled, unit] = format::humanReadableBytes(totalSize / 8);
         fmt::print("{:<7}", fmt::format("{}{}", scaled, unit));
     } else {
         fmt::print("{:<7}", totalSize);
