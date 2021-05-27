@@ -166,25 +166,23 @@ void printHistogram(const BitWidthHistogram& hist,
     }
 }
 
-struct SampleWidthHistograms {
+struct SampleData {
     BitWidthHistogram timestamps;
     BitWidthHistogram values;
+    size_t usage = 0;
 
-    SampleWidthHistograms& operator+=(const SampleWidthHistograms& other) {
+    SampleData& operator+=(const SampleData& other) {
         timestamps += other.timestamps;
         values += other.values;
+        usage += other.usage;
         return *this;
-    }
-
-    operator size_t() const {
-        return timestamps.totalSize() + values.totalSize();
     }
 };
 
-void printKV(std::string_view key,
-             size_t value,
-             size_t total,
-             const params_t& params) {
+void printBytesUsed(std::string_view key,
+                    size_t value,
+                    size_t total,
+                    const params_t& params) {
     // print the value
     if (params.human) {
         auto [scaled, unit] = format::humanReadableBytes(value);
@@ -203,10 +201,9 @@ void printKV(std::string_view key,
     fmt::print(" {}\n", key);
 }
 
-void printKV(std::string_view key,
-             const SampleWidthHistograms& hists,
-             SampleWidthHistograms,
-             const params_t& params) {
+void printSampleHistograms(std::string_view key,
+                           const SampleData& hists,
+                           const params_t& params) {
     // print name
     fmt::print("{}\n", key);
 
@@ -221,18 +218,22 @@ void printKV(std::string_view key,
  * Write a collection of key-value pairs to stdout in a configurable, du-esque
  * format.
  */
-template <class T>
-void display(const T& data, const params_t& params) {
+void display(const std::map<std::string, SampleData, std::less<>>& data,
+             const params_t& params) {
     // sum up all values if total or percentage required
-    typename T::mapped_type total{};
+    SampleData total{};
     if (params.total || params.percent) {
         for (const auto& series : data) {
             total += series.second;
         }
     }
 
-    auto print = [total, &params](auto&& key, auto&& value) {
-        printKV(key, value, total, params);
+    auto print = [total, &params](auto&& key, const SampleData& value) {
+        if (params.showBitwidth) {
+            printSampleHistograms(key, value, params);
+        } else {
+            printBytesUsed(key, value.usage, total.usage, params);
+        }
     };
 
     if (params.total) {
@@ -249,26 +250,45 @@ void display(const T& data, const params_t& params) {
             print(key, value);
         }
     } else {
-        std::vector<Value> values;
+        std::vector<Value> nameAndSize;
         for (const auto& [key, value] : data) {
-            values.emplace_back(key, size_t(value));
+            nameAndSize.emplace_back(key, value.usage);
         }
 
         auto comparator = makeComparator(params.sort, params.reverse);
 
-        std::sort(values.begin(), values.end(), comparator);
+        std::sort(nameAndSize.begin(), nameAndSize.end(), comparator);
 
-        for (const auto& val : values) {
-            auto key = std::get<0>(val);
-            print(key, data.find(key)->second);
+        for (const auto& val : nameAndSize) {
+            auto name = std::get<0>(val);
+            print(name, data.find(name)->second);
         }
     }
 }
 
-template <class Value, class Callable>
-auto accumulate(const boost::filesystem::path& dirPath, Callable&& cb) {
+int main(int argc, char* argv[]) {
+    params_t params(argc, argv);
+    if (!params.valid) {
+        return 1;
+    }
+
+    namespace fs = boost::filesystem;
+
+    fs::path dirPath = params.statsDir;
+
     // std::less<> allows for hetrogenous lookup
-    std::map<std::string, Value, std::less<>> result;
+    std::map<std::string, SampleData, std::less<>> perSeriesValues;
+
+    auto findSeries = [&perSeriesValues](std::string_view name) {
+        auto itr = perSeriesValues.find(name);
+
+        if (itr == perSeriesValues.end()) {
+            itr = perSeriesValues.try_emplace(std::string(name), SampleData{})
+                          .first;
+        }
+
+        return itr;
+    };
 
     // iterate over every chunk index in the provided directory
     for (const auto& [index, subdir] : IndexIterator(dirPath)) {
@@ -282,54 +302,25 @@ auto accumulate(const boost::filesystem::path& dirPath, Callable&& cb) {
             const auto& series = tableEntry.second;
             auto name = series.labels.at("__name__");
 
-            auto itr = result.find(name);
-
-            if (itr == result.end()) {
-                itr = result.try_emplace(std::string(name), Value{}).first;
-            }
+            auto& data = findSeries(name)->second;
 
             for (const auto& chunk : series.chunks) {
                 // ChunkView parses the chunk start info, but will not read
                 // all samples unless they are iterated over.
                 ChunkView view(cache, chunk);
-                cb(view, itr->second);
+                data.usage += view.dataLen;
+
+                if (params.showBitwidth) {
+                    for (const auto& sample : view.samples()) {
+                        data.timestamps.record(sample.meta.timestampBitWidth);
+                        data.values.record(sample.meta.valueBitWidth);
+                    }
+                }
             }
         }
     }
 
-    return result;
-}
-
-int main(int argc, char* argv[]) {
-    params_t params(argc, argv);
-    if (!params.valid) {
-        return 1;
-    }
-
-    namespace fs = boost::filesystem;
-
-    fs::path dirPath = params.statsDir;
-
-    if (params.showBitwidth) {
-        display(accumulate<SampleWidthHistograms>(
-                        dirPath,
-                        [](ChunkView& chunk, auto& accumulatedValue) {
-                            for (const auto& sample : chunk.samples()) {
-                                accumulatedValue.timestamps.record(
-                                        sample.meta.timestampBitWidth);
-                                accumulatedValue.values.record(
-                                        sample.meta.valueBitWidth);
-                            }
-                        }),
-                params);
-    } else {
-        display(accumulate<size_t>(
-                        dirPath,
-                        [](ChunkView& chunk, auto& accumulatedValue) {
-                            accumulatedValue += chunk.dataLen;
-                        }),
-                params);
-    }
+    display(perSeriesValues, params);
 
     return 0;
 }
