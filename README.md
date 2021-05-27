@@ -76,6 +76,40 @@ It may be convenient to sort this output, e.g., with
 $ pdu --sort=size stats_data
 ```
 
+To display only specific metric families, a filter regex can be used
+
+```
+$ pdu --filter=".*foobar.*" stats_data
+```
+
+This is applied to the metric family name only, and will not match labels.
+
+
+The encoding of timestamps and values on disk is variable width; to produce a distribution of the bits used per sample:
+
+```
+$ pdu --bitwidth -hp stats_data
+total
+  Timestamps
+  total size: 127 MB
+     1b:   16893137   71.02% count,   12.64% size
+    16b:    6690807   28.13% count,   80.09% size
+    20b:        322    0.00% count,    0.00% size
+    24b:       1778    0.01% count,    0.03% size
+    48b:     201204    0.85% count,    7.23% size
+    68b:        112    0.00% count,    0.01% size
+  Values
+  total size: 83 MB
+     1b:   20926453   87.97% count,   23.93% size
+     3b:        533    0.00% count,    0.00% size
+     4b:       7521    0.03% count,    0.03% size
+     5b:      16161    0.07% count,    0.09% size
+     6b:      34733    0.15% count,    0.24% size
+     7b:      55783    0.23% count,    0.45% size
+     ...
+
+```
+
 #### Options
 
 ```
@@ -88,6 +122,7 @@ $ pdu --sort=size stats_data
   -r [ --reverse ]      Reverse sort order
   -b [ --bitwidth ]     Display timestamp/value encoding bit width
                         distributions
+  -f [ --filter ] arg   Regex filter applied to metric family names
 ```
 
 This only considers bytes within chunk files - space used by the index file itself is not included, and WALs are ignored.
