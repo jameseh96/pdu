@@ -169,12 +169,12 @@ void printHistogram(const BitWidthHistogram& hist,
     }
 }
 
-struct SampleData {
+struct AccumulatedData {
     BitWidthHistogram timestamps;
     BitWidthHistogram values;
     size_t usage = 0;
 
-    SampleData& operator+=(const SampleData& other) {
+    AccumulatedData& operator+=(const AccumulatedData& other) {
         timestamps += other.timestamps;
         values += other.values;
         usage += other.usage;
@@ -205,7 +205,7 @@ void printBytesUsed(std::string_view key,
 }
 
 void printSampleHistograms(std::string_view key,
-                           const SampleData& hists,
+                           const AccumulatedData& hists,
                            const params_t& params) {
     // print name
     fmt::print("{}\n", key);
@@ -221,17 +221,17 @@ void printSampleHistograms(std::string_view key,
  * Write a collection of key-value pairs to stdout in a configurable, du-esque
  * format.
  */
-void display(const std::map<std::string, SampleData, std::less<>>& data,
+void display(const std::map<std::string, AccumulatedData, std::less<>>& data,
              const params_t& params) {
     // sum up all values if total or percentage required
-    SampleData total{};
+    AccumulatedData total{};
     if (params.total || params.percent) {
         for (const auto& series : data) {
             total += series.second;
         }
     }
 
-    auto print = [total, &params](auto&& key, const SampleData& value) {
+    auto print = [total, &params](auto&& key, const AccumulatedData& value) {
         if (params.showBitwidth) {
             printSampleHistograms(key, value, params);
         } else {
@@ -290,13 +290,13 @@ int main(int argc, char* argv[]) {
     fs::path dirPath = params.statsDir;
 
     // std::less<> allows for hetrogenous lookup
-    std::map<std::string, SampleData, std::less<>> perSeriesValues;
+    std::map<std::string, AccumulatedData, std::less<>> perSeriesValues;
 
     auto findSeries = [&perSeriesValues](const std::string& name) {
         auto itr = perSeriesValues.find(name);
 
         if (itr == perSeriesValues.end()) {
-            itr = perSeriesValues.try_emplace(name, SampleData{}).first;
+            itr = perSeriesValues.try_emplace(name, AccumulatedData{}).first;
         }
 
         return itr;
