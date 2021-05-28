@@ -33,6 +33,7 @@ add_executable(pdu
         src/chunk_view.cc
         src/bit_decoder.cc
         src/file_map.cc
-        src/index_iterator.cc)
+        src/index_iterator.cc
+        src/bitwidth_histogram.cc)
 
 target_link_libraries(pdu PUBLIC Boost::boost Boost::program_options Boost::filesystem fmt::fmt)
