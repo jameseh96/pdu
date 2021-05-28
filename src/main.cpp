@@ -162,6 +162,10 @@ void printAggData(std::string_view key,
 
     if (params.count) {
         fmt::print(" {:>9}", value.sampleCount);
+        if (params.percent) {
+            auto percent = getPercent(value.sampleCount, total.sampleCount);
+            fmt::print(" {:>7.2f}%", percent);
+        }
     }
 
     auto getVal = [average = params.average](const auto& accData) -> double {
@@ -204,6 +208,9 @@ void displayHeader(const params_t& params) {
 
     if (params.count) {
         fmt::print(" {:>9}", "Count");
+        if (params.percent) {
+            fmt::print(" {:>7}%", "Count");
+        }
     }
 
     // print name
