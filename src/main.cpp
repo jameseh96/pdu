@@ -17,7 +17,7 @@
 #include <memory>
 #include <regex>
 
-enum class SortOrder { Default, Size };
+enum class SortOrder { Default, Size, AvgSize };
 
 std::istream& operator>>(std::istream& in, SortOrder& sort) {
     std::string token;
@@ -30,30 +30,12 @@ std::istream& operator>>(std::istream& in, SortOrder& sort) {
         sort = SortOrder::Default;
     } else if (token == "size") {
         sort = SortOrder::Size;
+    } else if (token == "avgSize") {
+        sort = SortOrder::AvgSize;
     } else {
         in.setstate(std::ios_base::failbit);
     }
     return in;
-}
-// name, size, percentage
-using Value = std::tuple<std::string_view, size_t>;
-std::function<bool(Value, Value)> makeComparator(SortOrder order,
-                                                 bool reverse = false) {
-    if (order != SortOrder::Size) {
-        throw std::logic_error("Unknown sort order");
-    }
-    std::function<bool(Value, Value)> comparator = [](const auto& a,
-                                                      const auto& b) {
-        return std::get<1>(a) < std::get<1>(b);
-    };
-
-    if (reverse) {
-        comparator = [inner = std::move(comparator)](const auto& a,
-                                                     const auto& b) {
-            return inner(b, a);
-        };
-    }
-    return comparator;
 }
 
 struct params_t {
@@ -69,8 +51,9 @@ struct params_t {
             ("total,c", po::bool_switch(&total), "Print total")
             ("summary,s", po::bool_switch(&summary), "Print only summary")
             ("human,h", po::bool_switch(&human), "Use \"human-readable\" units")
+            ("avg,a", po::bool_switch(&average), "Display average (mean) sample size")
             ("percent,p", po::bool_switch(&percent), "Display percentage of total usage")
-            ("sort,S", po::value(&sort), "Sort output, valid values: \"default\", \"size\"")
+            ("sort,S", po::value(&sort), "Sort output, valid values: \"default\", \"size\", \"avgSize\"")
             ("reverse,r", po::bool_switch(&reverse), "Reverse sort order")
             ("bitwidth,b", po::bool_switch(&showBitwidth), "Display timestamp/value encoding bit width distributions")
             ("filter,f", po::value(&filter), "Regex filter applied to metric family names");
@@ -108,6 +91,7 @@ struct params_t {
     bool total = false;
     bool summary = false;
     bool human = false;
+    bool average = false;
     bool percent = false;
     SortOrder sort = SortOrder::Default;
     bool reverse = false;
@@ -125,6 +109,14 @@ struct BitWidthHistogram {
         size_t total = 0;
         for (const auto& [size, count] : values) {
             total += size * count;
+        }
+        return total;
+    }
+
+    size_t count() const {
+        size_t total = 0;
+        for (const auto& pair : values) {
+            total += pair.second;
         }
         return total;
     }
@@ -172,36 +164,68 @@ void printHistogram(const BitWidthHistogram& hist,
 struct AccumulatedData {
     BitWidthHistogram timestamps;
     BitWidthHistogram values;
-    size_t usage = 0;
+    size_t diskUsage = 0;
+    size_t sampleCount = 0;
+
+    double avgSampleSize() const {
+        return double(diskUsage) / sampleCount;
+    }
 
     AccumulatedData& operator+=(const AccumulatedData& other) {
         timestamps += other.timestamps;
         values += other.values;
-        usage += other.usage;
+        diskUsage += other.diskUsage;
+        sampleCount += other.sampleCount;
         return *this;
     }
 };
 
-void printBytesUsed(std::string_view key,
-                    size_t value,
-                    size_t total,
-                    const params_t& params) {
+double getPercent(double value, double total) {
+    return total ? double(value * 100) / total : 100.0;
+}
+
+void printAggData(std::string_view key,
+                  AccumulatedData value,
+                  AccumulatedData total,
+                  const params_t& params) {
     // print the value
     if (params.human) {
-        auto [scaled, unit] = format::humanReadableBytes(value);
+        auto [scaled, unit] = format::humanReadableBytes(value.diskUsage);
         fmt::print("{:<7}", fmt::format("{}{}", scaled, unit));
     } else {
-        fmt::print("{:<7}", value);
+        fmt::print("{:<7}", value.diskUsage);
     }
 
-    // maybe print a percentage of the total
+    // maybe print a percentage disk usage of the total
     if (params.percent) {
-        auto percent = total ? double(value * 100) / total : 100.0;
-        fmt::print(" {:>7}", fmt::format("{:.2f}%", percent));
+        auto percent = getPercent(value.diskUsage, total.diskUsage);
+        fmt::print(" {:>7.2f}%", percent);
     }
+
+    // maybe print the average sample size
+    if (params.average) {
+        fmt::print(" {:>7.2f}B", value.avgSampleSize());
+
+        // maybe print the percentage of the overall average sample size
+        // useful for determining which time series are taking more bytes
+        // the overall average to encode each sample
+        if (params.percent) {
+            auto percent =
+                    getPercent(value.avgSampleSize(), total.avgSampleSize());
+            fmt::print(" {:>7.2f}%", percent);
+        }
+    }
+
+    auto getVal = [average = params.average](const auto& accData) -> double {
+        if (average) {
+            return accData.avgSampleSize();
+        } else {
+            return accData.diskUsage;
+        }
+    };
 
     // print name
-    fmt::print(" {}\n", key);
+    fmt::print("  {}\n", key);
 }
 
 void printSampleHistograms(std::string_view key,
@@ -215,6 +239,59 @@ void printSampleHistograms(std::string_view key,
 
     fmt::print("  Values\n");
     printHistogram(hists.values, params.percent, params.human);
+}
+
+// name and accumulated data
+using Value = std::pair<std::string_view,
+                        std::reference_wrapper<const AccumulatedData>>;
+std::function<bool(Value, Value)> makeComparator(const params_t& params) {
+    if (params.sort == SortOrder::Default) {
+        throw std::logic_error(
+                "Bug: Shouldn't be creating a comparator for the default mode");
+    }
+    std::function<bool(Value, Value)> comparator;
+    if (params.sort == SortOrder::Size) {
+        comparator = [](const auto& a, const auto& b) {
+            return a.second.get().diskUsage < b.second.get().diskUsage;
+        };
+    } else {
+        comparator = [](const auto& a, const auto& b) {
+            return a.second.get().avgSampleSize() <
+                   b.second.get().avgSampleSize();
+        };
+    }
+
+    if (params.reverse) {
+        comparator = [inner = std::move(comparator)](const auto& a,
+                                                     const auto& b) {
+            return inner(b, a);
+        };
+    }
+    return comparator;
+}
+
+void displayHeader(const params_t& params) {
+    // Value
+    fmt::print("{:<7}", "Disk");
+
+    // maybe print a percentage disk usage of the total
+    if (params.percent) {
+        fmt::print(" {:>7}%", "Disk");
+    }
+
+    // maybe print the average sample size
+    if (params.average) {
+        fmt::print(" {:>8}", "AvgSamp");
+
+        // maybe print the percentage of the overall average sample size
+        // useful for determining which time series are taking more bytes
+        // the overall average to encode each sample
+        if (params.percent) {
+            fmt::print(" {:>7}%", "AvgSamp");
+        }
+    }
+    // print name
+    fmt::print("  {}\n", "MetricFamily");
 }
 
 /**
@@ -235,12 +312,15 @@ void display(const std::map<std::string, AccumulatedData, std::less<>>& data,
         if (params.showBitwidth) {
             printSampleHistograms(key, value, params);
         } else {
-            printBytesUsed(key, value.usage, total.usage, params);
+            printAggData(key, value, total, params);
         }
     };
 
+    // print header
+    displayHeader(params);
+
     if (params.total) {
-        print("total", total);
+        print("<<Total>>", total);
     }
 
     if (params.summary) {
@@ -255,16 +335,15 @@ void display(const std::map<std::string, AccumulatedData, std::less<>>& data,
     } else {
         std::vector<Value> nameAndSize;
         for (const auto& [key, value] : data) {
-            nameAndSize.emplace_back(key, value.usage);
+            nameAndSize.emplace_back(key, value);
         }
 
-        auto comparator = makeComparator(params.sort, params.reverse);
+        auto comparator = makeComparator(params);
 
         std::sort(nameAndSize.begin(), nameAndSize.end(), comparator);
 
-        for (const auto& val : nameAndSize) {
-            auto name = std::get<0>(val);
-            print(name, data.find(name)->second);
+        for (const auto& [name, value] : nameAndSize) {
+            print(name, value);
         }
     }
 }
@@ -324,7 +403,8 @@ int main(int argc, char* argv[]) {
                 // ChunkView parses the chunk start info, but will not read
                 // all samples unless they are iterated over.
                 ChunkView view(cache, chunk);
-                data.usage += view.dataLen;
+                data.diskUsage += view.dataLen;
+                data.sampleCount += view.sampleCount;
 
                 if (params.showBitwidth) {
                     for (const auto& sample : view.samples()) {
