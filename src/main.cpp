@@ -17,7 +17,7 @@
 #include <memory>
 #include <regex>
 
-enum class SortOrder { Default, Size, AvgSize };
+enum class SortOrder { Default, Size, AvgSize, Count };
 
 std::istream& operator>>(std::istream& in, SortOrder& sort) {
     std::string token;
@@ -32,6 +32,8 @@ std::istream& operator>>(std::istream& in, SortOrder& sort) {
         sort = SortOrder::Size;
     } else if (token == "avgSize") {
         sort = SortOrder::AvgSize;
+    } else if (token == "count") {
+        sort = SortOrder::Count;
     } else {
         in.setstate(std::ios_base::failbit);
     }
@@ -51,9 +53,10 @@ struct params_t {
             ("total,c", po::bool_switch(&total), "Print total")
             ("summary,s", po::bool_switch(&summary), "Print only summary")
             ("human,h", po::bool_switch(&human), "Use \"human-readable\" units")
+            ("count,C", po::bool_switch(&count), "Display number of samples")
             ("avg,a", po::bool_switch(&average), "Display average (mean) sample size")
             ("percent,p", po::bool_switch(&percent), "Display percentage of total usage")
-            ("sort,S", po::value(&sort), "Sort output, valid values: \"default\", \"size\", \"avgSize\"")
+            ("sort,S", po::value(&sort), "Sort output, valid values: \"default\", \"size\", \"avgSize\", \"count\"")
             ("reverse,r", po::bool_switch(&reverse), "Reverse sort order")
             ("bitwidth,b", po::bool_switch(&showBitwidth), "Display timestamp/value encoding bit width distributions")
             ("filter,f", po::value(&filter), "Regex filter applied to metric family names");
@@ -91,6 +94,7 @@ struct params_t {
     bool total = false;
     bool summary = false;
     bool human = false;
+    bool count = false;
     bool average = false;
     bool percent = false;
     SortOrder sort = SortOrder::Default;
@@ -216,6 +220,10 @@ void printAggData(std::string_view key,
         }
     }
 
+    if (params.count) {
+        fmt::print(" {:>9}", value.sampleCount);
+    }
+
     auto getVal = [average = params.average](const auto& accData) -> double {
         if (average) {
             return accData.avgSampleSize();
@@ -226,6 +234,40 @@ void printAggData(std::string_view key,
 
     // print name
     fmt::print("  {}\n", key);
+}
+
+/**
+ * Print column headers.
+ *
+ * Formatting should match elements in printAggData
+ */
+void displayHeader(const params_t& params) {
+    // Value
+    fmt::print("{:<7}", "Disk");
+
+    // maybe print a percentage disk usage of the total
+    if (params.percent) {
+        fmt::print(" {:>7}%", "Disk");
+    }
+
+    // maybe print the average sample size
+    if (params.average) {
+        fmt::print(" {:>8}", "AvgSamp");
+
+        // maybe print the percentage of the overall average sample size
+        // useful for determining which time series are taking more bytes
+        // the overall average to encode each sample
+        if (params.percent) {
+            fmt::print(" {:>7}%", "AvgSamp");
+        }
+    }
+
+    if (params.count) {
+        fmt::print(" {:>9}", "Count");
+    }
+
+    // print name
+    fmt::print("  {}\n", "MetricFamily");
 }
 
 void printSampleHistograms(std::string_view key,
@@ -254,10 +296,14 @@ std::function<bool(Value, Value)> makeComparator(const params_t& params) {
         comparator = [](const auto& a, const auto& b) {
             return a.second.get().diskUsage < b.second.get().diskUsage;
         };
-    } else {
+    } else if (params.sort == SortOrder::AvgSize) {
         comparator = [](const auto& a, const auto& b) {
             return a.second.get().avgSampleSize() <
                    b.second.get().avgSampleSize();
+        };
+    } else {
+        comparator = [](const auto& a, const auto& b) {
+            return a.second.get().sampleCount < b.second.get().sampleCount;
         };
     }
 
@@ -268,30 +314,6 @@ std::function<bool(Value, Value)> makeComparator(const params_t& params) {
         };
     }
     return comparator;
-}
-
-void displayHeader(const params_t& params) {
-    // Value
-    fmt::print("{:<7}", "Disk");
-
-    // maybe print a percentage disk usage of the total
-    if (params.percent) {
-        fmt::print(" {:>7}%", "Disk");
-    }
-
-    // maybe print the average sample size
-    if (params.average) {
-        fmt::print(" {:>8}", "AvgSamp");
-
-        // maybe print the percentage of the overall average sample size
-        // useful for determining which time series are taking more bytes
-        // the overall average to encode each sample
-        if (params.percent) {
-            fmt::print(" {:>7}%", "AvgSamp");
-        }
-    }
-    // print name
-    fmt::print("  {}\n", "MetricFamily");
 }
 
 /**
