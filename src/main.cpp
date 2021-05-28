@@ -311,8 +311,11 @@ void display(const std::map<std::string, AccumulatedData, std::less<>>& data,
 }
 
 int main(int argc, char* argv[]) {
+    // parse command line args
     params_t params(argc, argv);
     if (!params.valid) {
+        // if parsing failed, a usage message will already have been printed.
+        // just exit now.
         return 1;
     }
 
@@ -320,6 +323,8 @@ int main(int argc, char* argv[]) {
 
     std::function<bool(const std::string&)> filter;
 
+    // create the filter - either accept everything or accept metric families
+    // matching the provided regex
     if (params.filter.empty()) {
         filter = [](const std::string& name) { return true; };
     } else {
@@ -333,6 +338,7 @@ int main(int argc, char* argv[]) {
     // std::less<> allows for hetrogenous lookup
     std::map<std::string, AccumulatedData, std::less<>> perSeriesValues;
 
+    // helper to get the accumulated data for a given metric family
     auto findSeries = [&perSeriesValues](const std::string& name) {
         auto itr = perSeriesValues.find(name);
 
@@ -344,6 +350,8 @@ int main(int argc, char* argv[]) {
     };
 
     // iterate over every chunk index in the provided directory
+    // see index.h/cc for index file parsing. IndexIterator
+    // just locates every index file and loads it.
     for (const auto& [index, subdir] : IndexIterator(dirPath)) {
         // Once a chunk file reference is encountered in the index, the
         // appropriate chunk file will be mmapped and inserted into the cache
@@ -355,29 +363,39 @@ int main(int argc, char* argv[]) {
             const auto& series = tableEntry.second;
             auto name = std::string(series.labels.at("__name__"));
 
+            // a regex filter may have been specified. Skip any non-matching
+            // metric families
             if (!filter(name)) {
                 continue;
             }
 
-            auto& data = findSeries(name)->second;
+            // get the value from the name->AccumulatedData map to
+            // store read data into
+            auto& acc = findSeries(name)->second;
 
+            // series in the index file specify references to chunk files
+            // by segment id and offset.
             for (const auto& chunk : series.chunks) {
                 // ChunkView parses the chunk start info, but will not read
                 // all samples unless they are iterated over.
                 ChunkView view(cache, chunk);
-                data.diskUsage += view.dataLen;
-                data.sampleCount += view.sampleCount;
+                acc.diskUsage += view.dataLen;
+                acc.sampleCount += view.sampleCount;
 
+                // iterating every sample is somewhat expensive, so only
+                // do so if needed for the requested output
                 if (params.showBitwidth) {
                     for (const auto& sample : view.samples()) {
-                        data.timestamps.record(sample.meta.timestampBitWidth);
-                        data.values.record(sample.meta.valueBitWidth);
+                        acc.timestamps.record(sample.meta.timestampBitWidth);
+                        acc.values.record(sample.meta.valueBitWidth);
                     }
                 }
             }
         }
     }
 
+    // finally, display the accumulated data according to the specified
+    // parameters
     display(perSeriesValues, params);
 
     return 0;
