@@ -60,6 +60,8 @@ struct params_t {
             ("sort,S", po::value(&sort), "Sort output, valid values: \"default\", \"size\", \"avgSize\", \"count\"")
             ("reverse,r", po::bool_switch(&reverse), "Reverse sort order")
             ("bitwidth,b", po::bool_switch(&showBitwidth), "Display timestamp/value encoding bit width distributions")
+            ("minbitwidth,m", po::bool_switch(&showMinBitwidth),
+                "Display minimum possible timestamp encoding bit width distributions (implies -b)")
             ("filter,f", po::value(&filter), "Regex filter applied to metric family names");
 
         pos_options.add("dir", 1);
@@ -90,6 +92,9 @@ struct params_t {
         if (summary) {
             total = true;
         }
+        if (showMinBitwidth) {
+            showBitwidth = true;
+        }
     }
     std::string statsDir = "";
     bool total = false;
@@ -101,6 +106,7 @@ struct params_t {
     SortOrder sort = SortOrder::Default;
     bool reverse = false;
     bool showBitwidth = false;
+    bool showMinBitwidth = false;
     std::string filter = "";
     bool valid = false;
 };
@@ -216,6 +222,11 @@ void printSampleHistograms(std::string_view key,
                            const params_t& params) {
     // print name
     fmt::print("{}\n", key);
+
+    if (params.showMinBitwidth) {
+        fmt::print("  Min Timestamp Bits\n");
+        hists.minTimestamps.print(params.percent, params.human);
+    }
 
     fmt::print("  Timestamps\n");
     hists.timestamps.print(params.percent, params.human);
