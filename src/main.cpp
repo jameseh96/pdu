@@ -280,7 +280,9 @@ void display(const std::map<std::string, AccumulatedData, std::less<>>& data,
     };
 
     // print header
-    displayHeader(params);
+    if (!params.showBitwidth) {
+        displayHeader(params);
+    }
 
     if (params.total) {
         print("<<Total>>", total);
