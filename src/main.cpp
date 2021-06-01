@@ -62,7 +62,7 @@ struct params_t {
             ("bitwidth,b", po::bool_switch(&showBitwidth), "Display timestamp/value encoding bit width distributions")
             ("minbitwidth,m", po::bool_switch(&showMinBitwidth),
                 "Display minimum possible timestamp encoding bit width distributions (implies -b)")
-            ("filter,f", po::value(&filter), "Regex filter applied to metric family names");
+            ("filter,f", po::value(&filter), "Regex (ECMASCript) filter applied to metric family names");
 
         pos_options.add("dir", 1);
         // clang-format on
@@ -342,7 +342,9 @@ int main(int argc, char* argv[]) {
     if (params.filter.empty()) {
         filter = [](const std::string& name) { return true; };
     } else {
-        filter = [re = std::regex(params.filter)](const std::string& name) {
+        filter = [re = std::regex(params.filter,
+                                  std::regex_constants::ECMAScript)](
+                         const std::string& name) {
             return bool(std::regex_match(name, re));
         };
     }
