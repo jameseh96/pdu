@@ -10,6 +10,7 @@ struct Sample {
     int64_t timestamp;
     double value;
     struct {
+        uint16_t minTimestampBitWidth = 64;
         uint16_t timestampBitWidth = 0;
         uint16_t valueBitWidth = 0;
     } meta;
@@ -23,7 +24,8 @@ struct SampleIterator : public generator_iterator<SampleIterator, Sample> {
 private:
     double readValue();
 
-    int64_t readTS();
+    /// return new TS, and raw DOD
+    std::pair<int64_t, int64_t> readTS();
     int64_t readTSDod();
 
     struct {

@@ -7,6 +7,15 @@ SampleIterator::SampleIterator(Decoder& dec, size_t sampleCount)
     advance();
 }
 
+uint8_t minBits(ssize_t value) {
+    if (value == 0) {
+        return 1;
+    }
+    auto v = std::abs((long long)value);
+    return (sizeof(v) * 8) - __builtin_clzll(v) +
+           /*sign bit */ (value < 0 ? 1 : 0);
+}
+
 bool SampleIterator::next(Sample& s) {
     if (currentIndex == sampleCount) {
         return false;
@@ -34,10 +43,12 @@ bool SampleIterator::next(Sample& s) {
             s.value = readValue();
         }
     } else {
+        int64_t dod = 0;
         {
             auto bc = bits.counter(s.meta.timestampBitWidth);
-            s.timestamp = readTS();
+            std::tie(s.timestamp, dod) = readTS();
         }
+        s.meta.minTimestampBitWidth = minBits(dod);
         {
             auto bc = bits.counter(s.meta.valueBitWidth);
             s.value = readValue();
@@ -48,11 +59,11 @@ bool SampleIterator::next(Sample& s) {
     return true;
 }
 
-int64_t SampleIterator::readTS() {
+std::pair<int64_t, int64_t> SampleIterator::readTS() {
     auto dod = readTSDod();
     prev.tsDelta += dod;
     prev.ts += prev.tsDelta;
-    return prev.ts;
+    return {prev.ts, dod};
 }
 
 int64_t SampleIterator::readTSDod() {

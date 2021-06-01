@@ -106,6 +106,7 @@ struct params_t {
 };
 
 struct AccumulatedData {
+    BitWidthHistogram minTimestamps;
     BitWidthHistogram timestamps;
     BitWidthHistogram values;
     size_t diskUsage = 0;
@@ -116,6 +117,7 @@ struct AccumulatedData {
     }
 
     AccumulatedData& operator+=(const AccumulatedData& other) {
+        minTimestamps += other.minTimestamps;
         timestamps += other.timestamps;
         values += other.values;
         diskUsage += other.diskUsage;
@@ -393,6 +395,8 @@ int main(int argc, char* argv[]) {
                 // do so if needed for the requested output
                 if (params.showBitwidth) {
                     for (const auto& sample : view.samples()) {
+                        acc.minTimestamps.record(
+                                sample.meta.minTimestampBitWidth);
                         acc.timestamps.record(sample.meta.timestampBitWidth);
                         acc.values.record(sample.meta.valueBitWidth);
                     }
