@@ -4,13 +4,19 @@
 #include "chunk_file_cache.h"
 #include "generator_iterator.h"
 
+#include <limits>
+
 class ChunkReference;
 
 struct Sample {
+    static constexpr uint16_t noBitWidth = std::numeric_limits<uint16_t>::max();
+
     int64_t timestamp;
     double value;
     struct {
-        uint16_t minTimestampBitWidth = 64;
+        // The first two sample timestamps are not encoded as delta-of-deltas.
+        // avoid including them in the minimal bit width breakdown.
+        uint16_t minTimestampBitWidth = noBitWidth;
         uint16_t timestampBitWidth = 0;
         uint16_t valueBitWidth = 0;
     } meta;
