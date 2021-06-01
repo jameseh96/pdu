@@ -170,14 +170,6 @@ void printAggData(std::string_view key,
         }
     }
 
-    auto getVal = [average = params.average](const auto& accData) -> double {
-        if (average) {
-            return accData.avgSampleSize();
-        } else {
-            return accData.diskUsage;
-        }
-    };
-
     // print name
     fmt::print("  {}\n", key);
 }
