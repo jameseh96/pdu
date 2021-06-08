@@ -2,6 +2,8 @@
 
 #include "index.h"
 
+#include <cmath>
+
 SampleIterator::SampleIterator(Decoder& dec, size_t sampleCount)
     : sampleCount(sampleCount), dec(dec), bits(dec) {
     advance();
@@ -11,9 +13,50 @@ uint8_t minBits(ssize_t value) {
     if (value == 0) {
         return 1;
     }
+    /* iterative equivalent:
+     *  for (int nbits = 2; nbits < 64; ++nbits) {
+     *    if (-((1 << (nbits - 1)) - 1) <= value
+     *                                  && value <= (1 << (nbits - 1))) {
+     *       return nbits;
+     *    }
+     *  }
+     */
+
     auto v = std::abs((long long)value);
-    return (sizeof(v) * 8) - __builtin_clzll(v) +
-           /*sign bit */ (value < 0 ? 1 : 0);
+
+    /*
+     * example:
+     * minBits(4) -> 3
+     * unlike typical 2's complement, prometheus _can_ encode 4 with 3 bits
+     * 0b000 = 0
+     * 0b001 = 1
+     * 0b010 = 2
+     * 0b011 = 3
+     * 0b100 = 4, ceil(log2(0b100,     2)) + 1 = 2 + 1 = 3
+     * 0b101 = -3 ceil(log2(0b011 + 1, 2)) + 1 = 2 + 1 = 3
+     * 0b110 = -2
+     * 0b111 = -1
+     *
+     * normally 0b100 would encode -4, but prometheus specifically uses this
+     * as the highest positive value, 4.
+     * when reading:
+     * https://github.com/prometheus/prometheus/blob/release-2.26/tsdb/chunkenc/xor.go#L375
+     * when determining if a value will fit in nbits:
+     * https://github.com/prometheus/prometheus/blob/release-2.26/tsdb/chunkenc/xor.go#L203
+     */
+    auto bits =
+            uint8_t(std::ceil(value > 0 ? std::log2(v) : std::log2(v + 1)) + 1);
+
+    // A one-bit size category would only encode the value 1; 0 is always
+    // encoded as 0b0 by Prometheus.
+    // Assuming 1 is not frequent enough to warrant its own size category,
+    // for all non-zero values the minimum number of bits to encode
+    // is considered to be 2,
+    // This leads to the smallest possible non-zero value range being
+    // -1(0b11) <= x <= 2 (0b10)
+    bits = std::max(bits, uint8_t(2));
+
+    return bits;
 }
 
 bool SampleIterator::next(Sample& s) {
