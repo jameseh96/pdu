@@ -1,8 +1,10 @@
 #pragma once
 
+#include <cstring>
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <string_view>
 #include <utility>
 
 template <class T>
@@ -85,4 +87,57 @@ public:
 
 private:
     std::istream& stream;
+};
+
+class ArrayDecoder : public Decoder {
+public:
+    ArrayDecoder() = default;
+    ArrayDecoder(const char* data, size_t size)
+        : view(data, size), subview(view) {
+    }
+    using Decoder::seek;
+
+    Decoder& seek(size_t offset, std::ios_base::seekdir seekdir) override {
+        switch (seekdir) {
+        case std::ios_base::cur:
+            subview = subview.substr(offset);
+            break;
+        case std::ios_base::beg:
+            subview = view.substr(offset);
+            break;
+        case std::ios_base::end:
+            subview = view.substr(view.size() + offset);
+            break;
+        default:
+            // Linux complains about unhandled _S_ios_seekdir_end
+            // default case to silence it
+            throw std::logic_error("Unknown seekdir");
+        }
+
+        return *this;
+    }
+
+    size_t tell() override {
+        return subview.data() - view.data();
+    }
+
+    Decoder& read(char* dest, size_t count) override {
+        if (count > subview.size()) {
+            throw std::runtime_error("read: too few left");
+        }
+        memcpy(dest, subview.data(), count);
+        subview.remove_prefix(count);
+        return *this;
+    }
+
+    char peek() override {
+        if (subview.empty()) {
+            throw std::runtime_error("peek: no bytes left");
+        }
+        return subview[0];
+    }
+
+private:
+    std::string_view view;
+    std::string_view subview;
 };

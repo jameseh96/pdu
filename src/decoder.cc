@@ -97,6 +97,6 @@ std::string Decoder::read(size_t count) {
 }
 
 Decoder& Decoder::seek(size_t offset) {
-    seek(offset, std::ios_base::seekdir::beg);
+    seek(offset, std::ios_base::beg);
     return *this;
 }

@@ -14,14 +14,14 @@ FileMap::FileMap(const boost::filesystem::path& fileName) {
 
     char* data = static_cast<char*>(addr);
 
-    // point the stream at the mapped data
-    stream.open({data, size});
+    // point the decoder at the mapped data
+    decoder = {data, size};
 }
 
-std::istream& FileMap::operator*() {
-    return stream;
+Decoder& FileMap::operator*() {
+    return decoder;
 }
 
-std::istream& FileMap::getStream() {
-    return stream;
+Decoder& FileMap::get() {
+    return decoder;
 }

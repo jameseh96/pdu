@@ -1,5 +1,7 @@
 #pragma once
 
+#include "decoder.h"
+
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
 #include <boost/iostreams/stream.hpp>
@@ -22,12 +24,12 @@ class FileMap {
 public:
     FileMap(const boost::filesystem::path& fileName);
 
-    std::istream& operator*();
+    Decoder& operator*();
 
-    std::istream& getStream();
+    Decoder& get();
 
 private:
     file_mapping mappedFile;
     mapped_region region;
-    io::stream<io::array_source> stream;
+    ArrayDecoder decoder;
 };

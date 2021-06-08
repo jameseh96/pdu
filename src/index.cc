@@ -132,7 +132,7 @@ void Index::load(Decoder& dec) {
 
 Index loadIndex(const std::string& fname) {
     FileMap fmap(fname);
-    StreamDecoder indexDec(*fmap);
+    auto& indexDec = *fmap;
 
     Index index;
     index.load(indexDec);

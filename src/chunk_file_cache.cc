@@ -7,9 +7,9 @@
 ChunkFileCache::ChunkFileCache(boost::filesystem::path chunkDir)
     : chunkDir(std::move(chunkDir)) {
 }
-std::istream& ChunkFileCache::get(uint32_t segmentId) {
+Decoder& ChunkFileCache::get(uint32_t segmentId) {
     if (auto itr = cache.find(segmentId); itr != cache.end()) {
-        return itr->second->getStream();
+        return itr->second->get();
     }
 
     auto path = chunkDir / fmt::format("{:0>6}", segmentId);
@@ -20,5 +20,5 @@ std::istream& ChunkFileCache::get(uint32_t segmentId) {
     auto res = cache.try_emplace(segmentId, std::make_shared<FileMap>(path));
     auto itr = res.first;
 
-    return itr->second->getStream();
+    return itr->second->get();
 }

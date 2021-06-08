@@ -1,5 +1,7 @@
 #pragma once
 
+#include "decoder.h"
+
 #include <boost/filesystem.hpp>
 #include <fstream>
 #include <map>
@@ -10,7 +12,7 @@ class FileMap;
 class ChunkFileCache {
 public:
     ChunkFileCache(boost::filesystem::path chunkDir);
-    std::istream& get(uint32_t segmentId);
+    Decoder& get(uint32_t segmentId);
 
 private:
     const boost::filesystem::path chunkDir;
