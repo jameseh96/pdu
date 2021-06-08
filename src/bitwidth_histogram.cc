@@ -4,30 +4,32 @@
 
 #include <fmt/format.h>
 
-void BitWidthHistogram::record(uint16_t value) {
+void BitWidthHistogram::record(uint8_t value) {
     ++values[value];
 }
 
 size_t BitWidthHistogram::totalSize() const {
     size_t total = 0;
-    for (const auto& [size, count] : values) {
-        total += size * count;
+    int index = 0;
+    for (auto count : values) {
+        total += index++ * count;
     }
     return total;
 }
 
 size_t BitWidthHistogram::count() const {
     size_t total = 0;
-    for (const auto& pair : values) {
-        total += pair.second;
+    for (auto count : values) {
+        total += count;
     }
     return total;
 }
 
 BitWidthHistogram& BitWidthHistogram::operator+=(
         const BitWidthHistogram& other) {
-    for (const auto& [size, count] : other.values) {
-        values[size] += count;
+    int index = 0;
+    for (auto count : other.values) {
+        values[index++] += count;
     }
     return *this;
 }
@@ -35,10 +37,10 @@ BitWidthHistogram& BitWidthHistogram::operator+=(
 void BitWidthHistogram::print(bool percent, bool human) const {
     size_t totalCount = 0;
     size_t totalSize = 0;
-
-    for (const auto& [size, count] : values) {
+    int index = 0;
+    for (auto count : values) {
         totalCount += count;
-        totalSize += size * count;
+        totalSize += index++ * count;
     }
     fmt::print("  total size: ");
     if (human) {
@@ -48,7 +50,12 @@ void BitWidthHistogram::print(bool percent, bool human) const {
         fmt::print("{:<7}", totalSize);
     }
     fmt::print("\n");
-    for (const auto& [bits, count] : values) {
+    index = 0;
+    for (auto count : values) {
+        auto bits = index++;
+        if (!count) {
+            continue;
+        }
         fmt::print("    {:>2}b: {:>10}", bits, count);
         if (percent) {
             fmt::print(" {:>7.2f}% count, {:>7.2f}% size",

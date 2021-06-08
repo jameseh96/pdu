@@ -1,14 +1,15 @@
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
-#include <map>
+#include <limits>
 
 struct BitWidthHistogram {
     /**
      * Record a single value in the histogram.
      */
-    void record(uint16_t value);
+    void record(uint8_t value);
 
     /**
      * Get the total number of bits recorded.
@@ -34,5 +35,5 @@ struct BitWidthHistogram {
      */
     void print(bool percent = false, bool human = false) const;
 
-    std::map<uint16_t, uint64_t> values;
+    std::array<uint64_t, std::numeric_limits<uint8_t>::max()> values;
 };
