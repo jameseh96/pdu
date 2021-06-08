@@ -39,7 +39,7 @@ bool BitDecoder::readBit() {
 }
 
 size_t BitDecoder::tell() const {
-    return size_t(dec.tellg()) * 8 - remainingBits;
+    return size_t(dec.tell()) * 8 - remainingBits;
 }
 
 BitCounter BitDecoder::counter(uint16_t& dest) const {

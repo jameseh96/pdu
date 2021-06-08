@@ -182,7 +182,7 @@ double SampleIterator::readValue() {
 
 ChunkView::ChunkView(ChunkFileCache& cfc, const ChunkReference& chunkRef)
     : dec(cfc.get(chunkRef.getSegmentFileId())) {
-    dec.seekg(chunkRef.getOffset());
+    dec.seek(chunkRef.getOffset());
     dataLen = dec.read_varuint();
 
     auto encoding = dec.read_int<uint8_t>();
@@ -192,5 +192,5 @@ ChunkView::ChunkView(ChunkFileCache& cfc, const ChunkReference& chunkRef)
     }
 
     sampleCount = dec.read_int<uint16_t>();
-    dataOffset = dec.tellg();
+    dataOffset = dec.tell();
 }

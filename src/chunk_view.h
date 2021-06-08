@@ -62,5 +62,5 @@ public:
 
     size_t sampleCount;
 
-    Decoder dec;
+    StreamDecoder dec;
 };

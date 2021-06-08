@@ -45,17 +45,19 @@ uint64_t to_host(uint64_t v) {
 }
 #endif
 
+Decoder::~Decoder() = default;
+
 uint64_t Decoder::read_varuint() {
     uint8_t byte;
 
-    stream.read(reinterpret_cast<char*>(&byte), 1);
+    read(reinterpret_cast<char*>(&byte), 1);
     if (byte < 128) {
         return byte;
     }
     uint64_t value = byte & 0x7f;
     unsigned shift = 7;
     do {
-        stream.read(reinterpret_cast<char*>(&byte), 1);
+        read(reinterpret_cast<char*>(&byte), 1);
         value |= uint64_t(byte & 0x7f) << shift;
         shift += 7;
     } while (byte >= 128);
@@ -72,29 +74,29 @@ uint64_t Decoder::read_varint() {
 }
 
 void Decoder::consume_null() {
-    while (stream.peek() == 0) {
-        stream.get();
+    while (peek() == 0) {
+        seek(1, std::ios_base::cur);
     }
 }
 
 size_t Decoder::consume_to_alignment(size_t alignment) {
-    auto pos = stream.tellg();
+    auto pos = tell();
     auto remainder = pos % alignment;
     if (!remainder) {
         return pos;
     }
-    stream.seekg(16 - remainder, std::ios_base::cur);
-    return stream.tellg();
-}
-
-Decoder& Decoder::read(char* dest, size_t count) {
-    stream.read(dest, count);
-    return *this;
+    seek(16 - remainder, std::ios_base::cur);
+    return tell();
 }
 
 std::string Decoder::read(size_t count) {
     std::string value;
     value.resize(count);
-    stream.read(value.data(), count);
+    read(value.data(), count);
     return value;
+}
+
+Decoder& Decoder::seek(size_t offset) {
+    seek(offset, std::ios_base::seekdir::beg);
+    return *this;
 }

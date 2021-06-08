@@ -102,7 +102,7 @@ void SeriesTable::load(Decoder& dec,
                        const SymbolTable& symbols,
                        size_t expectedEnd) {
     while (dec.consume_to_alignment(16) < expectedEnd) {
-        auto offset = dec.tellg();
+        auto offset = dec.tell();
         size_t id = offset / 16;
         Series s;
         s.load(dec, symbols);
@@ -111,7 +111,7 @@ void SeriesTable::load(Decoder& dec,
 }
 
 void Index::load(Decoder& dec) {
-    dec.seekg(-(8 * 6 + 4), std::ios::end);
+    dec.seek(-(8 * 6 + 4), std::ios::end);
 
     toc.load(dec);
 
@@ -119,20 +119,20 @@ void Index::load(Decoder& dec) {
         throw std::runtime_error("No symbol table in index file");
     }
 
-    dec.seekg(toc.symbol_offset);
+    dec.seek(toc.symbol_offset);
     symbols.load(dec);
 
     if (!toc.series_offset) {
         throw std::runtime_error("No series in index file");
     }
 
-    dec.seekg(toc.series_offset);
+    dec.seek(toc.series_offset);
     series.load(dec, symbols, toc.label_indices_offset);
 }
 
 Index loadIndex(const std::string& fname) {
     FileMap fmap(fname);
-    Decoder indexDec(*fmap);
+    StreamDecoder indexDec(*fmap);
 
     Index index;
     index.load(indexDec);
