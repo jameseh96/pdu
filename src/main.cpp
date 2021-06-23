@@ -1,11 +1,11 @@
-#include "bitwidth_histogram.h"
-#include "chunk_file_cache.h"
-#include "chunk_view.h"
-#include "decoder.h"
-#include "display_units.h"
-#include "file_map.h"
-#include "index.h"
-#include "index_iterator.h"
+#include "display/bitwidth_histogram.h"
+#include "display/display_units.h"
+#include "io/chunk_file_cache.h"
+#include "io/chunk_view.h"
+#include "io/decoder.h"
+#include "io/file_map.h"
+#include "io/index.h"
+#include "io/index_iterator.h"
 
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>

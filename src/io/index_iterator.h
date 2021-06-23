@@ -1,7 +1,7 @@
 #pragma once
 
-#include "generator_iterator.h"
 #include "index.h"
+#include "util/generator_iterator.h"
 
 #include <boost/filesystem.hpp>
 

@@ -2,7 +2,7 @@
 
 #include "bit_decoder.h"
 #include "chunk_file_cache.h"
-#include "generator_iterator.h"
+#include "util/generator_iterator.h"
 
 #include <limits>
 

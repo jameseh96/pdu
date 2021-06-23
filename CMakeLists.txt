@@ -27,13 +27,15 @@ find_package(fmt REQUIRED)
 
 add_executable(pdu
         src/main.cpp
-        src/decoder.cc
-        src/index.cc
-        src/chunk_file_cache.cc
-        src/chunk_view.cc
-        src/bit_decoder.cc
-        src/file_map.cc
-        src/index_iterator.cc
-        src/bitwidth_histogram.cc)
+        src/io/decoder.cc
+        src/io/index.cc
+        src/io/chunk_file_cache.cc
+        src/io/chunk_view.cc
+        src/io/bit_decoder.cc
+        src/io/file_map.cc
+        src/io/index_iterator.cc
+        src/display/bitwidth_histogram.cc)
+
+target_include_directories(pdu PRIVATE src/)
 
 target_link_libraries(pdu PUBLIC Boost::boost Boost::program_options Boost::filesystem fmt::fmt)
