@@ -55,11 +55,11 @@ public:
 
     Decoder& seek(size_t offset, std::ios_base::seekdir seekdir);
 
-    size_t tell();
+    size_t tell() const;
 
     Decoder& read(char* dest, size_t count);
 
-    char peek();
+    char peek() const;
 
 private:
     std::string_view view;

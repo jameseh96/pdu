@@ -119,7 +119,7 @@ Decoder& Decoder::seek(size_t offset, std::ios_base::seekdir seekdir) {
     return *this;
 }
 
-size_t Decoder::tell() {
+size_t Decoder::tell() const {
     return subview.data() - view.data();
 }
 
@@ -132,7 +132,7 @@ Decoder& Decoder::read(char* dest, size_t count) {
     return *this;
 }
 
-char Decoder::peek() {
+char Decoder::peek() const {
     if (subview.empty()) {
         throw std::runtime_error("peek: no bytes left");
     }
