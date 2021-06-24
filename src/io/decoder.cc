@@ -45,8 +45,6 @@ uint64_t to_host(uint64_t v) {
 }
 #endif
 
-Decoder::~Decoder() = default;
-
 uint64_t Decoder::read_varuint() {
     uint8_t byte;
 

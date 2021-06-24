@@ -24,7 +24,9 @@ uint64_t to_host(uint64_t v);
 
 class Decoder {
 public:
-    virtual ~Decoder();
+    Decoder() = default;
+    Decoder(const char* data, size_t size) : view(data, size), subview(view) {
+    }
 
     uint64_t read_varuint();
     uint64_t read_varint();
@@ -51,53 +53,7 @@ public:
 
     Decoder& seek(size_t offset);
 
-    // interface to be implemented by subtypes
-    virtual Decoder& seek(size_t offset, std::ios_base::seekdir seekdir) = 0;
-
-    virtual size_t tell() = 0;
-
-    virtual Decoder& read(char* dest, size_t count) = 0;
-
-    virtual char peek() = 0;
-};
-
-class StreamDecoder : public Decoder {
-public:
-    StreamDecoder(std::istream& stream) : stream(stream) {
-    }
-    using Decoder::seek;
-
-    Decoder& seek(size_t offset, std::ios_base::seekdir seekdir) override {
-        stream.seekg(offset, seekdir);
-        return *this;
-    }
-
-    size_t tell() override {
-        return stream.tellg();
-    }
-
-    Decoder& read(char* dest, size_t count) override {
-        stream.read(dest, count);
-        return *this;
-    }
-
-    char peek() override {
-        return stream.peek();
-    }
-
-private:
-    std::istream& stream;
-};
-
-class ArrayDecoder : public Decoder {
-public:
-    ArrayDecoder() = default;
-    ArrayDecoder(const char* data, size_t size)
-        : view(data, size), subview(view) {
-    }
-    using Decoder::seek;
-
-    Decoder& seek(size_t offset, std::ios_base::seekdir seekdir) override {
+    Decoder& seek(size_t offset, std::ios_base::seekdir seekdir) {
         switch (seekdir) {
         case std::ios_base::cur:
             subview = subview.substr(offset);
@@ -117,11 +73,11 @@ public:
         return *this;
     }
 
-    size_t tell() override {
+    size_t tell() {
         return subview.data() - view.data();
     }
 
-    Decoder& read(char* dest, size_t count) override {
+    Decoder& read(char* dest, size_t count) {
         if (count > subview.size()) {
             throw std::runtime_error("read: too few left");
         }
@@ -130,7 +86,7 @@ public:
         return *this;
     }
 
-    char peek() override {
+    char peek() {
         if (subview.empty()) {
             throw std::runtime_error("peek: no bytes left");
         }

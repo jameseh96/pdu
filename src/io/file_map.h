@@ -31,5 +31,5 @@ public:
 private:
     file_mapping mappedFile;
     mapped_region region;
-    ArrayDecoder decoder;
+    Decoder decoder;
 };
