@@ -47,8 +47,8 @@ private:
     BitDecoder bits;
 };
 
-// non-copying type, caller must ensure the cached chunk file handle
-// outlives a ChunkView instance
+// non-copying type. Holds a shared_ptr to the resource to ensure it
+// lives as long as it is being used.
 class ChunkView {
 public:
     ChunkView(ChunkFileCache& cfc, const ChunkReference& chunkRef);
@@ -62,5 +62,7 @@ public:
 
     size_t sampleCount;
 
-    Decoder& dec;
+private:
+    std::shared_ptr<Resource> res;
+    Decoder dec;
 };

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "resource.h"
+
 #include <map>
 #include <string>
 #include <string_view>
@@ -62,7 +64,10 @@ struct Index {
     SeriesTable series;
     TOC toc;
 
-    void load(Decoder& dec);
+    void load(std::shared_ptr<Resource> resource);
+
+private:
+    std::shared_ptr<Resource> resource;
 };
 
 Index loadIndex(const std::string& fname);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "decoder.h"
+#include "resource.h"
 
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
@@ -15,21 +16,20 @@ class path;
 }
 
 /**
- * Container for an mmapped file, exposing an std::istream.
- *
- * Designed to allow the easy substitution of a mapped file in place of
- * an ifstream.
+ * Container for an mmapped file.
  */
-class FileMap {
-public:
-    FileMap(const boost::filesystem::path& fileName);
+struct MappedFileResource : public Resource {
+    MappedFileResource(const std::string& fname);
+    MappedFileResource(const boost::filesystem::path& fileName);
 
-    Decoder& operator*();
-
-    Decoder& get();
+    Decoder get() const override {
+        return {data};
+    }
 
 private:
     file_mapping mappedFile;
     mapped_region region;
-    Decoder decoder;
+    std::string_view data;
 };
+
+std::shared_ptr<Resource> map_file(const std::string& fileName);

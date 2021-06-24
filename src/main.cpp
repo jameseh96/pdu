@@ -3,9 +3,9 @@
 #include "io/chunk_file_cache.h"
 #include "io/chunk_view.h"
 #include "io/decoder.h"
-#include "io/file_map.h"
 #include "io/index.h"
 #include "io/index_iterator.h"
+#include "io/mapped_file.h"
 
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>

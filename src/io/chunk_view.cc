@@ -181,7 +181,7 @@ double SampleIterator::readValue() {
 }
 
 ChunkView::ChunkView(ChunkFileCache& cfc, const ChunkReference& chunkRef)
-    : dec(cfc.get(chunkRef.getSegmentFileId())) {
+    : res(cfc.get(chunkRef.getSegmentFileId())), dec(res->get()) {
     dec.seek(chunkRef.getOffset());
     dataLen = dec.read_varuint();
 

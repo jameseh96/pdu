@@ -1,7 +1,7 @@
 #include "index.h"
 
 #include "decoder.h"
-#include "file_map.h"
+#include "mapped_file.h"
 
 #include <boost/filesystem.hpp>
 
@@ -110,7 +110,9 @@ void SeriesTable::load(Decoder& dec,
     }
 }
 
-void Index::load(Decoder& dec) {
+void Index::load(std::shared_ptr<Resource> res) {
+    resource = std::move(res);
+    Decoder dec(resource->get());
     dec.seek(-(8 * 6 + 4), std::ios::end);
 
     toc.load(dec);
@@ -131,10 +133,9 @@ void Index::load(Decoder& dec) {
 }
 
 Index loadIndex(const std::string& fname) {
-    FileMap fmap(fname);
-    auto& indexDec = *fmap;
+    auto resource = map_file(fname);
 
     Index index;
-    index.load(indexDec);
+    index.load(resource);
     return index;
 }

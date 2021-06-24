@@ -32,9 +32,9 @@ add_executable(pdu
         src/io/chunk_file_cache.cc
         src/io/chunk_view.cc
         src/io/bit_decoder.cc
-        src/io/file_map.cc
+        src/io/mapped_file.cc
         src/io/index_iterator.cc
-        src/display/bitwidth_histogram.cc)
+        src/display/bitwidth_histogram.cc src/io/resource.cc)
 
 target_include_directories(pdu PRIVATE src/)
 
