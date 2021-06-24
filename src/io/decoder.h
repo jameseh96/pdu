@@ -53,45 +53,13 @@ public:
 
     Decoder& seek(size_t offset);
 
-    Decoder& seek(size_t offset, std::ios_base::seekdir seekdir) {
-        switch (seekdir) {
-        case std::ios_base::cur:
-            subview = subview.substr(offset);
-            break;
-        case std::ios_base::beg:
-            subview = view.substr(offset);
-            break;
-        case std::ios_base::end:
-            subview = view.substr(view.size() + offset);
-            break;
-        default:
-            // Linux complains about unhandled _S_ios_seekdir_end
-            // default case to silence it
-            throw std::logic_error("Unknown seekdir");
-        }
+    Decoder& seek(size_t offset, std::ios_base::seekdir seekdir);
 
-        return *this;
-    }
+    size_t tell();
 
-    size_t tell() {
-        return subview.data() - view.data();
-    }
+    Decoder& read(char* dest, size_t count);
 
-    Decoder& read(char* dest, size_t count) {
-        if (count > subview.size()) {
-            throw std::runtime_error("read: too few left");
-        }
-        memcpy(dest, subview.data(), count);
-        subview.remove_prefix(count);
-        return *this;
-    }
-
-    char peek() {
-        if (subview.empty()) {
-            throw std::runtime_error("peek: no bytes left");
-        }
-        return subview[0];
-    }
+    char peek();
 
 private:
     std::string_view view;
