@@ -25,7 +25,10 @@ uint64_t to_host(uint64_t v);
 class Decoder {
 public:
     Decoder() = default;
-    Decoder(const char* data, size_t size) : view(data, size), subview(view) {
+    Decoder(const char* data, size_t size)
+        : Decoder(std::string_view(data, size)) {
+    }
+    Decoder(std::string_view view) : view(view), subview(view) {
     }
 
     uint64_t read_varuint();
