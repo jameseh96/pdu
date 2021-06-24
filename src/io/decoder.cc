@@ -45,6 +45,10 @@ uint64_t to_host(uint64_t v) {
 }
 #endif
 
+Decoder Decoder::substr(size_t pos, size_t count) const {
+    return {view.substr(pos, count)};
+}
+
 uint64_t Decoder::read_varuint() {
     uint8_t byte;
 

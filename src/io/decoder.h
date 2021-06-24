@@ -31,6 +31,8 @@ public:
     Decoder(std::string_view view) : view(view), subview(view) {
     }
 
+    Decoder substr(size_t pos = 0, size_t count = std::string_view::npos) const;
+
     uint64_t read_varuint();
     uint64_t read_varint();
 
