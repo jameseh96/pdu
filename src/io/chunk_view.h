@@ -2,7 +2,7 @@
 
 #include "bit_decoder.h"
 #include "chunk_file_cache.h"
-#include "util/generator_iterator.h"
+#include "util/iterator_facade.h"
 
 #include <limits>
 
@@ -22,10 +22,19 @@ struct Sample {
     } meta;
 };
 
-struct SampleIterator : public generator_iterator<SampleIterator, Sample> {
+struct SampleIterator : public iterator_facade<SampleIterator, Sample> {
     SampleIterator(Decoder& dec, size_t sampleCount);
 
     bool next(Sample& s);
+
+    void increment();
+    const Sample& dereference() const {
+        return s;
+    }
+
+    bool is_end() const {
+        return currentIndex == sampleCount;
+    }
 
 private:
     double readValue();
@@ -41,10 +50,12 @@ private:
         uint8_t leading;
         uint8_t trailing;
     } prev;
-    size_t currentIndex = 0;
+    ssize_t currentIndex = -1;
     size_t sampleCount;
     Decoder& dec;
     BitDecoder bits;
+
+    Sample s;
 };
 
 // non-copying type. Holds a shared_ptr to the resource to ensure it

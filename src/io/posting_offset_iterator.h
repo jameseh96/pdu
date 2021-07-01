@@ -1,7 +1,7 @@
 #pragma once
 
 #include "decoder.h"
-#include "util/generator_iterator.h"
+#include "util/iterator_facade.h"
 
 struct PostingOffset {
     std::string_view labelKey;
@@ -12,14 +12,23 @@ struct PostingOffset {
 };
 
 class PostingOffsetIterator
-    : public generator_iterator<PostingOffsetIterator, PostingOffset> {
+    : public iterator_facade<PostingOffsetIterator, PostingOffset> {
 public:
     PostingOffsetIterator(Decoder dec, size_t count);
 
-    bool next(PostingOffset& postingOffset);
+    void increment();
+
+    const PostingOffset& dereference() const {
+        return postingOffset;
+    }
+
+    bool is_end() const {
+        return currentIndex == count;
+    }
 
 private:
+    PostingOffset postingOffset;
     Decoder dec;
     size_t count;
-    ssize_t currentIndex = 0;
+    ssize_t currentIndex = -1;
 };

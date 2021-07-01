@@ -18,11 +18,9 @@ PostingOffsetIterator::PostingOffsetIterator(Decoder dec, size_t count)
     advance();
 }
 
-bool PostingOffsetIterator::next(PostingOffset& postingOffset) {
-    if (currentIndex == count) {
-        return false;
-    }
-    postingOffset.load(dec);
+void PostingOffsetIterator::increment() {
     ++currentIndex;
-    return true;
+    if (!is_end()) {
+        postingOffset.load(dec);
+    }
 }

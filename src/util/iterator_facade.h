@@ -30,7 +30,7 @@ struct EndSentinel {};
  *
  */
 template <class Derived, class ValueType>
-class generator_iterator {
+class iterator_facade {
 public:
     using iterator_category = std::input_iterator_tag;
     using value_type = ValueType;
@@ -38,47 +38,52 @@ public:
     using pointer = value_type*;
     using reference = value_type&;
 
-    generator_iterator& operator++() {
+    iterator_facade& operator++() {
         advance();
         return *this;
     }
 
+    Derived& derived() {
+        return static_cast<Derived&>(*this);
+    }
+
+    const Derived& derived() const {
+        return static_cast<const Derived&>(*this);
+    }
+
     void advance() {
-        if (!finished) {
-            finished = !static_cast<Derived&>(*this).next(currentValue);
-        }
+        derived().increment();
     }
 
     const value_type& operator*() const {
-        return currentValue;
+        return derived().dereference();
     }
 
     const value_type* operator->() const {
-        return &currentValue;
+        return &derived().dereference();
     }
 
     bool operator==(const EndSentinel& sentinel) const {
-        return finished;
+        return finished();
     }
     bool operator!=(const EndSentinel& other) const {
         return !(*this == other);
     }
 
-protected:
-    generator_iterator() = default;
+    bool finished() const {
+        return derived().is_end();
+    }
 
-private:
-    value_type currentValue{};
-    bool finished = false;
+protected:
+    iterator_facade() = default;
 };
 
 template <class Derived, class ValueType>
-const Derived& begin(
-        const generator_iterator<Derived, ValueType>& itr) noexcept {
+const Derived& begin(const iterator_facade<Derived, ValueType>& itr) noexcept {
     return static_cast<const Derived&>(itr);
 }
 
 template <class Derived, class ValueType>
-EndSentinel end(const generator_iterator<Derived, ValueType>& itr) noexcept {
+EndSentinel end(const iterator_facade<Derived, ValueType>& itr) noexcept {
     return {};
 }

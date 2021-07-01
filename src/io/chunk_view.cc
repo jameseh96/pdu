@@ -59,10 +59,8 @@ uint8_t minBits(ssize_t value) {
     return bits;
 }
 
-bool SampleIterator::next(Sample& s) {
-    if (currentIndex == sampleCount) {
-        return false;
-    }
+void SampleIterator::increment() {
+    ++currentIndex;
     if (currentIndex == 0) {
         {
             auto bc = bits.counter(s.meta.timestampBitWidth);
@@ -97,9 +95,6 @@ bool SampleIterator::next(Sample& s) {
             s.value = readValue();
         }
     }
-
-    ++currentIndex;
-    return true;
 }
 
 std::pair<int64_t, int64_t> SampleIterator::readTS() {

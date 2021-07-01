@@ -4,24 +4,25 @@
 
 IndexIterator::IndexIterator(const boost::filesystem::path& path)
     : dirIter(path) {
-    advance();
+    advanceToValidIndex();
 }
 
-bool IndexIterator::next(Index& index) {
+void IndexIterator::increment() {
+    ++dirIter;
+    advanceToValidIndex();
+}
+
+void IndexIterator::advanceToValidIndex() {
     namespace fs = boost::filesystem;
     while (dirIter != end(dirIter)) {
         const auto& file = *dirIter;
         const auto& subdir = file.path();
         const auto& indexFile = subdir / "index";
-        if (!fs::is_regular_file(indexFile)) {
-            ++dirIter;
-            continue;
+        if (fs::is_regular_file(indexFile)) {
+            index = loadIndex(indexFile.string());
+            break;
         }
 
-        index = loadIndex(indexFile.string());
         ++dirIter;
-        return true;
     }
-
-    return false;
 }
