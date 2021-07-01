@@ -19,14 +19,18 @@ class path;
  * Container for an mmapped file.
  */
 struct MappedFileResource : public Resource {
-    MappedFileResource(const std::string& fname);
     MappedFileResource(const boost::filesystem::path& fileName);
 
     Decoder get() const override {
         return {data};
     }
 
+    const std::string& getDirectory() const override {
+        return directory;
+    }
+
 private:
+    std::string directory;
     file_mapping mappedFile;
     mapped_region region;
     std::string_view data;

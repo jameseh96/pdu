@@ -6,6 +6,7 @@
 #include "io/index.h"
 #include "io/index_iterator.h"
 #include "io/mapped_file.h"
+#include "query/series_filter.h"
 
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
@@ -368,7 +369,9 @@ int main(int argc, char* argv[]) {
     // iterate over every chunk index in the provided directory
     // see index.h/cc for index file parsing. IndexIterator
     // just locates every index file and loads it.
-    for (const auto& [index, subdir] : IndexIterator(dirPath)) {
+    for (const auto& index : IndexIterator(dirPath)) {
+        fs::path subdir = index.getDirectory();
+
         // Once a chunk file reference is encountered in the index, the
         // appropriate chunk file will be mmapped and inserted into the cache
         // as they are likely to be used again.

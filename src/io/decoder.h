@@ -56,6 +56,8 @@ public:
 
     std::string read(size_t count);
 
+    std::string_view read_view(size_t count);
+
     Decoder& seek(size_t offset);
 
     Decoder& seek(size_t offset, std::ios_base::seekdir seekdir);

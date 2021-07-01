@@ -98,6 +98,12 @@ std::string Decoder::read(size_t count) {
     return value;
 }
 
+std::string_view Decoder::read_view(size_t count) {
+    auto value = subview.substr(0, count);
+    subview.remove_prefix(count);
+    return value;
+}
+
 Decoder& Decoder::seek(size_t offset) {
     seek(offset, std::ios_base::beg);
     return *this;

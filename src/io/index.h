@@ -2,7 +2,10 @@
 
 #include "resource.h"
 
+#include "posting_offset_iterator.h"
+
 #include <map>
+#include <set>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -45,6 +48,13 @@ struct Series {
     void load(Decoder& dec, const SymbolTable& symbols);
 };
 
+inline std::ostream& operator<<(std::ostream& os, const Series& s) {
+    for (const auto& [k, v] : s.labels) {
+        os << "    " << k << " " << v << std::endl;
+    }
+    return os;
+}
+
 struct SeriesTable {
     std::map<uint64_t, Series> series;
 
@@ -57,14 +67,51 @@ struct SeriesTable {
     auto end() const {
         return series.end();
     }
+
+    const auto& at(uint64_t k) const {
+        return series.at(k);
+    }
+
+    auto find(uint64_t k) const {
+        return series.find(k);
+    }
+};
+
+struct Posting {
+    Posting(Decoder dec);
+    std::set<size_t> seriesReferences;
+};
+
+struct PostingOffsetTable {
+    void load(Decoder dec);
+
+    PostingOffsetIterator begin() const;
+    EndSentinel end() const {
+        return {};
+    };
+
+private:
+    uint32_t len;
+    uint32_t entries;
+    Decoder offsetTableDec;
 };
 
 struct Index {
     SymbolTable symbols;
     SeriesTable series;
+    PostingOffsetTable postings;
     TOC toc;
 
     void load(std::shared_ptr<Resource> resource);
+
+    std::set<size_t> getSeriesRefs(const PostingOffset& offset) const {
+        Posting p(resource->get().seek(offset.offset));
+        return p.seriesReferences;
+    }
+
+    const std::string& getDirectory() const {
+        return resource->getDirectory();
+    }
 
 private:
     std::shared_ptr<Resource> resource;

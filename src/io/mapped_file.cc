@@ -2,7 +2,8 @@
 
 #include <boost/filesystem.hpp>
 
-MappedFileResource::MappedFileResource(const std::string& fileName) {
+MappedFileResource::MappedFileResource(const boost::filesystem::path& fileName)
+    : directory(fileName.parent_path().string()) {
     mappedFile = {fileName.c_str(), read_only};
 
     // Map the whole file with read permissions
@@ -13,10 +14,6 @@ MappedFileResource::MappedFileResource(const std::string& fileName) {
     std::size_t size = region.get_size();
 
     data = {static_cast<char*>(addr), size};
-}
-
-MappedFileResource::MappedFileResource(const boost::filesystem::path& fileName)
-    : MappedFileResource(fileName.string()) {
 }
 
 std::shared_ptr<Resource> map_file(const std::string& fileName) {

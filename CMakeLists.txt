@@ -34,7 +34,9 @@ add_executable(pdu
         src/io/bit_decoder.cc
         src/io/mapped_file.cc
         src/io/index_iterator.cc
-        src/display/bitwidth_histogram.cc src/io/resource.cc)
+        src/display/bitwidth_histogram.cc
+        src/io/resource.cc
+        src/io/posting_offset_iterator.cc)
 
 target_include_directories(pdu PRIVATE src/)
 

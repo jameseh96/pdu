@@ -5,16 +5,11 @@
 
 #include <boost/filesystem.hpp>
 
-struct IndexIterValue {
-    Index index;
-    boost::filesystem::path directory;
-};
-
-class IndexIterator : public generator_iterator<IndexIterator, IndexIterValue> {
+class IndexIterator : public generator_iterator<IndexIterator, Index> {
 public:
     IndexIterator(const boost::filesystem::path& path);
 
-    bool next(IndexIterValue& index);
+    bool next(Index& index);
 
 private:
     boost::filesystem::directory_iterator dirIter;

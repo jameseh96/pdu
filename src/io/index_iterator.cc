@@ -7,7 +7,7 @@ IndexIterator::IndexIterator(const boost::filesystem::path& path)
     advance();
 }
 
-bool IndexIterator::next(IndexIterValue& value) {
+bool IndexIterator::next(Index& index) {
     namespace fs = boost::filesystem;
     while (dirIter != end(dirIter)) {
         const auto& file = *dirIter;
@@ -18,8 +18,7 @@ bool IndexIterator::next(IndexIterValue& value) {
             continue;
         }
 
-        value.index = loadIndex(indexFile.string());
-        value.directory = subdir;
+        index = loadIndex(indexFile.string());
         ++dirIter;
         return true;
     }

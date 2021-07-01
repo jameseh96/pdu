@@ -130,6 +130,32 @@ void Index::load(std::shared_ptr<Resource> res) {
 
     dec.seek(toc.series_offset);
     series.load(dec, symbols, toc.label_indices_offset);
+
+    if (!toc.postings_offset_table_offset) {
+        throw std::runtime_error("No posting offset table in index file");
+    }
+
+    dec.seek(toc.postings_offset_table_offset);
+    postings.load(dec);
+}
+
+Posting::Posting(Decoder dec) {
+    auto len = dec.read_int<uint32_t>();
+    auto entries = dec.read_int<uint32_t>();
+    for (int i = 0; i < entries; ++i) {
+        seriesReferences.insert(dec.read_int<uint32_t>());
+    }
+}
+
+void PostingOffsetTable::load(Decoder dec) {
+    dec.read_int_to(len);
+    dec.read_int_to(entries);
+    // postings are lazily loaded.
+    offsetTableDec = dec;
+}
+
+PostingOffsetIterator PostingOffsetTable::begin() const {
+    return {offsetTableDec, entries};
 }
 
 Index loadIndex(const std::string& fname) {
