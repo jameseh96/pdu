@@ -15,6 +15,12 @@ public:
         matchers.try_emplace(std::string(key), std::move(valueMatcher));
     }
 
+    void operator()(const Index& index) {
+        for (const auto& postingOffset : index.postings) {
+            (*this)(postingOffset, index);
+        }
+    }
+
     void operator()(PostingOffset po, const Index& index) {
         if (auto itr = matchers.find(po.labelKey); itr != matchers.end()) {
             const auto& [labelKey, matcher] = *itr;
