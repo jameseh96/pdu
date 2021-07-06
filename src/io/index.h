@@ -65,6 +65,20 @@ inline std::ostream& operator<<(std::ostream& os, const Series& s) {
     return os;
 }
 
+inline bool operator<(const Series& a, const Series& b) {
+    if (a.labels.size() != b.labels.size()) {
+        return a.labels.size() < b.labels.size();
+    }
+    auto aItr = a.labels.begin();
+    auto bItr = b.labels.begin();
+    for (; aItr != a.labels.end(); ++aItr, ++bItr) {
+        if (*aItr != *bItr) {
+            return *aItr < *bItr;
+        }
+    }
+    return false;
+}
+
 struct SeriesTable {
     std::map<uint64_t, Series> series;
     using const_iterator = decltype(series)::const_iterator;
