@@ -25,8 +25,8 @@ list(PREPEND CMAKE_MODULE_PATH "${CMAKE_BINARY_DIR}")
 find_package(Boost REQUIRED)
 find_package(fmt REQUIRED)
 
-add_executable(pdu
-        src/main.cpp
+
+add_library(plib
         src/io/decoder.cc
         src/io/index.cc
         src/io/chunk_file_cache.cc
@@ -38,6 +38,16 @@ add_executable(pdu
         src/io/resource.cc
         src/io/posting_offset_iterator.cc)
 
-target_include_directories(pdu PRIVATE src/)
+target_include_directories(plib PUBLIC src/)
+target_link_libraries(plib PUBLIC Boost::boost Boost::program_options Boost::filesystem fmt::fmt)
 
-target_link_libraries(pdu PUBLIC Boost::boost Boost::program_options Boost::filesystem fmt::fmt)
+add_executable(pdu
+        src/pdu_main.cpp
+        )
+
+add_executable(pdump
+        src/pdump_main.cpp
+        )
+
+target_link_libraries(pdu PUBLIC plib)
+target_link_libraries(pdump PUBLIC plib)
