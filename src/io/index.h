@@ -45,6 +45,16 @@ struct Series {
     std::map<std::string_view, std::string_view> labels;
     std::vector<ChunkReference> chunks;
 
+    using const_iterator = decltype(chunks)::const_iterator;
+
+    auto begin() const {
+        return chunks.begin();
+    }
+
+    auto end() const {
+        return chunks.end();
+    }
+
     void load(Decoder& dec, const SymbolTable& symbols);
 };
 
@@ -57,6 +67,7 @@ inline std::ostream& operator<<(std::ostream& os, const Series& s) {
 
 struct SeriesTable {
     std::map<uint64_t, Series> series;
+    using const_iterator = decltype(series)::const_iterator;
 
     void load(Decoder& dec, const SymbolTable& symbols, size_t expectedEnd);
 
