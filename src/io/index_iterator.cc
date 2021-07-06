@@ -3,7 +3,7 @@
 #include <boost/filesystem.hpp>
 
 IndexIterator::IndexIterator(const boost::filesystem::path& path)
-    : dirIter(path) {
+    : path(path), dirIter(this->path) {
     advanceToValidIndex();
 }
 

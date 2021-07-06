@@ -5,12 +5,17 @@
 
 #include <boost/filesystem.hpp>
 
-class IndexIterator : public iterator_facade<IndexIterator, Index> {
+class IndexIterator
+    : public iterator_facade<IndexIterator, std::shared_ptr<Index>> {
 public:
     IndexIterator(const boost::filesystem::path& path);
 
+    IndexIterator(const IndexIterator& other) : dirIter(other.dirIter) {
+        advanceToValidIndex();
+    }
+
     void increment();
-    const Index& dereference() const {
+    const std::shared_ptr<Index>& dereference() const {
         return index;
     }
 
@@ -22,6 +27,7 @@ protected:
     void advanceToValidIndex();
 
 private:
-    Index index;
+    std::shared_ptr<Index> index = nullptr;
+    boost::filesystem::path path;
     boost::filesystem::directory_iterator dirIter;
 };

@@ -97,6 +97,16 @@ private:
 };
 
 struct Index {
+    Index() = default;
+
+    // Index structures contain pointers into the contained symbol table
+    // fixing them up in copy constructors would be error-prone, deny
+    // copy/move for now.
+    Index(const Index&) = delete;
+    Index(Index&&) = delete;
+    Index& operator=(const Index&) = delete;
+    Index& operator=(Index&&) = delete;
+
     SymbolTable symbols;
     SeriesTable series;
     PostingOffsetTable postings;
@@ -117,4 +127,4 @@ private:
     std::shared_ptr<Resource> resource;
 };
 
-Index loadIndex(const std::string& fname);
+std::shared_ptr<Index> loadIndex(const std::string& fname);

@@ -43,6 +43,7 @@ std::istream& operator>>(std::istream& in, SortOrder& sort) {
 }
 
 struct params_t {
+    params_t() = default;
     params_t(int argc, char* argv[]) {
         namespace po = boost::program_options;
 
@@ -369,7 +370,8 @@ int main(int argc, char* argv[]) {
     // iterate over every chunk index in the provided directory
     // see index.h/cc for index file parsing. IndexIterator
     // just locates every index file and loads it.
-    for (const auto& index : IndexIterator(dirPath)) {
+    for (auto indexPtr : IndexIterator(dirPath)) {
+        const auto& index = *indexPtr;
         fs::path subdir = index.getDirectory();
 
         // Once a chunk file reference is encountered in the index, the

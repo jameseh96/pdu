@@ -158,10 +158,10 @@ PostingOffsetIterator PostingOffsetTable::begin() const {
     return {offsetTableDec, entries};
 }
 
-Index loadIndex(const std::string& fname) {
+std::shared_ptr<Index> loadIndex(const std::string& fname) {
     auto resource = map_file(fname);
 
-    Index index;
-    index.load(resource);
+    auto index = std::make_shared<Index>();
+    index->load(resource);
     return index;
 }
