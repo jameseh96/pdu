@@ -23,6 +23,7 @@ struct Sample {
 };
 
 struct SampleIterator : public iterator_facade<SampleIterator, Sample> {
+    SampleIterator() = default;
     SampleIterator(Decoder& dec, size_t sampleCount);
 
     bool next(Sample& s);
@@ -52,7 +53,7 @@ private:
     } prev;
     ssize_t currentIndex = -1;
     size_t sampleCount;
-    Decoder& dec;
+    Decoder* dec;
     BitDecoder bits;
 
     Sample s;
@@ -62,6 +63,7 @@ private:
 // lives as long as it is being used.
 class ChunkView {
 public:
+    ChunkView() = default;
     ChunkView(ChunkFileCache& cfc, const ChunkReference& chunkRef);
 
     SampleIterator samples() {

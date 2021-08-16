@@ -7,7 +7,7 @@ BitCounter::~BitCounter() {
     dest = uint16_t(bits.tell() - initial);
 }
 
-BitDecoder::BitDecoder(Decoder& dec) : dec(dec) {
+BitDecoder::BitDecoder(Decoder& dec) : dec(&dec) {
 }
 
 uint64_t BitDecoder::readBits(size_t count) {
@@ -20,7 +20,7 @@ uint64_t BitDecoder::readBits(size_t count) {
     size_t result = 0;
     while (count > 0) {
         if (remainingBits == 0) {
-            dec.read_int_to(buffer);
+            dec->read_int_to(buffer);
             remainingBits = 8;
         }
         auto bitsToRead = std::min(count, size_t(remainingBits));
@@ -39,7 +39,7 @@ bool BitDecoder::readBit() {
 }
 
 size_t BitDecoder::tell() const {
-    return size_t(dec.tell()) * 8 - remainingBits;
+    return size_t(dec->tell()) * 8 - remainingBits;
 }
 
 BitCounter BitDecoder::counter(uint16_t& dest) const {

@@ -5,7 +5,7 @@
 #include <cmath>
 
 SampleIterator::SampleIterator(Decoder& dec, size_t sampleCount)
-    : sampleCount(sampleCount), dec(dec), bits(dec) {
+    : sampleCount(sampleCount), dec(&dec), bits(dec) {
     advance();
 }
 
@@ -61,12 +61,15 @@ uint8_t minBits(ssize_t value) {
 
 void SampleIterator::increment() {
     ++currentIndex;
+    if (is_end()) {
+        return;
+    }
     if (currentIndex == 0) {
         {
             auto bc = bits.counter(s.meta.timestampBitWidth);
-            prev.ts = s.timestamp = dec.read_varint();
+            prev.ts = s.timestamp = dec->read_varint();
         }
-        auto val = dec.read_int<uint64_t>();
+        auto val = dec->read_int<uint64_t>();
         prev.value = s.value = reinterpret_cast<double&>(val);
 
         s.meta.valueBitWidth = 64;
@@ -75,7 +78,7 @@ void SampleIterator::increment() {
         auto startIdx = bits.tell();
         {
             auto bc = bits.counter(s.meta.timestampBitWidth);
-            prev.tsDelta = dec.read_varuint();
+            prev.tsDelta = dec->read_varuint();
         }
         prev.ts = s.timestamp = prev.ts + prev.tsDelta;
 

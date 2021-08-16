@@ -21,6 +21,7 @@ private:
 
 class BitDecoder {
 public:
+    BitDecoder() = default;
     BitDecoder(Decoder& dec);
 
     uint64_t readBits(size_t count);
@@ -36,7 +37,7 @@ protected:
 
     uint8_t getBitsFromBuffer(size_t bitCount);
 
-    Decoder& dec;
+    Decoder* dec;
     uint8_t buffer;
     uint8_t remainingBits = 0;
 };
