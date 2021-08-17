@@ -1,22 +1,18 @@
-#include "io/chunk_file_cache.h"
-#include "io/chunk_view.h"
-#include "io/decoder.h"
 #include "io/index.h"
 #include "io/index_iterator.h"
-#include "io/mapped_file.h"
+#include "query/filtered_index_iterator.h"
+#include "query/sample_visitor.h"
 #include "query/series_filter.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <fmt/format.h>
 #include <fmt/ostream.h>
-#include <deque>
 #include <fstream>
 #include <iostream>
-#include <list>
-#include <map>
 #include <memory>
 #include <regex>
+#include <vector>
 
 struct params_t {
     params_t(int argc, char* argv[]) {
@@ -57,6 +53,26 @@ struct params_t {
     std::string query = "";
     bool valid = false;
 };
+
+std::vector<std::shared_ptr<Index>> loadIndexes(
+        const boost::filesystem::path& dataDir) {
+    std::vector<std::shared_ptr<Index>> indexes;
+
+    for (auto indexPtr : IndexIterator(dataDir)) {
+        indexes.push_back(indexPtr);
+    }
+    return indexes;
+}
+
+std::vector<FilteredIndexIterator> loadFilteredIndexes(
+        const boost::filesystem::path& dataDir, const SeriesFilter& filter) {
+    std::vector<FilteredIndexIterator> filteredIndexes;
+
+    for (auto indexPtr : IndexIterator(dataDir)) {
+        filteredIndexes.emplace_back(indexPtr, filter);
+    }
+    return filteredIndexes;
+}
 
 int main(int argc, char* argv[]) {
     // parse command line args
