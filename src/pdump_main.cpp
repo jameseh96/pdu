@@ -61,6 +61,11 @@ std::vector<std::shared_ptr<Index>> loadIndexes(
     for (auto indexPtr : IndexIterator(dataDir)) {
         indexes.push_back(indexPtr);
     }
+
+    std::sort(indexes.begin(), indexes.end(), [](const auto& a, const auto& b) {
+        return a->meta.minTime < b->meta.minTime;
+    });
+
     return indexes;
 }
 
@@ -68,9 +73,10 @@ std::vector<FilteredIndexIterator> loadFilteredIndexes(
         const boost::filesystem::path& dataDir, const SeriesFilter& filter) {
     std::vector<FilteredIndexIterator> filteredIndexes;
 
-    for (auto indexPtr : IndexIterator(dataDir)) {
+    for (auto indexPtr : loadIndexes(dataDir)) {
         filteredIndexes.emplace_back(indexPtr, filter);
     }
+
     return filteredIndexes;
 }
 
