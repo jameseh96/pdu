@@ -80,6 +80,29 @@ std::vector<FilteredIndexIterator> loadFilteredIndexes(
     return filteredIndexes;
 }
 
+class SampleDumpVisitor : public OrderedSeriesVisitor {
+public:
+    using SeriesVisitor::visit;
+    void visit(const Series& series) override {
+        std::cout << series << "\n";
+        last = 0;
+    }
+    void visit(const Sample& sample) override {
+        std::cout << sample.timestamp << " " << sample.value << "\n";
+        if (sample.timestamp < last) {
+            throw std::runtime_error(
+                    "SampleDumpVisitor encountered non-monotonic timestamps "
+                    "(bug)");
+        }
+        last = sample.timestamp;
+    }
+
+    // track the most recently seen timestamp, used for sanity checking on
+    // index visit ordering.
+
+    int64_t last = 0;
+};
+
 int main(int argc, char* argv[]) {
     // parse command line args
     params_t params(argc, argv);
