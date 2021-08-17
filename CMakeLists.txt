@@ -36,7 +36,8 @@ add_library(plib
         src/io/index_iterator.cc
         src/display/bitwidth_histogram.cc
         src/io/resource.cc
-        src/io/posting_offset_iterator.cc)
+        src/io/posting_offset_iterator.cc
+        src/query/series_filter.cc)
 
 target_include_directories(plib PUBLIC src/)
 target_link_libraries(plib PUBLIC Boost::boost Boost::program_options Boost::filesystem fmt::fmt)
