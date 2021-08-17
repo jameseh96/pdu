@@ -4,6 +4,7 @@
 
 #include "posting_offset_iterator.h"
 
+#include <nlohmann/json_fwd.hpp>
 #include <map>
 #include <set>
 #include <string>
@@ -130,6 +131,22 @@ private:
     Decoder offsetTableDec;
 };
 
+struct IndexMeta {
+    std::string ulid;
+    int64_t minTime;
+    int64_t maxTime;
+    struct {
+        uint64_t numSamples;
+        uint64_t numSeries;
+        uint64_t numChunks;
+    } stats;
+
+    uint64_t version;
+    // compaction data present in the meta but not currently needed
+};
+
+void from_json(const nlohmann::json& j, IndexMeta& meta);
+
 struct Index {
     Index() = default;
 
@@ -145,6 +162,8 @@ struct Index {
     SeriesTable series;
     PostingOffsetTable postings;
     TOC toc;
+
+    IndexMeta meta;
 
     void load(std::shared_ptr<Resource> resource);
 

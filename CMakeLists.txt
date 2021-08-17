@@ -11,6 +11,7 @@ include(conan.cmake)
 conan_cmake_configure(REQUIRES
         fmt/6.1.2
         boost/1.76.0
+        nlohmann_json/3.9.1
         GENERATORS cmake_find_package)
 
 conan_cmake_autodetect(settings)
@@ -24,6 +25,7 @@ list(PREPEND CMAKE_MODULE_PATH "${CMAKE_BINARY_DIR}")
 
 find_package(Boost REQUIRED)
 find_package(fmt REQUIRED)
+find_package(nlohmann_json REQUIRED)
 
 
 add_library(plib
@@ -43,7 +45,12 @@ add_library(plib
         src/query/sample_visitor.cc)
 
 target_include_directories(plib PUBLIC src/)
-target_link_libraries(plib PUBLIC Boost::boost Boost::program_options Boost::filesystem fmt::fmt)
+target_link_libraries(plib PUBLIC
+        Boost::boost
+        Boost::program_options
+        Boost::filesystem
+        fmt::fmt
+        nlohmann_json::nlohmann_json)
 
 add_executable(pdu
         src/pdu_main.cpp

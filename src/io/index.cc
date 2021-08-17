@@ -4,6 +4,7 @@
 #include "mapped_file.h"
 
 #include <boost/filesystem.hpp>
+#include <nlohmann/json.hpp>
 
 std::string_view SymbolTable::lookup(size_t index) const {
     if (index == 0) {
@@ -110,8 +111,34 @@ void SeriesTable::load(Decoder& dec,
     }
 }
 
+void from_json(const nlohmann::json& j, IndexMeta& meta) {
+    j.at("ulid").get_to(meta.ulid);
+    j.at("minTime").get_to(meta.minTime);
+    j.at("maxTime").get_to(meta.maxTime);
+    auto stats = j.at("stats");
+    stats.at("numSamples").get_to(meta.stats.numSamples);
+    stats.at("numSeries").get_to(meta.stats.numSeries);
+    stats.at("numChunks").get_to(meta.stats.numChunks);
+}
+
 void Index::load(std::shared_ptr<Resource> res) {
     resource = std::move(res);
+
+    namespace fs = boost::filesystem;
+    auto metaPath = fs::path(resource->getDirectory()) / "meta.json";
+
+    if (!fs::exists(metaPath)) {
+        throw std::invalid_argument(
+                "Provided index directory: " + resource->getDirectory() +
+                " does not contain a meta.json file");
+    }
+
+    {
+        std::ifstream metaF(metaPath.string(), std::ios::in);
+        meta = nlohmann::json::parse(metaF);
+        metaF.close();
+    }
+
     Decoder dec(resource->get());
     dec.seek(-(8 * 6 + 4), std::ios::end);
 
