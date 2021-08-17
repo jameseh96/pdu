@@ -37,6 +37,7 @@ add_library(plib
         src/display/bitwidth_histogram.cc
         src/io/resource.cc
         src/io/posting_offset_iterator.cc
+        src/io/series_sample_iterator.cc
         src/query/series_filter.cc)
 
 target_include_directories(plib PUBLIC src/)
