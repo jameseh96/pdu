@@ -65,18 +65,27 @@ inline std::ostream& operator<<(std::ostream& os, const Series& s) {
     return os;
 }
 
-inline bool operator<(const Series& a, const Series& b) {
+inline uint8_t compare(const Series& a, const Series& b) {
     if (a.labels.size() != b.labels.size()) {
-        return a.labels.size() < b.labels.size();
+        return a.labels.size() < b.labels.size() ? -1 : 1;
     }
     auto aItr = a.labels.begin();
     auto bItr = b.labels.begin();
     for (; aItr != a.labels.end(); ++aItr, ++bItr) {
         if (*aItr != *bItr) {
-            return *aItr < *bItr;
+            return *aItr < *bItr ? -1 : 1;
         }
     }
-    return false;
+    return 0;
+}
+
+inline bool operator<(const Series& a, const Series& b) {
+    return compare(a, b) < 0;
+}
+
+
+inline bool operator>(const Series& a, const Series& b) {
+    return compare(a, b) > 0;
 }
 
 struct SeriesTable {
