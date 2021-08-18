@@ -11,6 +11,16 @@ Filter exactly(std::string expected) {
 std::set<size_t> SeriesFilter::operator()(const Index& index) const {
     PerLabelRefs refs;
 
+    if (empty()) {
+        // no filters specified, collect all series IDs
+        std::set<size_t> res;
+        for (const auto& [k, v] : index.series) {
+            res.insert(k);
+        }
+        return res;
+    }
+
+
     // collect all series references by label key matching a provided
     // matcher.
     (*this)(index, refs);

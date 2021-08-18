@@ -31,6 +31,10 @@ public:
 
     std::set<size_t> operator()(const Index& index) const;
 
+    bool empty() const {
+        return matchers.empty();
+    }
+
 private:
     void operator()(const Index& index, PerLabelRefs& seriesRefs) const;
 
