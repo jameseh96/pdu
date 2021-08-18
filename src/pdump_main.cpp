@@ -23,7 +23,7 @@ struct params_t {
         // clang-format off
         options.add_options()
             ("dir,d", po::value(&statsDir)->required(), "Prometheus stats directory")
-            ("query,q", po::value(&query), "Prometheus query");
+            ("query,q", po::value(&query), "Prometheus query (not implemented)");
 
         pos_options.add("dir", 1);
         // clang-format on
@@ -82,6 +82,12 @@ int main(int argc, char* argv[]) {
     if (!params.valid) {
         // if parsing failed, a usage message will already have been printed.
         // just exit now.
+        return 1;
+    }
+
+    if (!params.query.empty()) {
+        std::cerr << "Error: Query-based filtering (-q) is not implemented yet."
+                  << std::endl;
         return 1;
     }
 
