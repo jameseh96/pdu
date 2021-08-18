@@ -57,6 +57,10 @@ class SampleDumpVisitor : public OrderedSeriesVisitor {
 public:
     using OrderedSeriesVisitor::visit;
     void visit(const Series& series) override {
+        if (last) {
+            // end the previous time series with an empty line
+            std::cout << "\n";
+        }
         std::cout << series << "\n";
         last = 0;
     }

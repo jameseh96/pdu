@@ -61,7 +61,7 @@ struct Series {
 
 inline std::ostream& operator<<(std::ostream& os, const Series& s) {
     for (const auto& [k, v] : s.labels) {
-        os << "    " << k << " " << v << std::endl;
+        os << k << " " << v << "\n";
     }
     return os;
 }
