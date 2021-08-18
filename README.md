@@ -134,7 +134,7 @@ This only considers bytes within chunk files - space used by the index file itse
 
 Expect the output to be an underestimate!
 
--
+---
 
 # pdump
 
