@@ -1,12 +1,12 @@
-#include "display/bitwidth_histogram.h"
-#include "display/display_units.h"
-#include "io/chunk_file_cache.h"
-#include "io/chunk_view.h"
-#include "io/decoder.h"
-#include "io/index.h"
-#include "io/index_iterator.h"
-#include "io/mapped_file.h"
-#include "query/series_filter.h"
+#include "pdu/display/bitwidth_histogram.h"
+#include "pdu/display/display_units.h"
+#include "pdu/io/chunk_file_cache.h"
+#include "pdu/io/chunk_view.h"
+#include "pdu/io/decoder.h"
+#include "pdu/io/index.h"
+#include "pdu/io/index_iterator.h"
+#include "pdu/io/mapped_file.h"
+#include "pdu/query/series_filter.h"
 
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>

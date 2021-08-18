@@ -29,20 +29,20 @@ find_package(nlohmann_json REQUIRED)
 
 
 add_library(plib
-        src/io/decoder.cc
-        src/io/index.cc
-        src/io/chunk_file_cache.cc
-        src/io/chunk_view.cc
-        src/io/bit_decoder.cc
-        src/io/mapped_file.cc
-        src/io/index_iterator.cc
-        src/display/bitwidth_histogram.cc
-        src/io/resource.cc
-        src/io/posting_offset_iterator.cc
-        src/io/series_sample_iterator.cc
-        src/query/filtered_index_iterator.cc
-        src/query/series_filter.cc
-        src/query/sample_visitor.cc)
+        src/pdu/io/decoder.cc
+        src/pdu/io/index.cc
+        src/pdu/io/chunk_file_cache.cc
+        src/pdu/io/chunk_view.cc
+        src/pdu/io/bit_decoder.cc
+        src/pdu/io/mapped_file.cc
+        src/pdu/io/index_iterator.cc
+        src/pdu/display/bitwidth_histogram.cc
+        src/pdu/io/resource.cc
+        src/pdu/io/posting_offset_iterator.cc
+        src/pdu/io/series_sample_iterator.cc
+        src/pdu/query/filtered_index_iterator.cc
+        src/pdu/query/series_filter.cc
+        src/pdu/query/sample_visitor.cc)
 
 target_include_directories(plib PUBLIC src/)
 target_link_libraries(plib PUBLIC

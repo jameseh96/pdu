@@ -2,7 +2,7 @@
 
 #include "bit_decoder.h"
 #include "chunk_file_cache.h"
-#include "util/iterator_facade.h"
+#include "../util/iterator_facade.h"
 
 #include <limits>
 

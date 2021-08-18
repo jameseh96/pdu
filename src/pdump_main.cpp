@@ -1,8 +1,8 @@
-#include "io/index.h"
-#include "io/index_iterator.h"
-#include "query/filtered_index_iterator.h"
-#include "query/sample_visitor.h"
-#include "query/series_filter.h"
+#include "pdu/io/index.h"
+#include "pdu/io/index_iterator.h"
+#include "pdu/query/filtered_index_iterator.h"
+#include "pdu/query/sample_visitor.h"
+#include "pdu/query/series_filter.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
@@ -111,6 +111,16 @@ int main(int argc, char* argv[]) {
         // just exit now.
         return 1;
     }
+
+    SeriesFilter filter;
+    //filter.addFilter("__name__", "sysproc_page_faults_raw");
+
+    auto indexes = loadFilteredIndexes(params.statsDir, filter);
+
+    SampleDumpVisitor foo;
+    foo.visit(indexes);
+
+    std::cout.flush();
 
     return 0;
 }

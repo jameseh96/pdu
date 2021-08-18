@@ -1,7 +1,7 @@
 #pragma once
 
 #include "index.h"
-#include "util/iterator_facade.h"
+#include "../util/iterator_facade.h"
 
 #include <boost/filesystem.hpp>
 

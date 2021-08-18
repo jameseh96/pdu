@@ -1,9 +1,9 @@
 #pragma once
 
-#include "io/index.h"
+#include "../io/index.h"
 
-#include "io/series_sample_iterator.h"
-#include "query/filtered_index_iterator.h"
+#include "../io/series_sample_iterator.h"
+#include "../query/filtered_index_iterator.h"
 #include <list>
 #include <vector>
 
