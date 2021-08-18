@@ -1,10 +1,15 @@
+# pdu & pdump
+
+This repo contains two small tools: `pdu` and `pdump`. These tools operate on Prometheus on-disk data, and provide insight into per-metric family disk usage and raw sample data respectively.
+
+Note: this has only been tested with Prometheus as embedded in Couchbase Server. No compatibility guarantees are made.
+
+
 # pdu
 
 A small tool to break down the disk usage of Prometheus chunk files by metric family.
 
 ## Getting Started
-
-Note: this has only been tested with Prometheus as embedded in Couchbase Server. No compatibility guarantees are made.
 
 
 The Prometheus data directory probably looks a little like:
@@ -128,6 +133,50 @@ total
 This only considers bytes within chunk files - space used by the index file itself is not included, and WALs are ignored.
 
 Expect the output to be an underestimate!
+
+-
+
+# pdump
+
+
+`pdump` can be used to dump the raw time series data from a Prometheus data directory.
+
+```
+$ pdump stats_data
+__name__ scrape_duration_seconds
+instance kv
+job general
+
+1621268075527 0.00226225
+1621268085527 0.00226225
+1621268095527 0.00226225
+1621268105527 0.00226225
+1621268115527 0.00226225
+...
+
+```
+
+This is structured as follows
+
+```
+labelKey labelValue
+labelKey labelValue
+labelKey labelValue
+
+timestamp value
+timestamp value
+timestamp value
+...
+
+labelKey labelValue
+...
+```
+
+Each section is separated by an empty line.
+
+Alternative output formats and filtering options will be implemented in the near future.
+
+
 
 
 ## Prerequisites
