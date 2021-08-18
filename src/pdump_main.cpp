@@ -1,3 +1,5 @@
+#include "pdu/pdu.h"
+
 #include "pdu/io.h"
 #include "pdu/query.h"
 
@@ -51,35 +53,9 @@ struct params_t {
     bool valid = false;
 };
 
-std::vector<std::shared_ptr<Index>> loadIndexes(
-        const boost::filesystem::path& dataDir) {
-    std::vector<std::shared_ptr<Index>> indexes;
-
-    for (auto indexPtr : IndexIterator(dataDir)) {
-        indexes.push_back(indexPtr);
-    }
-
-    std::sort(indexes.begin(), indexes.end(), [](const auto& a, const auto& b) {
-        return a->meta.minTime < b->meta.minTime;
-    });
-
-    return indexes;
-}
-
-std::vector<FilteredIndexIterator> loadFilteredIndexes(
-        const boost::filesystem::path& dataDir, const SeriesFilter& filter) {
-    std::vector<FilteredIndexIterator> filteredIndexes;
-
-    for (auto indexPtr : loadIndexes(dataDir)) {
-        filteredIndexes.emplace_back(indexPtr, filter);
-    }
-
-    return filteredIndexes;
-}
-
 class SampleDumpVisitor : public OrderedSeriesVisitor {
 public:
-    using SeriesVisitor::visit;
+    using OrderedSeriesVisitor::visit;
     void visit(const Series& series) override {
         std::cout << series << "\n";
         last = 0;
@@ -109,13 +85,13 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    auto data = pdu::load(params.statsDir);
+
     SeriesFilter filter;
     //filter.addFilter("__name__", "sysproc_page_faults_raw");
 
-    auto indexes = loadFilteredIndexes(params.statsDir, filter);
-
     SampleDumpVisitor foo;
-    foo.visit(indexes);
+    foo.visit(data.filtered(filter));
 
     std::cout.flush();
 

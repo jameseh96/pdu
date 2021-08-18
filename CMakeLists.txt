@@ -29,6 +29,7 @@ find_package(nlohmann_json REQUIRED)
 
 
 add_library(plib
+        src/pdu/pdu.cc
         src/pdu/io/decoder.cc
         src/pdu/io/index.cc
         src/pdu/io/chunk_file_cache.cc
@@ -42,7 +43,9 @@ add_library(plib
         src/pdu/io/series_sample_iterator.cc
         src/pdu/query/filtered_index_iterator.cc
         src/pdu/query/series_filter.cc
-        src/pdu/query/sample_visitor.cc)
+        src/pdu/query/sample_visitor.cc
+        src/pdu/query/series_iterator.cc
+        src/pdu/query/cross_index_sample_iterator.cc)
 
 target_include_directories(plib PUBLIC src/)
 target_link_libraries(plib PUBLIC
