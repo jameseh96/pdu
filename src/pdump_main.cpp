@@ -1,8 +1,5 @@
-#include "pdu/io/index.h"
-#include "pdu/io/index_iterator.h"
-#include "pdu/query/filtered_index_iterator.h"
-#include "pdu/query/sample_visitor.h"
-#include "pdu/query/series_filter.h"
+#include "pdu/io.h"
+#include "pdu/query.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
