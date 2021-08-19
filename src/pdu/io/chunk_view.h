@@ -22,6 +22,9 @@ struct Sample {
     } meta;
 };
 
+bool operator==(const Sample& a, const Sample& b);
+bool operator!=(const Sample& a, const Sample& b);
+
 struct SampleIterator : public iterator_facade<SampleIterator, Sample> {
     SampleIterator() = default;
     SampleIterator(Decoder& dec, size_t sampleCount);
