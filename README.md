@@ -183,7 +183,7 @@ Alternative output formats and filtering options will be implemented in the near
 
 # pyprometheus
 
-This module provides very basic access to the data contained in Prometheus on-disk files.
+This module provides very basic access to the data contained in Prometheus on-disk files from Python.
 
 To use, follow the below [Installation instructions](#installing). This will produce a platform-dependent module - for example on MacOS this may be named `pyprometheus.cpython-39-darwin.so`.
 
@@ -193,6 +193,8 @@ Example usage:
 
 
 ```
+#!/usr/bin/env python3
+
 import pyprometheus as pyp
 
 data = pyp.load("/path/to/stats_data")
