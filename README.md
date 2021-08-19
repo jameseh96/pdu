@@ -185,7 +185,11 @@ Alternative output formats and filtering options will be implemented in the near
 
 This module provides very basic access to the data contained in Prometheus on-disk files.
 
-Example:
+To use, follow the below [Installation instructions](#installing). This will produce a platform-dependent module - for example on MacOS this may be named `pyprometheus.cpython-39-darwin.so`.
+
+This can be found either in `<build dir>/src/pyprometheus` or in your chosen installation prefix. To use this, ensure the containing directory is in your `PYTHONPATH`.
+
+Example usage:
 
 
 ```
