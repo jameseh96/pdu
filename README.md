@@ -214,6 +214,7 @@ for series, samples in data:
 ```
 git clone https://github.com/jameseh96/pdu.git pdu
 cd ./pdu
+git submodule update --init --recursive
 mkdir ./build
 cd !$
 cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
