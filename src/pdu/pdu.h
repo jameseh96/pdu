@@ -26,4 +26,5 @@ private:
 
 namespace pdu {
 PrometheusData load(const boost::filesystem::path& path);
+PrometheusData load(const std::string& path);
 }

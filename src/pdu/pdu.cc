@@ -35,4 +35,7 @@ namespace pdu {
 PrometheusData load(const boost::filesystem::path& path) {
     return {path};
 }
+PrometheusData load(const std::string& path) {
+    return {path};
+}
 } // namespace pdu
