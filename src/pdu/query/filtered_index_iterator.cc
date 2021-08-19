@@ -17,7 +17,7 @@ FilteredIndexIterator::FilteredIndexIterator(
     refItr = filteredSeriesRefs.begin();
     if (refItr != filteredSeriesRefs.end()) {
         const auto& series = getCurrentSeries();
-        handle = {&series, SeriesSampleIterator(series, *cache)};
+        handle = {&series, SeriesSampleIterator(series, cache)};
     }
 }
 
@@ -36,6 +36,6 @@ void FilteredIndexIterator::increment() {
     ++refItr;
     if (refItr != filteredSeriesRefs.end()) {
         const auto& series = getCurrentSeries();
-        handle = {&series, SeriesSampleIterator(series, *cache)};
+        handle = {&series, SeriesSampleIterator(series, cache)};
     }
 }
