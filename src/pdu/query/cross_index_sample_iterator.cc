@@ -14,3 +14,11 @@ void CrossIndexSampleIterator::increment() {
         subiterators.pop_front();
     }
 }
+
+size_t CrossIndexSampleIterator::getNumSamples() const {
+    size_t total = 0;
+    for (const auto& sub : subiterators) {
+        total += sub.getNumSamples();
+    }
+    return total;
+}

@@ -32,3 +32,16 @@ void SeriesSampleIterator::increment() {
         sampleItr = cv.samples();
     }
 }
+
+size_t SeriesSampleIterator::getNumSamples() const {
+    if (!series) {
+        throw std::runtime_error(
+                "numSamples called on invalid SeriesSampleIterator");
+    }
+    size_t total = 0;
+    for (const auto& cr : *series) {
+        total += ChunkView(*cfc, cr).sampleCount;
+    }
+
+    return total;
+}

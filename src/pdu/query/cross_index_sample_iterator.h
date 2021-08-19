@@ -20,6 +20,8 @@ public:
         return subiterators.empty();
     }
 
+    size_t getNumSamples() const;
+
 private:
     std::list<SeriesSampleIterator> subiterators;
 };

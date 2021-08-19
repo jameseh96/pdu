@@ -26,6 +26,8 @@ public:
         return itr == series->end();
     }
 
+    size_t getNumSamples() const;
+
 private:
     const Series* series;
     Series::const_iterator itr;

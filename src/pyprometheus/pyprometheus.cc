@@ -50,6 +50,26 @@ PYBIND11_MODULE(pyprometheus, m) {
                 return series.labels;
             });
 
+    // note - this is intentionally inconsistent naming to better reflect
+    // the fact that in normal usage __iter__ will be called on this type
+    // to get a python iterator, despite this being a C++ iterator already.
+    py::class_<CrossIndexSampleIterator>(m, "CrossIndexSampleIterable")
+            .def(
+                    "__len__",
+                    [](const CrossIndexSampleIterator& cisi) {
+                        return cisi.getNumSamples();
+                    },
+                    py::return_value_policy::copy)
+            .def(
+                    "__iter__",
+                    [](const CrossIndexSampleIterator& cisi) {
+                        return py::make_iterator<py::return_value_policy::copy,
+                                                 CrossIndexSampleIterator,
+                                                 EndSentinel,
+                                                 Sample>(cisi, end(cisi));
+                    },
+                    py::keep_alive<0, 1>());
+
     py::class_<CrossIndexSeries>(m, "CrossIndexSeries")
             .def_property_readonly(
                     "series",
@@ -58,11 +78,7 @@ PYBIND11_MODULE(pyprometheus, m) {
             .def_property_readonly(
                     "samples",
                     [](const CrossIndexSeries& cis) {
-                        return py::make_iterator<py::return_value_policy::copy,
-                                                 CrossIndexSampleIterator,
-                                                 EndSentinel,
-                                                 Sample>(
-                                cis.sampleIterator, end(cis.sampleIterator));
+                        return cis.sampleIterator;
                     },
                     py::keep_alive<0, 1>())
             // support unpacking in the form of
@@ -74,13 +90,7 @@ PYBIND11_MODULE(pyprometheus, m) {
                         if (i >= 2)
                             throw py::index_error();
                         return i == 0 ? py::cast(*cis.series)
-                                      : py::make_iterator<
-                                                py::return_value_policy::copy,
-                                                CrossIndexSampleIterator,
-                                                EndSentinel,
-                                                Sample>(
-                                                cis.sampleIterator,
-                                                end(cis.sampleIterator));
+                                      : py::cast(cis.sampleIterator);
                     },
                     py::keep_alive<0, 1>())
             .def("__len__", []() { return 2; });
