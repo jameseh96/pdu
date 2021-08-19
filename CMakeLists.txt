@@ -65,3 +65,5 @@ add_executable(pdump
 
 target_link_libraries(pdu PUBLIC plib)
 target_link_libraries(pdump PUBLIC plib)
+
+add_subdirectory(./src/pyprometheus)
