@@ -177,7 +177,7 @@ labelKey labelValue
 
 Each section is separated by an empty line.
 
-Alternative output formats and filtering options will be implemented in the near future.
+Alternative output formats and filtering options will be implemented in the near future. However, with [pyprometheus](#pyprometheus), arbitrary filtering and formatting can be done from Python instead.
 
 ---
 
