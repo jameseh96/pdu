@@ -5,7 +5,7 @@ This repo contains two small C++ tools, [`pdu`](#pdu) and [`pdump`](#pdump). The
 In addition, [`pyprometheus`](#pyprometheus) provides Python bindings supporting basic operations on Prometheus data including iterating all time series, and all samples therein.
 
 
-Note: this has only been tested with Prometheus as embedded in Couchbase Server. No compatibility guarantees are made.
+Note: This has not been thoroughly tested across Prometheus versions; no compatibility guarantees are made.
 
 
 # pdu
