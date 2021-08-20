@@ -12,6 +12,7 @@ namespace pdu::filter {
 using Filter = std::function<bool(std::string_view)>;
 
 Filter exactly(std::string expected);
+Filter regex(std::string expression);
 
 } // namespace pdu::filter
 

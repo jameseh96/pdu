@@ -1,9 +1,19 @@
 #include "series_filter.h"
 
+#include <regex>
+
 namespace pdu::filter {
 
 Filter exactly(std::string expected) {
     return [expected](std::string_view value) { return value == expected; };
+}
+Filter regex(std::string expression) {
+    std::regex expr(
+            expression,
+            std::regex_constants::ECMAScript | std::regex_constants::icase);
+    return [expr = std::move(expr)](std::string_view value) {
+        return std::regex_match(value.begin(), value.end(), expr);
+    };
 }
 
 } // namespace pdu::filter
