@@ -14,7 +14,8 @@ class SeriesSampleIterator
         : public iterator_facade<SeriesSampleIterator, Sample> {
 public:
     SeriesSampleIterator() = default;
-    SeriesSampleIterator(const Series& series, std::shared_ptr<ChunkFileCache> cfc);
+    SeriesSampleIterator(std::shared_ptr<const Series> series,
+                         std::shared_ptr<ChunkFileCache> cfc);
     SeriesSampleIterator(const SeriesSampleIterator& other);
 
     void increment();
@@ -29,7 +30,7 @@ public:
     size_t getNumSamples() const;
 
 private:
-    const Series* series;
+    std::shared_ptr<const Series> series;
     Series::const_iterator itr;
 
     std::shared_ptr<ChunkFileCache> cfc;

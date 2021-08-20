@@ -1,13 +1,13 @@
 #include "series_sample_iterator.h"
 
-
 #include "../io/chunk_file_cache.h"
 
-SeriesSampleIterator::SeriesSampleIterator(const Series& series,
-                                           std::shared_ptr<ChunkFileCache> cfc)
-    : series(&series), cfc(std::move(cfc)) {
-    itr = series.begin();
-    if (itr != series.end()) {
+SeriesSampleIterator::SeriesSampleIterator(
+        std::shared_ptr<const Series> seriesPtr,
+        std::shared_ptr<ChunkFileCache> cfc)
+    : series(std::move(seriesPtr)), cfc(std::move(cfc)) {
+    itr = series->begin();
+    if (itr != series->end()) {
         cv = ChunkView(*this->cfc, *itr);
         sampleItr = cv.samples();
     }
