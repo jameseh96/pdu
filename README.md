@@ -191,7 +191,6 @@ This can be found either in `<build dir>/src/pyprometheus` or in your chosen ins
 
 Example usage:
 
-
 ```
 #!/usr/bin/env python3
 
@@ -199,8 +198,23 @@ import pyprometheus as pyp
 
 data = pyp.load("/path/to/stats_data")
 
-for series, samples in data:
+for series in data:
+    print(series.name) # equivalent to series.labels["__name__"]
     print(series.labels)
+    print(len(series.samples)) # number of samples can be computed
+                               # without iterating all of them
+    for sample in series.samples:
+        print(f"{sample.timestamp} : {sample.value}")
+``` 
+
+Or the series and samples can be unpacked:
+
+
+```
+for name, labels, samples in data:
+    print(name)
+    print(labels)
+    print(len(samples))
     for timestamp, value in samples:
         print(f"{timestamp} : {value}")
 ``` 

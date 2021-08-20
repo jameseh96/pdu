@@ -41,15 +41,6 @@ PYBIND11_MODULE(pyprometheus, m) {
             .def(py::self == py::self)
             .def(py::self != py::self);
 
-    py::class_<Series>(m, "Series")
-            .def_property_readonly("name",
-                                   [](const Series& series) {
-                                       return series.labels.at("__name__");
-                                   })
-            .def_property_readonly("labels", [](const Series& series) {
-                return series.labels;
-            });
-
     // note - this is intentionally inconsistent naming to better reflect
     // the fact that in normal usage __iter__ will be called on this type
     // to get a python iterator, despite this being a C++ iterator already.
@@ -70,10 +61,26 @@ PYBIND11_MODULE(pyprometheus, m) {
                     },
                     py::keep_alive<0, 1>());
 
-    py::class_<CrossIndexSeries>(m, "CrossIndexSeries")
+    py::class_<CrossIndexSeries>(m, "Series")
             .def_property_readonly(
-                    "series",
-                    [](const CrossIndexSeries& cis) { return *cis.series; },
+                    "name",
+                    [](const CrossIndexSeries& cis) {
+                        if (!cis.series) {
+                            throw std::runtime_error(
+                                    "Can't get name, series is invalid");
+                        }
+                        return cis.series->labels.at("__name__");
+                    },
+                    py::keep_alive<0, 1>())
+            .def_property_readonly(
+                    "labels",
+                    [](const CrossIndexSeries& cis) {
+                        if (!cis.series) {
+                            throw std::runtime_error(
+                                    "Can't get labels, series is invalid");
+                        }
+                        return cis.series->labels;
+                    },
                     py::keep_alive<0, 1>())
             .def_property_readonly(
                     "samples",
@@ -84,16 +91,28 @@ PYBIND11_MODULE(pyprometheus, m) {
             // support unpacking in the form of
             // for series, samples in data:
             //     ...
-            .def(
-                    "__getitem__",
-                    [](const CrossIndexSeries& cis, size_t i) {
-                        if (i >= 2)
-                            throw py::index_error();
-                        return i == 0 ? py::cast(*cis.series)
-                                      : py::cast(cis.sampleIterator);
-                    },
-                    py::keep_alive<0, 1>())
-            .def("__len__", []() { return 2; });
+            .def("__getitem__",
+                 [](const CrossIndexSeries& cis, size_t i) {
+                     if (!cis.series) {
+                         throw std::runtime_error(
+                                 "Can't unpack, series is invalid");
+                     }
+                     switch (i) {
+                     case 0:
+                         return py::cast(cis.series->labels.at("__name__"));
+                     case 1:
+                         return py::cast(cis.series->labels);
+                     case 2:
+                         auto ret = py::cast(cis.sampleIterator);
+                         // manually set up keep alive here, as it is not
+                         // possible to do so for the name and labels, so it
+                         // cannot be set as a policy for the method.
+                         keep_alive_impl(ret, py::cast(cis));
+                         return ret;
+                     }
+                     throw py::index_error();
+                 })
+            .def("__len__", []() { return 3; });
 
     py::class_<PrometheusData>(m, "PrometheusData")
                     .def(py::init<std::string>())
