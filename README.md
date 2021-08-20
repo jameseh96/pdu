@@ -185,7 +185,7 @@ Alternative output formats and filtering options will be implemented in the near
 
 This module provides basic read-only access to the data contained in Prometheus on-disk files from Python.
 
-To use, follow clone the repository as in the [installation instructions](#installing).
+To use, clone the repository as in the [installation instructions](#installing).
 
 Then run:
 
