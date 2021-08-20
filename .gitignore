@@ -4,3 +4,5 @@ build/
 build-debug/
 build-release/
 build-asan/
+dist/
+pyprometheus.egg-info/
