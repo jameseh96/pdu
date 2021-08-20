@@ -1,8 +1,8 @@
 # pdu | pdump | pyprometheus
 
-This repo contains two small C++ tools, `pdu` and `pdump`. These tools operate on Prometheus on-disk data, and provide insight into per-metric family disk usage and raw sample data respectively.
+This repo contains two small C++ tools, [`pdu`](#pdu) and [`pdump`](#pdump). These tools operate on Prometheus on-disk data, and provide insight into per-metric family disk usage and raw sample data respectively.
 
-In addition, `pyprometheus` provides Python bindings supporting basic operations on Prometheus data including iterating all time series, and all samples therein.
+In addition, [`pyprometheus`](#pyprometheus) provides Python bindings supporting basic operations on Prometheus data including iterating all time series, and all samples therein.
 
 
 Note: this has only been tested with Prometheus as embedded in Couchbase Server. No compatibility guarantees are made.
