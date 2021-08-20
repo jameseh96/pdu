@@ -183,7 +183,7 @@ Alternative output formats and filtering options will be implemented in the near
 
 # pyprometheus
 
-This module provides very basic access to the data contained in Prometheus on-disk files from Python.
+This module provides basic read-only access to the data contained in Prometheus on-disk files from Python.
 
 To use, follow checkout the repository as in the [installation instructions](#installing).
 
