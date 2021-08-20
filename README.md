@@ -217,7 +217,33 @@ for name, labels, samples in data:
     print(len(samples))
     for timestamp, value in samples:
         print(f"{timestamp} : {value}")
-``` 
+```
+
+Additionally, if only a subset of the time series are desired, `pyprometheus` can filter them based on label values, and avoid parsing unneeded series at all:
+
+```
+for series in data.filter({"__name__":"sysproc_page_faults_raw"}):
+```
+
+This will usually perform better than filtering "manually" in python after the fact.
+
+Multiple labels can be specified:
+
+```
+data.filter({"__name__":"sysproc_page_faults_raw", "proc":"memcached"})
+```
+
+ECMAScript regexes can also be used:
+
+```
+data.filter({"proc":pyp.regex("^go.*")})
+```
+
+Or even arbitrary Python callbacks:
+
+```
+data.filter({"proc":lambda x: x.startswith("go")})
+```
 
 
 ## Prerequisites

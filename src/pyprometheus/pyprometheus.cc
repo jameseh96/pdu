@@ -5,8 +5,20 @@
 #include <pybind11/operators.h>
 #include <pybind11/stl.h>
 
-int add(int i, int j) {
-    return i + j;
+SeriesFilter makeFilter(const py::dict& dict) {
+    SeriesFilter f;
+    for (const auto& [kobj, vobj] : dict) {
+        std::string k = py::str(kobj);
+        if (py::str(vobj)) {
+            f.addFilter(k, std::string(py::str(vobj)));
+        } else if (auto vPtr = vobj.cast<pdu::filter::Filter*>(); vPtr) {
+            f.addFilter(k, *vPtr);
+        } else {
+            throw std::invalid_argument(
+                    "Filter only handles strings, regexes, and unary funcs");
+        }
+    }
+    return f;
 }
 
 PYBIND11_MODULE(pyprometheus, m) {
@@ -15,6 +27,34 @@ PYBIND11_MODULE(pyprometheus, m) {
     m.def("load",
           py::overload_cast<const std::string&>(&pdu::load),
           "Load data from a Prometheus data directory");
+
+    m.def("regex",
+          &pdu::filter::regex,
+          "Specify a regular expression for a Filter to match against label "
+          "values");
+
+    py::class_<pdu::filter::Filter>(m, "FilterFunc");
+
+    py::class_<SeriesFilter>(m, "Filter")
+            .def(py::init<>())
+            .def(py::init<>(
+                    [](const py::dict& dict) { return makeFilter(dict); }))
+            .def("add",
+                 [](SeriesFilter& f,
+                    const std::string& labelKey,
+                    const std::string& labelValue) {
+                     f.addFilter(labelKey, labelValue);
+                 })
+            .def(
+                    "addRegex",
+                    [](SeriesFilter& f,
+                       const std::string& labelKey,
+                       const std::string& labelValue) {
+                        f.addFilter(labelKey, pdu::filter::regex(labelValue));
+                    },
+                    "Add a label filter which matches values against an "
+                    "ECMAScript regex")
+            .def("is_empty", [](const SeriesFilter& f) { return f.empty(); });
 
     py::class_<Sample>(m, "Sample")
             .def_readonly("timestamp", &Sample::timestamp)
@@ -125,5 +165,24 @@ PYBIND11_MODULE(pyprometheus, m) {
                                          EndSentinel,
                                          CrossIndexSeries>(pd.begin(), pd.end());
             },
-            py::keep_alive<0, 1>() /* Essential: keep object alive while iterator exists */);
+            py::keep_alive<0, 1>() /* Essential: keep object alive while iterator exists */)
+            // Allow iteration, default to unfiltered (all time series will be listed)
+    .def(
+            "filter",
+            [](const PrometheusData& pd, const SeriesFilter& f) {
+                return py::make_iterator<py::return_value_policy::copy,
+                SeriesIterator,
+                EndSentinel,
+                CrossIndexSeries>(pd.filtered(f), pd.end());
+                },
+                py::keep_alive<0, 1>() /* Essential: keep object alive while iterator exists */)
+    .def(
+            "filter",
+            [](const PrometheusData& pd, const py::dict& dict) {
+                return py::make_iterator<py::return_value_policy::copy,
+                SeriesIterator,
+                EndSentinel,
+                CrossIndexSeries>(pd.filtered(makeFilter(dict)), pd.end());
+                },
+                py::keep_alive<0, 1>() /* Essential: keep object alive while iterator exists */);
 }
