@@ -30,6 +30,12 @@ std::set<size_t> SeriesFilter::operator()(const Index& index) const {
         return res;
     }
 
+    // ensure that all filtered-on labels will have an empty set of references
+    // to start with. This ensures filters which match _nothing_ will lead
+    // to a set intersection with an empty set -> no matching refs.
+    for (const auto& matcher: matchers) {
+        refs[matcher.first] = {};
+    }
 
     // collect all series references by label key matching a provided
     // matcher.
