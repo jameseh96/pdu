@@ -21,6 +21,17 @@ SeriesFilter makeFilter(const py::dict& dict) {
     return f;
 }
 
+auto makeFilteredPyIterator(const PrometheusData& pd, const SeriesFilter& f) {
+    return py::make_iterator<py::return_value_policy::copy,
+                             SeriesIterator,
+                             EndSentinel,
+                             CrossIndexSeries>(pd.filtered(f), pd.end());
+}
+
+auto makeFilteredPyIterator(const PrometheusData& pd, const py::dict& dict) {
+    return makeFilteredPyIterator(pd, makeFilter(dict));
+}
+
 PYBIND11_MODULE(pyprometheus, m) {
     m.doc() = "Python bindings to pdu, for reading Prometheus on-disk data";
 
@@ -170,19 +181,13 @@ PYBIND11_MODULE(pyprometheus, m) {
     .def(
             "filter",
             [](const PrometheusData& pd, const SeriesFilter& f) {
-                return py::make_iterator<py::return_value_policy::copy,
-                SeriesIterator,
-                EndSentinel,
-                CrossIndexSeries>(pd.filtered(f), pd.end());
+                return makeFilteredPyIterator(pd, f);
                 },
                 py::keep_alive<0, 1>() /* Essential: keep object alive while iterator exists */)
     .def(
             "filter",
             [](const PrometheusData& pd, const py::dict& dict) {
-                return py::make_iterator<py::return_value_policy::copy,
-                SeriesIterator,
-                EndSentinel,
-                CrossIndexSeries>(pd.filtered(makeFilter(dict)), pd.end());
+                return makeFilteredPyIterator(pd, dict);
                 },
                 py::keep_alive<0, 1>() /* Essential: keep object alive while iterator exists */);
 }
