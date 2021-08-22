@@ -255,6 +255,21 @@ Or even arbitrary Python callbacks:
 data.filter({"proc":lambda x: x.startswith("go")})
 ```
 
+If there is only one time series matching your filter, for convenience you can do:
+
+```
+foobar_series = data[{"__name__":"foobar"}]
+```
+
+This is roughly equivalent to:
+
+```
+foobar_series = next(iter(data.filter({"__name__":"foobar"})))
+```
+
+If there are multiple time series matching your filter, this will silently discard all but the lexicographically first (sorted by the key and value of all labels).
+
+If none match, a `KeyError` is raised.
 
 ## Prerequisites
 

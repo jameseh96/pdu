@@ -32,6 +32,18 @@ auto makeFilteredPyIterator(const PrometheusData& pd, const py::dict& dict) {
     return makeFilteredPyIterator(pd, makeFilter(dict));
 }
 
+auto getFirstMatching(const PrometheusData& pd, const SeriesFilter& f) {
+    auto itr = pd.filtered(f);
+    if (itr == pd.end()) {
+        throw py::key_error("No item matching filter");
+    }
+    return *itr;
+}
+
+auto getFirstMatching(const PrometheusData& pd, const py::dict& dict) {
+    return getFirstMatching(pd, makeFilter(dict));
+}
+
 PYBIND11_MODULE(pyprometheus, m) {
     m.doc() = "Python bindings to pdu, for reading Prometheus on-disk data";
 
@@ -189,5 +201,11 @@ PYBIND11_MODULE(pyprometheus, m) {
             [](const PrometheusData& pd, const py::dict& dict) {
                 return makeFilteredPyIterator(pd, dict);
                 },
-                py::keep_alive<0, 1>() /* Essential: keep object alive while iterator exists */);
+                py::keep_alive<0, 1>() /* Essential: keep object alive while iterator exists */)
+    .def("__getitem__", [](const PrometheusData& pd, const SeriesFilter& f) {
+        return getFirstMatching(pd, f);
+        }, py::keep_alive<0, 1>())
+    .def("__getitem__", [](const PrometheusData& pd, const py::dict& dict) {
+        return getFirstMatching(pd, dict);
+    }, py::keep_alive<0, 1>());
 }
