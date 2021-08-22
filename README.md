@@ -229,7 +229,9 @@ for name, labels, samples in data:
         print(f"{timestamp} : {value}")
 ```
 
-Additionally, if only a subset of the time series are desired, `pyprometheus` can filter them based on label values, and avoid parsing unneeded series at all:
+#### Filtering time series
+
+If only a subset of the time series are desired, `pyprometheus` can filter them based on label values, and avoid parsing unneeded series at all:
 
 ```
 for series in data.filter({"__name__":"sysproc_page_faults_raw"}):
@@ -262,7 +264,7 @@ As shorthand, when filtering on `__name__` alone, just a string may be provided.
 data.filter("sysproc_page_faults_raw")
 ```
 
----
+#### Single series lookup
 
 If there is only one time series matching your filter, for convenience you can do:
 
