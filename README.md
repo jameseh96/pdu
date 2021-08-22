@@ -255,6 +255,15 @@ Or even arbitrary Python callbacks:
 data.filter({"proc":lambda x: x.startswith("go")})
 ```
 
+
+As shorthand, when filtering on `__name__` alone, just a string may be provided.
+
+```
+data.filter("sysproc_page_faults_raw")
+```
+
+--
+
 If there is only one time series matching your filter, for convenience you can do:
 
 ```
@@ -270,6 +279,8 @@ foobar_series = next(iter(data.filter({"__name__":"foobar"})))
 If there are multiple time series matching your filter, this will silently discard all but the lexicographically first (sorted by the key and value of all labels).
 
 If none match, a `KeyError` is raised.
+
+All types of filter demonstrated above with `.filter(...)` may be used in this manner also.
 
 ## Prerequisites
 

@@ -21,6 +21,17 @@ SeriesFilter makeFilter(const py::dict& dict) {
     return f;
 }
 
+/**
+ * Make a filter from a single string.
+ *
+ * String is treated as a metric family name.
+ */
+SeriesFilter makeFilter(const py::str& s) {
+    SeriesFilter f;
+    f.addFilter("__name__", std::string(s));
+    return f;
+}
+
 auto makeFilteredPyIterator(const PrometheusData& pd, const SeriesFilter& f) {
     return py::make_iterator<py::return_value_policy::copy,
                              SeriesIterator,
@@ -28,8 +39,9 @@ auto makeFilteredPyIterator(const PrometheusData& pd, const SeriesFilter& f) {
                              CrossIndexSeries>(pd.filtered(f), pd.end());
 }
 
-auto makeFilteredPyIterator(const PrometheusData& pd, const py::dict& dict) {
-    return makeFilteredPyIterator(pd, makeFilter(dict));
+template <class T>
+auto makeFilteredPyIterator(const PrometheusData& pd, const T& val) {
+    return makeFilteredPyIterator(pd, makeFilter(val));
 }
 
 auto getFirstMatching(const PrometheusData& pd, const SeriesFilter& f) {
@@ -40,8 +52,9 @@ auto getFirstMatching(const PrometheusData& pd, const SeriesFilter& f) {
     return *itr;
 }
 
-auto getFirstMatching(const PrometheusData& pd, const py::dict& dict) {
-    return getFirstMatching(pd, makeFilter(dict));
+template <class T>
+auto getFirstMatching(const PrometheusData& pd, const T& val) {
+    return getFirstMatching(pd, makeFilter(val));
 }
 
 PYBIND11_MODULE(pyprometheus, m) {
@@ -201,11 +214,20 @@ PYBIND11_MODULE(pyprometheus, m) {
             [](const PrometheusData& pd, const py::dict& dict) {
                 return makeFilteredPyIterator(pd, dict);
                 },
-                py::keep_alive<0, 1>() /* Essential: keep object alive while iterator exists */)
+                py::keep_alive<0, 1>())
+    .def(
+            "filter",
+            [](const PrometheusData& pd, const py::str& s) {
+                return makeFilteredPyIterator(pd, s);
+                },
+                py::keep_alive<0, 1>())
     .def("__getitem__", [](const PrometheusData& pd, const SeriesFilter& f) {
         return getFirstMatching(pd, f);
         }, py::keep_alive<0, 1>())
     .def("__getitem__", [](const PrometheusData& pd, const py::dict& dict) {
         return getFirstMatching(pd, dict);
-    }, py::keep_alive<0, 1>());
+    }, py::keep_alive<0, 1>())
+    .def("__getitem__", [](const PrometheusData& pd, const py::str& s) {
+        return getFirstMatching(pd, s);
+        }, py::keep_alive<0, 1>());
 }
