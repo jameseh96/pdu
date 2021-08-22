@@ -262,7 +262,7 @@ As shorthand, when filtering on `__name__` alone, just a string may be provided.
 data.filter("sysproc_page_faults_raw")
 ```
 
---
+---
 
 If there is only one time series matching your filter, for convenience you can do:
 
