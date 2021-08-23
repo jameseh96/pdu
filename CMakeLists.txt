@@ -55,6 +55,8 @@ target_link_libraries(plib PUBLIC
         fmt::fmt
         nlohmann_json::nlohmann_json)
 
+set_property(TARGET plib PROPERTY POSITION_INDEPENDENT_CODE ON)
+
 add_executable(pdu
         src/pdu_main.cpp
         )
