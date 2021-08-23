@@ -286,7 +286,11 @@ All types of filter demonstrated above with `.filter(...)` may be used in this m
 
 ## Prerequisites
 
-[Conan](https://conan.io/) - [installation instructions](https://docs.conan.io/en/latest/installation.html).
+* [Conan](https://conan.io/) - [installation instructions](https://docs.conan.io/en/latest/installation.html).
+
+Additionally, to build `pyprometheus`:
+
+* Python headers (typically provided by a `pythonX.X-dev` or `pythonX.X-devel` package)
 
 ## Installing
 
