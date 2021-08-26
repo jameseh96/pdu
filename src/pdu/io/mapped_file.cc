@@ -19,3 +19,7 @@ MappedFileResource::MappedFileResource(const boost::filesystem::path& fileName)
 std::shared_ptr<Resource> map_file(const std::string& fileName) {
     return std::make_shared<MappedFileResource>(fileName);
 }
+
+std::shared_ptr<Resource> map_file(const boost::filesystem::path& fileName) {
+    return std::make_shared<MappedFileResource>(fileName);
+}

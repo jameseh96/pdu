@@ -37,3 +37,4 @@ private:
 };
 
 std::shared_ptr<Resource> map_file(const std::string& fileName);
+std::shared_ptr<Resource> map_file(const boost::filesystem::path& fileName);
