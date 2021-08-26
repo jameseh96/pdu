@@ -124,13 +124,13 @@ class CMakeBuild(build_ext):
 # The information here can also be placed in setup.cfg - better separation of
 # logic and declaration, and simpler if you include description/version in a file.
 setup(
-    name="pyprometheus",
+    name="pypdu",
     version="0.0.1",
     author="jameseh96",
     author_email="",
     description="Python bindings for C++ library for reading Prometheus on-disk data",
     long_description="",
-    ext_modules=[CMakeExtension("pypromethues")],
+    ext_modules=[CMakeExtension("pypdu")],
     cmdclass={"build_ext": CMakeBuild},
     zip_safe=False,
     extras_require={},

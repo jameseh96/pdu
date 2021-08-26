@@ -1,8 +1,8 @@
-# pdu | pdump | pyprometheus
+# pdu | pdump | pypdu
 
 This repo contains two small C++ tools, [`pdu`](#pdu) and [`pdump`](#pdump). These tools operate on Prometheus on-disk data, and provide insight into per-metric family disk usage and raw sample data respectively.
 
-In addition, [`pyprometheus`](#pyprometheus) provides Python bindings supporting basic operations on Prometheus data including iterating all time series, and all samples therein.
+In addition, [`pypdu`](#pypdu) provides Python bindings supporting basic operations on Prometheus data including iterating all time series, and all samples therein.
 
 
 Note: This has not been thoroughly tested across Prometheus versions; no compatibility guarantees are made.
@@ -177,11 +177,11 @@ labelKey labelValue
 
 Each section is separated by an empty line.
 
-Alternative output formats and filtering options will be implemented in the near future. However, with [pyprometheus](#pyprometheus), arbitrary filtering and formatting can be done from Python instead.
+Alternative output formats and filtering options will be implemented in the near future. However, with [pypdu](#pypdu), arbitrary filtering and formatting can be done from Python instead.
 
 ---
 
-# pyprometheus
+# pypdu
 
 This module provides basic read-only access to the data contained in Prometheus on-disk files from Python.
 
@@ -195,18 +195,18 @@ python setup.py install
 
 You may wish to do this in a virtualenv.
 
-Alternatively, following the `cmake` steps below will build pyprometheus, producing a module with a platform-dependent name - for example on MacOS this may be `pyprometheus.cpython-39-darwin.so`.
+Alternatively, following the `cmake` steps below will build pypdu, producing a module with a platform-dependent name - for example on MacOS this may be `pypdu.cpython-39-darwin.so`.
 
-This can be found either in `<build dir>/src/pyprometheus` or in your chosen installation prefix. This can be used without installing with `setup.py`, simply ensure the containing directory is in your `PYTHONPATH`.
+This can be found either in `<build dir>/src/pypdu` or in your chosen installation prefix. This can be used without installing with `setup.py`, simply ensure the containing directory is in your `PYTHONPATH`.
 
 Example usage:
 
 ```
 #!/usr/bin/env python3
 
-import pyprometheus as pyp
+import pypdu
 
-data = pyp.load("/path/to/stats_data")
+data = pypdu.load("/path/to/stats_data")
 
 for series in data:
     print(series.name) # equivalent to series.labels["__name__"]
@@ -231,7 +231,7 @@ for name, labels, samples in data:
 
 #### Filtering time series
 
-If only a subset of the time series are desired, `pyprometheus` can filter them based on label values, and avoid parsing unneeded series at all:
+If only a subset of the time series are desired, `pypdu` can filter them based on label values, and avoid parsing unneeded series at all:
 
 ```
 for series in data.filter({"__name__":"sysproc_page_faults_raw"}):
@@ -288,7 +288,7 @@ All types of filter demonstrated above with `.filter(...)` may be used in this m
 
 * [Conan](https://conan.io/) - [installation instructions](https://docs.conan.io/en/latest/installation.html).
 
-Additionally, to build `pyprometheus`:
+Additionally, to build `pypdu`:
 
 * Python headers (typically provided by a `pythonX.X-dev` or `pythonX.X-devel` package)
 

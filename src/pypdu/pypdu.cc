@@ -1,4 +1,4 @@
-#include "pyprometheus.h"
+#include "pypdu.h"
 
 #include <pdu/pdu.h>
 
@@ -98,7 +98,7 @@ auto getFirstMatching(const PrometheusData& pd, const T& val) {
     return getFirstMatching(pd, makeFilter(val));
 }
 
-PYBIND11_MODULE(pyprometheus, m) {
+PYBIND11_MODULE(pypdu, m) {
     m.doc() = "Python bindings to pdu, for reading Prometheus on-disk data";
 
     m.def("load",
