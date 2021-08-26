@@ -30,7 +30,7 @@ public:
 
     std::shared_ptr<ChunkFileCache> getCache() const override;
 
-    // private:
+private:
     void loadChunkFile(Decoder& dec, size_t fileId);
 
     std::shared_ptr<ChunkFileCache> cache;
