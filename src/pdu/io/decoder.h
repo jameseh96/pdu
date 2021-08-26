@@ -68,6 +68,10 @@ public:
 
     char peek() const;
 
+    size_t remaining() const;
+
+    bool empty() const;
+
 private:
     std::string_view view;
     std::string_view subview;

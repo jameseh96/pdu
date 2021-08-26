@@ -151,3 +151,11 @@ char Decoder::peek() const {
     }
     return subview[0];
 }
+
+size_t Decoder::remaining() const {
+    return subview.size();
+}
+
+bool Decoder::empty() const {
+    return subview.empty();
+}
