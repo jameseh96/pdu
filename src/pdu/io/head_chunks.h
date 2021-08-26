@@ -5,6 +5,7 @@
 #include "decoder.h"
 #include "index.h"
 #include "resource.h"
+#include "series_source.h"
 #include "wal.h"
 
 #include <boost/filesystem.hpp>
@@ -18,9 +19,16 @@ inline constexpr uint32_t HeadChunkFileMagic = 0x0130BC91;
 
 inline constexpr size_t HeadChunkMetaMinLen = 8 + 8 + 8 + 1 + 1 + 4;
 
-class HeadChunks {
+class HeadChunks : public SeriesSource {
 public:
     HeadChunks(const boost::filesystem::path& dataDir);
+
+    std::set<SeriesRef> getFilteredSeriesRefs(
+            const SeriesFilter& filter) const override;
+
+    const Series& getSeries(SeriesRef ref) const override;
+
+    std::shared_ptr<ChunkFileCache> getCache() const override;
 
     // private:
     void loadChunkFile(Decoder& dec, size_t fileId);

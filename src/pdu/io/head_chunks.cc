@@ -1,5 +1,6 @@
 #include "head_chunks.h"
 
+#include "../query/series_filter.h"
 #include "mapped_file.h"
 
 HeadChunks::HeadChunks(const boost::filesystem::path& dataDir) {
@@ -35,6 +36,26 @@ HeadChunks::HeadChunks(const boost::filesystem::path& dataDir) {
         seriesMap[ref].chunks.push_back(chunkref);
         ++counter;
     }
+}
+
+std::set<SeriesSource::SeriesRef> HeadChunks::getFilteredSeriesRefs(
+        const SeriesFilter& filter) const {
+    std::set<SeriesSource::SeriesRef> res;
+
+    for (const auto& [ref, series] : seriesMap) {
+        if (filter(series)) {
+            res.insert(ref);
+        }
+    }
+    return res;
+}
+
+const Series& HeadChunks::getSeries(SeriesRef ref) const {
+    return seriesMap.at(ref);
+}
+
+std::shared_ptr<ChunkFileCache> HeadChunks::getCache() const {
+    return cache;
 }
 
 void HeadChunks::loadChunkFile(Decoder& dec, size_t fileId) {
