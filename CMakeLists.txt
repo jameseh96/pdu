@@ -45,6 +45,7 @@ add_library(plib
         src/pdu/io/resource.cc
         src/pdu/io/posting_offset_iterator.cc
         src/pdu/io/series_sample_iterator.cc
+        src/pdu/io/wal.cc
         src/pdu/query/filtered_index_iterator.cc
         src/pdu/query/series_filter.cc
         src/pdu/query/sample_visitor.cc
