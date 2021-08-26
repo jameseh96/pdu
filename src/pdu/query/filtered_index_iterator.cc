@@ -2,10 +2,9 @@
 
 #include <boost/filesystem.hpp>
 
-FilteredIndexIterator::FilteredIndexIterator(
+FilteredSeriesSourceIterator::FilteredSeriesSourceIterator(
         const std::shared_ptr<SeriesSource>& source, const SeriesFilter& filter)
     : source(source) {
-
     // Once a chunk file reference is encountered in the index, the
     // appropriate chunk file will be mmapped and inserted into the cache
     // as they are likely to be used again.
@@ -17,8 +16,8 @@ FilteredIndexIterator::FilteredIndexIterator(
     update();
 }
 
-FilteredIndexIterator::FilteredIndexIterator(
-        const FilteredIndexIterator& other) {
+FilteredSeriesSourceIterator::FilteredSeriesSourceIterator(
+        const FilteredSeriesSourceIterator& other) {
     source = other.source;
     cache = other.cache;
     filteredSeriesRefs = other.filteredSeriesRefs;
@@ -28,12 +27,12 @@ FilteredIndexIterator::FilteredIndexIterator(
     handle = other.handle;
 }
 
-void FilteredIndexIterator::increment() {
+void FilteredSeriesSourceIterator::increment() {
     ++refItr;
     update();
 }
 
-void FilteredIndexIterator::update() {
+void FilteredSeriesSourceIterator::update() {
     if (refItr != filteredSeriesRefs.end()) {
         auto seriesPtr = getCurrentSeries();
         handle = {seriesPtr.get(), SeriesSampleIterator(seriesPtr, cache)};

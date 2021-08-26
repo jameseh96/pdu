@@ -15,7 +15,7 @@ class SeriesIterator
     : public iterator_facade<SeriesIterator, CrossIndexSeries> {
 public:
     SeriesIterator() = default;
-    SeriesIterator(std::vector<FilteredIndexIterator> indexes);
+    SeriesIterator(std::vector<FilteredSeriesSourceIterator> indexes);
 
     void increment();
     const CrossIndexSeries& dereference() const {
@@ -27,6 +27,6 @@ public:
     }
 
 private:
-    std::vector<FilteredIndexIterator> indexes;
+    std::vector<FilteredSeriesSourceIterator> indexes;
     CrossIndexSeries value;
 };

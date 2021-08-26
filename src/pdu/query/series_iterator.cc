@@ -2,13 +2,14 @@
 
 #include <utility>
 
-SeriesIterator::SeriesIterator(std::vector<FilteredIndexIterator> indexes)
+SeriesIterator::SeriesIterator(
+        std::vector<FilteredSeriesSourceIterator> indexes)
     : indexes(std::move(indexes)) {
     increment();
 }
 
 void SeriesIterator::increment() {
-    std::list<FilteredIndexIterator*> indexesWithSeries;
+    std::list<FilteredSeriesSourceIterator*> indexesWithSeries;
 
     for (auto& fi : indexes) {
         if (fi == end(fi)) {

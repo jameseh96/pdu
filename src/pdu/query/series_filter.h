@@ -32,6 +32,8 @@ public:
 
     std::set<size_t> operator()(const Index& index) const;
 
+    bool operator()(const Series& series) const;
+
     bool empty() const {
         return matchers.empty();
     }

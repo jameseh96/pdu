@@ -71,6 +71,24 @@ std::set<size_t> SeriesFilter::operator()(const Index& index) const {
     return result;
 }
 
+bool SeriesFilter::operator()(const Series& series) const {
+    for (const auto& [label, matcher] : matchers) {
+        auto itr = series.labels.find(label);
+        if (itr == series.labels.end()) {
+            // for now we have no way of filtering for "does not have label"
+            // if there is a matcher for this label, but it is absent,
+            // the series can be rejected.
+            return false;
+        }
+        if (!matcher(itr->second)) {
+            // label exists, but is not accepted by the filter.
+            return false;
+        }
+    }
+    // if no matchers, or they all pass, accept the series.
+    return true;
+}
+
 void SeriesFilter::operator()(const Index& index,
                               PerLabelRefs& seriesRefs) const {
     for (const auto& postingOffset : index.postings) {

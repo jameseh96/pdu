@@ -22,7 +22,7 @@ SeriesIterator PrometheusData::begin() const {
 }
 
 SeriesIterator PrometheusData::filtered(const SeriesFilter& filter) const {
-    std::vector<FilteredIndexIterator> filteredIndexes;
+    std::vector<FilteredSeriesSourceIterator> filteredIndexes;
 
     for (auto indexPtr : indexes) {
         filteredIndexes.emplace_back(indexPtr, filter);

@@ -14,13 +14,13 @@ struct SeriesHandle {
     SeriesSampleIterator sampleItr;
 };
 
-class FilteredIndexIterator
-    : public iterator_facade<FilteredIndexIterator, SeriesHandle> {
+class FilteredSeriesSourceIterator
+    : public iterator_facade<FilteredSeriesSourceIterator, SeriesHandle> {
 public:
-    FilteredIndexIterator(const std::shared_ptr<SeriesSource>& source,
-                          const SeriesFilter& filter);
+    FilteredSeriesSourceIterator(const std::shared_ptr<SeriesSource>& source,
+                                 const SeriesFilter& filter);
 
-    FilteredIndexIterator(const FilteredIndexIterator& other);
+    FilteredSeriesSourceIterator(const FilteredSeriesSourceIterator& other);
 
     void increment();
 

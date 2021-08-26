@@ -19,7 +19,7 @@ public:
     virtual ~SeriesVisitor();
 
     virtual void visit(const std::vector<std::shared_ptr<Index>>& indexes);
-    virtual void visit(std::vector<FilteredIndexIterator>& indexes);
+    virtual void visit(std::vector<FilteredSeriesSourceIterator>& indexes);
 
 protected:
     virtual void visit(const Series& series) = 0;
@@ -30,7 +30,7 @@ protected:
 class OrderedSeriesVisitor : public virtual SeriesVisitor {
 public:
     using SeriesVisitor::visit;
-    virtual void visit(std::vector<FilteredIndexIterator>& indexes);
+    virtual void visit(std::vector<FilteredSeriesSourceIterator>& indexes);
     virtual void visit(const PrometheusData& pd);
     virtual void visit(const SeriesIterator& itr);
 };

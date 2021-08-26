@@ -6,7 +6,7 @@
 SeriesVisitor::~SeriesVisitor() = default;
 
 void SeriesVisitor::visit(const std::vector<std::shared_ptr<Index>>& indexes) {
-    std::vector<FilteredIndexIterator> filteredIndexes;
+    std::vector<FilteredSeriesSourceIterator> filteredIndexes;
 
     for (const auto& indexPtr : indexes) {
         filteredIndexes.emplace_back(indexPtr, SeriesFilter());
@@ -15,7 +15,7 @@ void SeriesVisitor::visit(const std::vector<std::shared_ptr<Index>>& indexes) {
     visit(filteredIndexes);
 }
 
-void SeriesVisitor::visit(std::vector<FilteredIndexIterator>& indexes) {
+void SeriesVisitor::visit(std::vector<FilteredSeriesSourceIterator>& indexes) {
     for (const auto& fi : indexes) {
         for (const auto& [series, samples] : fi) {
             visit(*series);
@@ -26,7 +26,8 @@ void SeriesVisitor::visit(std::vector<FilteredIndexIterator>& indexes) {
     }
 }
 
-void OrderedSeriesVisitor::visit(std::vector<FilteredIndexIterator>& indexes) {
+void OrderedSeriesVisitor::visit(
+        std::vector<FilteredSeriesSourceIterator>& indexes) {
     visit(SeriesIterator(indexes));
 }
 
