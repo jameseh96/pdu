@@ -1,5 +1,6 @@
 #include "pdu.h"
 
+#include "io/head_chunks.h"
 #include "io/index_iterator.h"
 #include "query/filtered_index_iterator.h"
 #include "query/series_filter.h"
@@ -10,6 +11,8 @@ PrometheusData::PrometheusData(const boost::filesystem::path& dataDir) {
     for (auto indexPtr : IndexIterator(dataDir)) {
         indexes.push_back(indexPtr);
     }
+
+    headChunks = std::make_shared<HeadChunks>(dataDir);
 
     std::sort(indexes.begin(), indexes.end(), [](const auto& a, const auto& b) {
         return a->meta.minTime < b->meta.minTime;
@@ -27,6 +30,8 @@ SeriesIterator PrometheusData::filtered(const SeriesFilter& filter) const {
     for (auto indexPtr : indexes) {
         filteredIndexes.emplace_back(indexPtr, filter);
     }
+
+    filteredIndexes.emplace_back(headChunks, filter);
 
     return SeriesIterator(std::move(filteredIndexes));
 }

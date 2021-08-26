@@ -8,6 +8,7 @@
 #include <vector>
 
 class SeriesFilter;
+class HeadChunks;
 
 class PrometheusData {
 public:
@@ -22,6 +23,7 @@ public:
 
 private:
     std::vector<std::shared_ptr<Index>> indexes;
+    std::shared_ptr<HeadChunks> headChunks;
 };
 
 namespace pdu {
