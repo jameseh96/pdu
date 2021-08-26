@@ -28,7 +28,6 @@ HeadChunks::HeadChunks(const boost::filesystem::path& dataDir) {
     for (const auto& [ref, memchunk] : walChunks) {
         auto [resource, chunkref] = memchunk.makeResource();
 
-        std::cout << memchunk.data.size() << "\n";
         auto fileId = DummyFileIdBase + counter;
         chunkref.fileReference = makeFileReference(fileId, 0);
 
