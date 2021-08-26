@@ -86,11 +86,10 @@ void WalLoader::loadFragment(Decoder& dec, bool isLastFile) {
         if (type == PageEmpty) {
             // rest of page is empty, consume to next 32KB boundary
             auto pos = dec.tell();
-            pos = size_t(32 * 1024 * std::ceil(float(pos) / (32 * 1024)));
-            //            if (pos & 0x7fff) {
-            //                pos &= ~0x7fff;
-            //                pos += 0x8000;
-            //            }
+            if (pos & 0x7fff) {
+                pos &= ~0x7fff;
+                pos += 0x8000;
+            }
             if (dec.remaining() < (pos - dec.tell())) {
                 if (isLastFile) {
                     // partial empty record, but that is okay for the end of the
