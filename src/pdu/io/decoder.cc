@@ -99,6 +99,9 @@ std::string Decoder::read(size_t count) {
 }
 
 std::string_view Decoder::read_view(size_t count) {
+    if (count > subview.size()) {
+        throw std::runtime_error("read_view: too few left");
+    }
     auto value = subview.substr(0, count);
     subview.remove_prefix(count);
     return value;
