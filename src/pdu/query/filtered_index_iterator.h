@@ -17,7 +17,7 @@ struct SeriesHandle {
 class FilteredIndexIterator
     : public iterator_facade<FilteredIndexIterator, SeriesHandle> {
 public:
-    FilteredIndexIterator(const std::shared_ptr<Index>& index,
+    FilteredIndexIterator(const std::shared_ptr<SeriesSource>& source,
                           const SeriesFilter& filter);
 
     FilteredIndexIterator(const FilteredIndexIterator& other);
@@ -47,10 +47,11 @@ private:
         // in the Python bindings; for C++ this is relatively unnecessary as
         // it is reasonable to expect destroying a container (the index) to
         // invalidate interators and references to its contents.
-        return std::shared_ptr<const Series>(index, &index->series.at(*refItr));
+        const auto& series = source->getSeries(*refItr);
+        return std::shared_ptr<const Series>(source, &series);
     }
 
-    std::shared_ptr<Index> index;
+    std::shared_ptr<SeriesSource> source;
     std::shared_ptr<ChunkFileCache> cache;
     std::set<size_t> filteredSeriesRefs;
     std::set<size_t>::const_iterator refItr;

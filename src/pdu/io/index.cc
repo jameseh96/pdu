@@ -1,5 +1,7 @@
 #include "index.h"
 
+#include "../query/series_filter.h"
+#include "chunk_file_cache.h"
 #include "decoder.h"
 #include "mapped_file.h"
 
@@ -125,7 +127,14 @@ void Index::load(std::shared_ptr<Resource> res) {
     resource = std::move(res);
 
     namespace fs = boost::filesystem;
-    auto metaPath = fs::path(resource->getDirectory()) / "meta.json";
+    fs::path subdir = getDirectory();
+
+    // Once a chunk file reference is encountered in the index, the
+    // appropriate chunk file will be mmapped and inserted into the cache
+    // as they are likely to be used again.
+    cache = std::make_shared<ChunkFileCache>(subdir / "chunks");
+
+    auto metaPath = fs::path(subdir) / "meta.json";
 
     if (!fs::exists(metaPath)) {
         throw std::invalid_argument(
@@ -164,6 +173,18 @@ void Index::load(std::shared_ptr<Resource> res) {
 
     dec.seek(toc.postings_offset_table_offset);
     postings.load(dec);
+}
+
+std::set<SeriesSource::SeriesRef> Index::getFilteredSeriesRefs(const SeriesFilter& filter) const {
+    return filter(*this);
+}
+
+const Series& Index::getSeries(SeriesRef ref) const {
+    return series.at(ref);
+}
+
+std::shared_ptr<ChunkFileCache> Index::getCache() const {
+    return cache;
 }
 
 Posting::Posting(Decoder dec) {

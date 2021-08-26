@@ -1,6 +1,7 @@
 #pragma once
 
 #include "resource.h"
+#include "series_source.h"
 
 #include "posting_offset_iterator.h"
 
@@ -147,7 +148,9 @@ struct IndexMeta {
 
 void from_json(const nlohmann::json& j, IndexMeta& meta);
 
-struct Index {
+class ChunkFileCache;
+
+struct Index : public SeriesSource {
     Index() = default;
 
     // Index structures contain pointers into the contained symbol table
@@ -165,6 +168,10 @@ struct Index {
 
     IndexMeta meta;
 
+    // store mmapped chunk files on first access, as they are likely to be
+    // used repeatedly.
+    std::shared_ptr<ChunkFileCache> cache;
+
     void load(std::shared_ptr<Resource> resource);
 
     std::set<size_t> getSeriesRefs(const PostingOffset& offset) const {
@@ -175,6 +182,13 @@ struct Index {
     const std::string& getDirectory() const {
         return resource->getDirectory();
     }
+
+    std::set<SeriesRef> getFilteredSeriesRefs(
+            const SeriesFilter& filter) const override;
+
+    const Series& getSeries(SeriesRef ref) const override;
+
+    std::shared_ptr<ChunkFileCache> getCache() const override;
 
 private:
     std::shared_ptr<Resource> resource;

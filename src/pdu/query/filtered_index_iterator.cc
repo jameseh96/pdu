@@ -3,17 +3,15 @@
 #include <boost/filesystem.hpp>
 
 FilteredIndexIterator::FilteredIndexIterator(
-        const std::shared_ptr<Index>& index, const SeriesFilter& filter)
-    : index(index) {
-    namespace fs = boost::filesystem;
-    fs::path subdir = index->getDirectory();
+        const std::shared_ptr<SeriesSource>& source, const SeriesFilter& filter)
+    : source(source) {
 
     // Once a chunk file reference is encountered in the index, the
     // appropriate chunk file will be mmapped and inserted into the cache
     // as they are likely to be used again.
-    cache = std::make_shared<ChunkFileCache>(subdir / "chunks");
+    cache = source->getCache();
 
-    filteredSeriesRefs = filter(*index);
+    filteredSeriesRefs = source->getFilteredSeriesRefs(filter);
     refItr = filteredSeriesRefs.begin();
 
     update();
@@ -21,7 +19,7 @@ FilteredIndexIterator::FilteredIndexIterator(
 
 FilteredIndexIterator::FilteredIndexIterator(
         const FilteredIndexIterator& other) {
-    index = other.index;
+    source = other.source;
     cache = other.cache;
     filteredSeriesRefs = other.filteredSeriesRefs;
     refItr = filteredSeriesRefs.begin();
