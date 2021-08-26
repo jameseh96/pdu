@@ -303,7 +303,6 @@ mkdir ./build
 cd !$
 cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
 make
-make install
 ```
 
 ## Built With
