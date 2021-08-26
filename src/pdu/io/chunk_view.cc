@@ -1,5 +1,6 @@
 #include "chunk_view.h"
 
+#include "chunk_reference.h"
 #include "index.h"
 
 #include <cmath>
@@ -12,8 +13,8 @@ bool operator!=(const Sample& a, const Sample& b) {
     return !(a == b);
 }
 
-SampleIterator::SampleIterator(Decoder& dec, size_t sampleCount)
-    : sampleCount(sampleCount), dec(&dec), bits(dec) {
+SampleIterator::SampleIterator(Decoder& dec, size_t sampleCount, bool rawChunk)
+    : sampleCount(sampleCount), dec(&dec), bits(dec), rawChunk(rawChunk) {
     advance();
 }
 
@@ -70,6 +71,13 @@ uint8_t minBits(ssize_t value) {
 void SampleIterator::increment() {
     ++currentIndex;
     if (is_end()) {
+        return;
+    }
+    if (rawChunk) {
+        s.timestamp = *reinterpret_cast<const int64_t*>(
+                dec->read_view(sizeof(int64_t)).data());
+        s.value = *reinterpret_cast<const double*>(
+                dec->read_view(sizeof(double)).data());
         return;
     }
     if (currentIndex == 0) {
@@ -189,14 +197,33 @@ double SampleIterator::readValue() {
 ChunkView::ChunkView(ChunkFileCache& cfc, const ChunkReference& chunkRef)
     : res(cfc.get(chunkRef.getSegmentFileId())), dec(res->get()) {
     dec.seek(chunkRef.getOffset());
-    dataLen = dec.read_varuint();
 
-    auto encoding = dec.read_int<uint8_t>();
-    if (encoding != 1) {
-        throw std::runtime_error("Chunk file has unknown encoding: " +
-                                 std::to_string(encoding));
+    if (chunkRef.type == ChunkType::Raw) {
+        rawChunk = true;
+        dataLen = dec.remaining();
+        sampleCount = dataLen / (sizeof(int64_t) + sizeof(double));
+        return;
+    } else if (chunkRef.type == ChunkType::Head) {
+        dec.read_int<uint64_t>(); // seriesRef
+        dec.read_int<uint64_t>(); // minTime
+        dec.read_int<uint64_t>(); // maxTime
+
+        auto encoding = dec.read_int<uint8_t>();
+        if (encoding != 1) {
+            throw std::runtime_error("Head chunk file has unknown encoding: " +
+                                     std::to_string(encoding));
+        }
+
+        dataLen = dec.read_varuint();
+    } else {
+        dataLen = dec.read_varuint();
+
+        auto encoding = dec.read_int<uint8_t>();
+        if (encoding != 1) {
+            throw std::runtime_error("Chunk file has unknown encoding: " +
+                                     std::to_string(encoding));
+        }
     }
-
     sampleCount = dec.read_int<uint16_t>();
     dataOffset = dec.tell();
 }

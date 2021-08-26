@@ -35,8 +35,10 @@ add_library(plib
         src/pdu/io/decoder.cc
         src/pdu/io/index.cc
         src/pdu/io/chunk_file_cache.cc
+        src/pdu/io/chunk_reference.cc
         src/pdu/io/chunk_view.cc
         src/pdu/io/bit_decoder.cc
+        src/pdu/io/head_chunks.cc
         src/pdu/io/mapped_file.cc
         src/pdu/io/index_iterator.cc
         src/pdu/display/bitwidth_histogram.cc

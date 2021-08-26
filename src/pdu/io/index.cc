@@ -46,20 +46,6 @@ void TOC::load(Decoder& dec) {
     dec.read_int_to(postings_offset_table_offset);
 }
 
-ChunkReference& ChunkReference::operator+=(const ChunkReference& other) {
-    minTime += other.minTime;
-    maxTime += other.maxTime;
-    fileReference += other.fileReference;
-    return *this;
-}
-
-uint32_t ChunkReference::getSegmentFileId() const {
-    return uint32_t(fileReference >> 32) + 1;
-}
-uint32_t ChunkReference::getOffset() const {
-    return fileReference & 0xFFFFFFFF;
-}
-
 void Series::load(Decoder& dec, const SymbolTable& symbols) {
     auto len = dec.read_varuint(); // maybe?
     auto labelCount = dec.read_varuint();

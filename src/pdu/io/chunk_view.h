@@ -27,7 +27,7 @@ bool operator!=(const Sample& a, const Sample& b);
 
 struct SampleIterator : public iterator_facade<SampleIterator, Sample> {
     SampleIterator() = default;
-    SampleIterator(Decoder& dec, size_t sampleCount);
+    SampleIterator(Decoder& dec, size_t sampleCount, bool rawChunk = false);
 
     bool next(Sample& s);
 
@@ -59,6 +59,8 @@ private:
     Decoder* dec;
     BitDecoder bits;
 
+    bool rawChunk = false;
+
     Sample s;
 };
 
@@ -70,7 +72,7 @@ public:
     ChunkView(ChunkFileCache& cfc, const ChunkReference& chunkRef);
 
     SampleIterator samples() {
-        return {dec, sampleCount};
+        return {dec, sampleCount, rawChunk};
     }
 
     size_t dataLen;
@@ -81,4 +83,5 @@ public:
 private:
     std::shared_ptr<Resource> res;
     Decoder dec;
+    bool rawChunk = false;
 };

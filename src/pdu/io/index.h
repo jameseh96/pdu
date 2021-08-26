@@ -1,5 +1,6 @@
 #pragma once
 
+#include "chunk_reference.h"
 #include "resource.h"
 #include "series_source.h"
 
@@ -30,17 +31,6 @@ struct TOC {
     uint64_t postings_offset_table_offset;
 
     void load(Decoder& dec);
-};
-
-struct ChunkReference {
-    uint64_t minTime;
-    uint64_t maxTime;
-    size_t fileReference;
-
-    ChunkReference& operator+=(const ChunkReference& other);
-
-    uint32_t getSegmentFileId() const;
-    uint32_t getOffset() const;
 };
 
 struct Series {

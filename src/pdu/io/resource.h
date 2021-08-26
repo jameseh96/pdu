@@ -19,3 +19,19 @@ struct Resource {
 
     virtual ~Resource();
 };
+
+struct MemResource : public Resource {
+    MemResource(std::string_view data) : data(data) {
+    }
+
+    Decoder get() const override {
+        return {data};
+    }
+
+    const std::string& getDirectory() const override {
+        throw std::runtime_error("MemResource::getDirectory() not implemented");
+    }
+
+private:
+    std::string_view data;
+};
