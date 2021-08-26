@@ -12,6 +12,7 @@ conan_cmake_configure(REQUIRES
         fmt/6.1.2
         boost/1.76.0
         nlohmann_json/3.9.1
+        snappy/1.1.9
         GENERATORS cmake_find_package)
 
 conan_cmake_autodetect(settings)
@@ -26,6 +27,7 @@ list(PREPEND CMAKE_MODULE_PATH "${CMAKE_BINARY_DIR}")
 find_package(Boost REQUIRED)
 find_package(fmt REQUIRED)
 find_package(nlohmann_json REQUIRED)
+find_package(Snappy REQUIRED)
 
 
 add_library(plib
@@ -53,7 +55,8 @@ target_link_libraries(plib PUBLIC
         Boost::program_options
         Boost::filesystem
         fmt::fmt
-        nlohmann_json::nlohmann_json)
+        nlohmann_json::nlohmann_json
+        Snappy::snappy)
 
 set_property(TARGET plib PROPERTY POSITION_INDEPENDENT_CODE ON)
 
