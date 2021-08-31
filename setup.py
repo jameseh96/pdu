@@ -134,6 +134,7 @@ setup(
     author_email="",
     description="Python bindings for C++ library for reading Prometheus on-disk data",
     long_description=readme(),
+    long_description_content_type='text/markdown',
     ext_modules=[CMakeExtension("pypdu")],
     cmdclass={"build_ext": CMakeBuild},
     zip_safe=False,
