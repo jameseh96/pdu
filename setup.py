@@ -117,9 +117,13 @@ class CMakeBuild(build_ext):
             ["cmake", ext.sourcedir] + cmake_args, cwd=self.build_temp
         )
         subprocess.check_call(
-            ["cmake", "--build", "."] + build_args, cwd=self.build_temp
+            ["cmake", "--build", ".", "--target", "pypdu"] + build_args, cwd=self.build_temp
         )
 
+
+def readme():
+    with open('pypdu_README.md') as f:
+        return f.read()
 
 # The information here can also be placed in setup.cfg - better separation of
 # logic and declaration, and simpler if you include description/version in a file.
@@ -129,7 +133,7 @@ setup(
     author="jameseh96",
     author_email="",
     description="Python bindings for C++ library for reading Prometheus on-disk data",
-    long_description="",
+    long_description=readme(),
     ext_modules=[CMakeExtension("pypdu")],
     cmdclass={"build_ext": CMakeBuild},
     zip_safe=False,
