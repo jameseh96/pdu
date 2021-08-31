@@ -1,0 +1,7 @@
+#!/usr/bin/bash
+
+# override the PYTHONPATH here, so that conan always finds the appropriate libs, even if PYTHONPATH
+# has been manually setup for Python2
+export PYTHONPATH=/usr/lib/python3.6/site-packages/:/usr/lib64/python3.6/:/usr/local/lib/python3.6/site-packages/
+/usr/local/bin/conan_ "$@"
+
