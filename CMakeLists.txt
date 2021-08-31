@@ -10,7 +10,7 @@ include(conan.cmake)
 
 conan_cmake_configure(REQUIRES
         fmt/6.1.2
-        boost/1.76.0
+        boost/1.74.0
         nlohmann_json/3.9.1
         snappy/1.1.9
         GENERATORS cmake_find_package)
