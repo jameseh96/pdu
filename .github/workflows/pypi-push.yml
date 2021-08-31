@@ -1,5 +1,10 @@
 name: Publish Python distributions to PyPI and TestPyPI
-on: push
+on:
+  push:
+    branches:
+      - "!*"
+    tags:
+      - "v*"
 jobs:
   build-manylinux-3_X:
     name: Build manylinux wheels (Python3.X)
