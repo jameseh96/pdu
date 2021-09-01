@@ -1,4 +1,4 @@
-# pdu | pdump | pypdu
+# pypdu | pdu | pdump
 
 This repo contains two small C++ tools, [`pdu`](#pdu) and [`pdump`](#pdump). These tools operate on Prometheus on-disk data, and provide insight into per-metric family disk usage and raw sample data respectively.
 
@@ -6,6 +6,39 @@ In addition, [`pypdu`](#pypdu) provides Python bindings supporting basic operati
 
 
 Note: This has not been thoroughly tested across Prometheus versions; no compatibility guarantees are made.
+
+# pypdu
+
+Python module capable of reading the time series data written to disk by Prometheus.
+
+## Quick Start
+
+Install from PyPI with `pip`:
+
+```
+$ pip install pypdu
+```
+
+Wheels are currently only built and published for MacOS and Linux.
+
+Basic usage example:
+
+```
+#!/usr/bin/env python3
+import pypdu
+
+data = pypdu.load("/path/to/stats_data")
+
+for series in data:
+    print(series.labels)
+    print(len(series.samples))
+    for sample in series.samples:
+        print(f"{sample.timestamp} : {sample.value}")
+```
+
+For further details on pypdu features and alternative installation methods, see [pypdu](./pypdu_README.md).
+
+---
 
 
 # pdu
@@ -177,42 +210,16 @@ labelKey labelValue
 
 Each section is separated by an empty line.
 
-Alternative output formats and filtering options will be implemented in the near future. However, with [pypdu](#pypdu), arbitrary filtering and formatting can be done from Python instead.
+Alternative output formats and filtering options may be implemented in the future. However, with [pypdu](#pypdu), arbitrary filtering and formatting can be done from Python instead.
 
 ---
 
-# pypdu
-
-## Quick Start
-
-Install from PyPI with `pip`:
-
-```
-$ pip install pypdu
-```
-
-Basic usage example:
-
-```
-#!/usr/bin/env python3
-import pypdu
-
-data = pypdu.load("/path/to/stats_data")
-
-for series in data:
-    print(series.labels)
-    print(len(series.samples))
-    for sample in series.samples:
-        print(f"{sample.timestamp} : {sample.value}")
-```
-
-For further details on pypdu features and alternative installation methods, see [pypdu](./pypdu_README.md).
 
 # Prerequisites
 
 * [Conan](https://conan.io/) - [installation instructions](https://docs.conan.io/en/latest/installation.html).
 
-Additionally, to build `pypdu`:
+Additionally, to build `pypdu` from source:
 
 * Python headers (typically provided by a `pythonX.X-dev` or `pythonX.X-devel` package)
 
