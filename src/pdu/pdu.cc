@@ -8,9 +8,22 @@
 #include <algorithm>
 
 PrometheusData::PrometheusData(const boost::filesystem::path& dataDir) {
+    std::set<std::string> obsoleteHeads;
+    std::set<std::string> obsoleteBlocks;
     for (auto indexPtr : IndexIterator(dataDir)) {
+        const auto& parents = indexPtr->meta.compaction.parentULIDs;
+        obsoleteBlocks.insert(parents.begin(), parents.end());
         indexes.push_back(indexPtr);
     }
+
+    // remove blocks which have already been superseded by a compacted block
+    indexes.erase(std::remove_if(indexes.begin(),
+                                 indexes.end(),
+                                 [obsoleteBlocks](const auto& indexPtr) {
+                                     return obsoleteBlocks.count(
+                                                    indexPtr->meta.ulid) > 0;
+                                 }),
+                  indexes.end());
 
     headChunks = std::make_shared<HeadChunks>(dataDir);
 

@@ -133,7 +133,12 @@ struct IndexMeta {
     } stats;
 
     uint64_t version;
-    // compaction data present in the meta but not currently needed
+
+    struct {
+        int64_t level;
+        std::vector<std::string> sources;
+        std::vector<std::string> parentULIDs;
+    } compaction;
 };
 
 void from_json(const nlohmann::json& j, IndexMeta& meta);

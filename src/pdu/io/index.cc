@@ -107,6 +107,23 @@ void from_json(const nlohmann::json& j, IndexMeta& meta) {
     stats.at("numSamples").get_to(meta.stats.numSamples);
     stats.at("numSeries").get_to(meta.stats.numSeries);
     stats.at("numChunks").get_to(meta.stats.numChunks);
+
+    if (auto compItr = j.find("compaction"); compItr != j.end()) {
+        auto comp = *compItr;
+
+        comp.at("level").get_to(meta.compaction.level);
+
+        if (auto sItr = j.find("sources"); sItr != j.end()) {
+            sItr->get_to(meta.compaction.sources);
+        }
+
+        if (auto pItr = j.find("parents"); pItr != j.end()) {
+            for (const auto& parent : *pItr) {
+                meta.compaction.parentULIDs.push_back(
+                        parent.at("ulid").get<std::string>());
+            }
+        }
+    }
 }
 
 void Index::load(std::shared_ptr<Resource> res) {
