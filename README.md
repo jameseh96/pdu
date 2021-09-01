@@ -236,7 +236,7 @@ cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
 make
 ```
 
-##Built With
+## Built With
 
 * [Boost](https://github.com/boostorg/boost)
 * [pybind11](https://github.com/pybind/pybind11)

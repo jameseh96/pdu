@@ -57,7 +57,7 @@ data.filter({"__name__":"sysproc_page_faults_raw", "proc":"memcached"})
 ECMAScript regexes can also be used:
 
 ```
-data.filter({"proc":pyp.regex("^go.*")})
+data.filter({"proc":pypdu.regex("^go.*")})
 ```
 
 Or even arbitrary Python callbacks:
