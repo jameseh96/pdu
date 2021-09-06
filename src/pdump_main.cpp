@@ -43,7 +43,8 @@ struct params_t {
                     "Usage:\n"
                     "    pdump <options> <dir>\n"
                     "e.g.,\n"
-                    "    pdump -q '{foo=\"bar\"}' ./stats_data\n\n");
+                    "    pdump -q '{{foo=\"bar\"}}' ./stats_data # not yet "
+                    "implemented\n\n");
             fmt::print("{}\n", options);
             valid = false;
         }
