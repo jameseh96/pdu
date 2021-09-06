@@ -152,6 +152,8 @@ int64_t SampleIterator::readTSDod() {
     case 0x0f: // 1111
         tsBitCount = 64;
         break;
+    default:
+        throw std::logic_error("Invalid tsPrefix: " + std::to_string(tsPrefix));
     }
 
     size_t tsBits = bits.readBits(tsBitCount);
@@ -184,6 +186,11 @@ double SampleIterator::readValue() {
     }
 
     uint8_t sigBits = 64 - prev.leading - prev.trailing;
+
+    if (!sigBits) {
+        throw std::logic_error("Chunkfile read sigBits==0, this is not valid");
+    }
+
     size_t newValueBits = bits.readBits(sigBits);
     newValueBits <<= prev.trailing;
     newValueBits ^= reinterpret_cast<uint64_t&>(prev.value);
