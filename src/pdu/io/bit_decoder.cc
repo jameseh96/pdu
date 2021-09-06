@@ -12,7 +12,9 @@ BitDecoder::BitDecoder(Decoder& dec) : dec(&dec) {
 
 uint64_t BitDecoder::readBits(size_t count) {
     if (count > 64) {
-        throw std::logic_error("Only support reading 64 bits at a time");
+        throw std::logic_error(
+                "Only support reading 64 bits at a time, tried to read: " +
+                std::to_string(count));
     }
 
     // track the count before it is modified
