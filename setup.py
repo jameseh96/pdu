@@ -129,7 +129,7 @@ def readme():
 # logic and declaration, and simpler if you include description/version in a file.
 setup(
     name="pypdu",
-    version="0.0.3",
+    version="0.0.4",
     author="jameseh96",
     author_email="",
     description="Python bindings for C++ library for reading Prometheus on-disk data",
