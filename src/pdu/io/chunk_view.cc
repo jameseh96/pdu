@@ -124,7 +124,7 @@ std::pair<int64_t, int64_t> SampleIterator::readTS() {
 }
 
 int64_t SampleIterator::readTSDod() {
-    uint8_t tsPrefix;
+    uint8_t tsPrefix = 0;
     for (int i = 0; i < 4; ++i) {
         tsPrefix <<= 1;
         if (!bits.readBit()) {
