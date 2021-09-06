@@ -48,11 +48,11 @@ private:
     int64_t readTSDod();
 
     struct {
-        int64_t ts;
-        int64_t tsDelta;
-        double value;
-        uint8_t leading;
-        uint8_t trailing;
+        int64_t ts = 0;
+        int64_t tsDelta = 0;
+        double value = 0;
+        uint8_t leading = 0;
+        uint8_t trailing = 0;
     } prev;
     ssize_t currentIndex = -1;
     size_t sampleCount;
