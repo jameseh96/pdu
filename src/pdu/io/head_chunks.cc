@@ -5,9 +5,13 @@
 
 HeadChunks::HeadChunks(const boost::filesystem::path& dataDir) {
     auto headChunksDir = dataDir / "chunks_head";
+    namespace fs = boost::filesystem;
+    if (!fs::exists(headChunksDir) || !fs::exists(dataDir / "wal")) {
+        return;
+    }
+
     cache = std::make_shared<ChunkFileCache>(headChunksDir);
 
-    namespace fs = boost::filesystem;
     for (const auto& chunkFile : fs::directory_iterator(headChunksDir)) {
         const auto& filename = chunkFile.path().filename().string();
         auto fileId = std::stoull(filename);
