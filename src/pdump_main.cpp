@@ -60,13 +60,13 @@ public:
     void visit(const Series& series) override {
         if (last) {
             // end the previous time series with an empty line
-            std::cout << "\n";
+            fmt::print("\n");
         }
-        std::cout << series << "\n";
+        fmt::print("{}\n", series);
         last = 0;
     }
     void visit(const Sample& sample) override {
-        std::cout << sample.timestamp << " " << sample.value << "\n";
+        fmt::print("{} {}\n", sample.timestamp, sample.value);
         if (sample.timestamp < last) {
             throw std::runtime_error(
                     "SampleDumpVisitor encountered non-monotonic timestamps "
