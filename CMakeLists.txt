@@ -19,7 +19,7 @@ conan_cmake_autodetect(settings)
 
 conan_cmake_install(PATH_OR_REFERENCE .
         BUILD missing
-        REMOTE conan-center
+        REMOTE conancenter
         SETTINGS ${settings})
 
 list(PREPEND CMAKE_MODULE_PATH "${CMAKE_BINARY_DIR}")

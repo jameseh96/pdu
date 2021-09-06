@@ -12,3 +12,4 @@ RUN  /usr/bin/python3 -m pip install --upgrade conan wheel
 RUN mv /usr/local/bin/conan /usr/local/bin/conan_
 COPY conan_workaround /usr/local/bin/conan
 RUN chmod +x /usr/local/bin/conan
+RUN conan remote add -f conancenter https://center.conan.io

@@ -36,6 +36,8 @@ jobs:
           cmake-version: '3.17.x'
       - name: Install Python packages
         run: pip3 install conan setuptools wheel
+      - name: Add conancenter remote
+        run: conan remote add -f conancenter https://center.conan.io
       - name: build wheels
         uses: pypa/cibuildwheel@v2.1.1
       - uses: actions/upload-artifact@v2
