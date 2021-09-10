@@ -9,14 +9,11 @@
 #include <nlohmann/json.hpp>
 
 std::string_view SymbolTable::lookup(size_t index) const {
-    if (index == 0) {
-        throw std::domain_error("SymbolTable: 0 is an impossible index");
-    }
-    if (index > symbols.size()) {
+    if (index >= symbols.size()) {
         throw std::domain_error("SymbolTable: too high index");
     }
-    // for some reason symbols are treated as 1-indexed. adjust accordingly.
-    return symbols.at(index - 1);
+
+    return symbols.at(index);
 }
 
 void SymbolTable::load(Decoder& dec) {
@@ -29,6 +26,7 @@ void SymbolTable::load(Decoder& dec) {
     for (int i = 0; i < numSymbols; ++i) {
         auto strLen = dec.read_varuint();
         if (strLen == 0) {
+            symbols.push_back("");
             continue;
         }
         value.resize(strLen);
