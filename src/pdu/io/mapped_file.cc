@@ -4,6 +4,10 @@
 
 MappedFileResource::MappedFileResource(const boost::filesystem::path& fileName)
     : directory(fileName.parent_path().string()) {
+    if (boost::filesystem::is_empty(fileName)) {
+        // nothing in the file, mapping will fail.
+        return;
+    }
     mappedFile = {fileName.c_str(), read_only};
 
     // Map the whole file with read permissions

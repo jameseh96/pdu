@@ -29,6 +29,10 @@ struct MappedFileResource : public Resource {
         return directory;
     }
 
+    bool empty() const override {
+        return data.empty();
+    }
+
 private:
     std::string directory;
     file_mapping mappedFile;

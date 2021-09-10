@@ -71,6 +71,9 @@ void WalLoader::load(const boost::filesystem::path& dataDir) {
 
 void WalLoader::loadFile(const boost::filesystem::path& file, bool isLast) {
     auto resource = map_file(file);
+    if (resource->empty()) {
+        return;
+    }
     auto dec = resource->get();
     while (!dec.empty()) {
         loadFragment(dec, isLast);

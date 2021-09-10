@@ -17,6 +17,8 @@ struct Resource {
 
     virtual const std::string& getDirectory() const = 0;
 
+    virtual bool empty() const = 0;
+
     virtual ~Resource();
 };
 
@@ -30,6 +32,10 @@ struct MemResource : public Resource {
 
     const std::string& getDirectory() const override {
         throw std::runtime_error("MemResource::getDirectory() not implemented");
+    }
+
+    bool empty() const override {
+        return data.empty();
     }
 
 private:
