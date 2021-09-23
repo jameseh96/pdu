@@ -49,6 +49,12 @@ SeriesIterator PrometheusData::filtered(const SeriesFilter& filter) const {
     return SeriesIterator(std::move(filteredIndexes));
 }
 
+HistogramIterator PrometheusData::getHistograms() const {
+    SeriesFilter filter;
+    filter.addFilter("__name__", pdu::filter::regex(".*(_bucket|_sum)"));
+    return HistogramIterator(filtered(filter));
+}
+
 namespace pdu {
 PrometheusData load(const boost::filesystem::path& path) {
     return {path};

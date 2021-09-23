@@ -34,6 +34,7 @@ find_package(gsl-lite REQUIRED)
 
 add_library(plib
         src/pdu/pdu.cc
+        src/pdu/display/bitwidth_histogram.cc
         src/pdu/io/decoder.cc
         src/pdu/io/index.cc
         src/pdu/io/chunk_file_cache.cc
@@ -43,11 +44,13 @@ add_library(plib
         src/pdu/io/head_chunks.cc
         src/pdu/io/mapped_file.cc
         src/pdu/io/index_iterator.cc
-        src/pdu/display/bitwidth_histogram.cc
         src/pdu/io/resource.cc
         src/pdu/io/posting_offset_iterator.cc
         src/pdu/io/series_sample_iterator.cc
         src/pdu/io/wal.cc
+        src/pdu/histogram/histogram.cc
+        src/pdu/histogram/histogram_iterator.cc
+        src/pdu/histogram/histogram_time_span.cc
         src/pdu/query/filtered_index_iterator.cc
         src/pdu/query/series_filter.cc
         src/pdu/query/sample_visitor.cc
