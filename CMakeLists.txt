@@ -13,6 +13,7 @@ conan_cmake_configure(REQUIRES
         boost/1.74.0
         nlohmann_json/3.9.1
         snappy/1.1.9
+        gsl-lite/0.38.1
         GENERATORS cmake_find_package)
 
 conan_cmake_autodetect(settings)
@@ -28,6 +29,7 @@ find_package(Boost REQUIRED)
 find_package(fmt REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(Snappy REQUIRED)
+find_package(gsl-lite REQUIRED)
 
 
 add_library(plib
@@ -59,7 +61,8 @@ target_link_libraries(plib PUBLIC
         Boost::filesystem
         fmt::fmt
         nlohmann_json::nlohmann_json
-        Snappy::snappy)
+        Snappy::snappy
+        gsl::gsl-lite)
 
 set_property(TARGET plib PROPERTY POSITION_INDEPENDENT_CODE ON)
 
