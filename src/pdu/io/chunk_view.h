@@ -31,8 +31,6 @@ struct SampleIterator : public iterator_facade<SampleIterator, Sample> {
     SampleIterator() = default;
     SampleIterator(Decoder& dec, size_t sampleCount, bool rawChunk = false);
 
-    bool next(Sample& s);
-
     void increment();
     const Sample& dereference() const {
         return s;
