@@ -1,5 +1,6 @@
 #pragma once
 
+#include "histogram/histogram_iterator.h"
 #include "query/series_iterator.h"
 
 #include <boost/filesystem.hpp>
@@ -20,6 +21,8 @@ public:
     }
 
     SeriesIterator filtered(const SeriesFilter& filter) const;
+
+    HistogramIterator getHistograms() const;
 
 private:
     std::vector<std::shared_ptr<Index>> indexes;

@@ -1,5 +1,8 @@
 #include "pypdu.h"
 
+#include "pypdu_histogram.h"
+
+#include <pdu/histogram/histogram_iterator.h>
 #include <pdu/pdu.h>
 
 #include <pybind11/functional.h>
@@ -106,6 +109,8 @@ PYBIND11_MODULE(pypdu, m) {
     PYBIND11_NUMPY_DTYPE(RawSample, timestamp, value);
 
     m.doc() = "Python bindings to pdu, for reading Prometheus on-disk data";
+
+    init_histogram(m);
 
     m.def("load",
           py::overload_cast<const std::string&>(&pdu::load),
@@ -320,5 +325,9 @@ PYBIND11_MODULE(pypdu, m) {
     // python callback)
     .def("__getitem__", [](const PrometheusData& pd, const WrappedFilter& f) {
         return getFirstMatching(pd, f);
-    }, py::keep_alive<0, 1>());
+    }, py::keep_alive<0, 1>())
+    .def_property_readonly(
+        "histograms",
+        &PrometheusData::getHistograms,
+    py::keep_alive<0, 1>());
 }
