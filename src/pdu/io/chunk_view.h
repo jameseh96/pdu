@@ -8,11 +8,16 @@
 
 class ChunkReference;
 
-struct Sample {
-    static constexpr uint16_t noBitWidth = std::numeric_limits<uint16_t>::max();
-
+struct RawSample {
     int64_t timestamp;
     double value;
+};
+
+bool operator==(const RawSample& a, const RawSample& b);
+bool operator!=(const RawSample& a, const RawSample& b);
+
+struct Sample : public RawSample {
+    static constexpr uint16_t noBitWidth = std::numeric_limits<uint16_t>::max();
     struct {
         // The first two sample timestamps are not encoded as delta-of-deltas.
         // avoid including them in the minimal bit width breakdown.
@@ -21,9 +26,6 @@ struct Sample {
         uint16_t valueBitWidth = 0;
     } meta;
 };
-
-bool operator==(const Sample& a, const Sample& b);
-bool operator!=(const Sample& a, const Sample& b);
 
 struct SampleIterator : public iterator_facade<SampleIterator, Sample> {
     SampleIterator() = default;

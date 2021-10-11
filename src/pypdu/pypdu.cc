@@ -3,8 +3,10 @@
 #include <pdu/pdu.h>
 
 #include <pybind11/functional.h>
+#include <pybind11/numpy.h>
 #include <pybind11/operators.h>
 #include <pybind11/stl.h>
+#include <pybind11/stl_bind.h>
 
 // Wrapper for a filter returned by a C++ method (e.g., pdu::filter::regex)
 // to avoid overheads of calling through pybind. This distinguishes the
@@ -98,7 +100,11 @@ auto getFirstMatching(const PrometheusData& pd, const T& val) {
     return getFirstMatching(pd, makeFilter(val));
 }
 
+PYBIND11_MAKE_OPAQUE(std::vector<RawSample>);
+
 PYBIND11_MODULE(pypdu, m) {
+    PYBIND11_NUMPY_DTYPE(RawSample, timestamp, value);
+
     m.doc() = "Python bindings to pdu, for reading Prometheus on-disk data";
 
     m.def("load",
@@ -137,15 +143,15 @@ PYBIND11_MODULE(pypdu, m) {
                     "ECMAScript regex")
             .def("is_empty", [](const SeriesFilter& f) { return f.empty(); });
 
-    py::class_<Sample>(m, "Sample")
-            .def_readonly("timestamp", &Sample::timestamp)
-            .def_readonly("value", &Sample::value)
+    py::class_<RawSample>(m, "RawSample")
+            .def_readonly("timestamp", &RawSample::timestamp)
+            .def_readonly("value", &RawSample::value)
             // support unpacking in the form of
             // for sample in samples:
             //     ...
             .def(
                     "__getitem__",
-                    [](const Sample& sample, size_t i) {
+                    [](const RawSample& sample, size_t i) {
                         if (i >= 2) {
                             throw py::index_error();
                         }
@@ -155,12 +161,17 @@ PYBIND11_MODULE(pypdu, m) {
             .def("__len__", []() { return 2; })
             // for nice presentation
             .def("__repr__",
-                 [](const Sample& a) {
+                 [](const RawSample& a) {
                      return "{timestamp=" + std::to_string(a.timestamp) +
                             ", value=" + std::to_string(a.value) + "}";
                  })
             .def(py::self == py::self)
             .def(py::self != py::self);
+
+    py::class_<Sample, RawSample>(m, "Sample");
+
+    py::bind_vector<std::vector<RawSample>>(
+            m, "SampleVector", py::buffer_protocol());
 
     // note - this is intentionally inconsistent naming to better reflect
     // the fact that in normal usage __iter__ will be called on this type
@@ -204,11 +215,22 @@ PYBIND11_MODULE(pypdu, m) {
                     },
                     py::keep_alive<0, 1>())
             .def_property_readonly(
-                    "samples",
+                    "sample_iterator",
                     [](const CrossIndexSeries& cis) {
                         return cis.sampleIterator;
                     },
                     py::keep_alive<0, 1>())
+            .def_property_readonly("samples",
+                                   [](const CrossIndexSeries& cis) {
+                                       std::vector<RawSample> samples;
+                                       auto& itr = cis.sampleIterator;
+                                       samples.reserve(itr.getNumSamples());
+                                       for (const auto& sample : itr) {
+                                           samples.emplace_back(sample);
+                                       }
+                                       return samples;
+                                   })
+
             // support unpacking in the form of
             // for series, samples in data:
             //     ...

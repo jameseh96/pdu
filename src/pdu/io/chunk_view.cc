@@ -5,11 +5,11 @@
 
 #include <cmath>
 
-bool operator==(const Sample& a, const Sample& b) {
+bool operator==(const RawSample& a, const RawSample& b) {
     return a.timestamp == b.timestamp && a.value == b.value;
 }
 
-bool operator!=(const Sample& a, const Sample& b) {
+bool operator!=(const RawSample& a, const RawSample& b) {
     return !(a == b);
 }
 
