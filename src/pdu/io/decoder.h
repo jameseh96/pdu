@@ -7,20 +7,7 @@
 #include <string_view>
 #include <utility>
 
-template <class T>
-T to_host(T);
-
-template <>
-uint8_t to_host(uint8_t v);
-
-template <>
-uint16_t to_host(uint16_t v);
-
-template <>
-uint32_t to_host(uint32_t v);
-
-template <>
-uint64_t to_host(uint64_t v);
+#include "../util/host.h"
 
 class Decoder {
 public:
