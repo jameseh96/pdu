@@ -36,6 +36,7 @@ add_library(plib
         src/pdu/pdu.cc
         src/pdu/display/bitwidth_histogram.cc
         src/pdu/io/decoder.cc
+        src/pdu/io/encoder.cc
         src/pdu/io/index.cc
         src/pdu/io/chunk_file_cache.cc
         src/pdu/io/chunk_reference.cc
@@ -55,7 +56,8 @@ add_library(plib
         src/pdu/query/series_filter.cc
         src/pdu/query/sample_visitor.cc
         src/pdu/query/series_iterator.cc
-        src/pdu/query/cross_index_sample_iterator.cc)
+        src/pdu/query/cross_index_sample_iterator.cc
+        src/pdu/util/host.cc)
 
 target_include_directories(plib PUBLIC src/)
 target_link_libraries(plib PUBLIC
