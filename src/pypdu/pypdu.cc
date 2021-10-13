@@ -12,6 +12,8 @@
 #include <pybind11/stl.h>
 #include <pybind11/stl_bind.h>
 
+#include <optional>
+
 // Wrapper for a filter returned by a C++ method (e.g., pdu::filter::regex)
 // to avoid overheads of calling through pybind. This distinguishes the
 // callback from one which is genuinely python code.
@@ -103,6 +105,37 @@ template <class T>
 auto getFirstMatching(const PrometheusData& pd, const T& val) {
     return getFirstMatching(pd, makeFilter(val));
 }
+
+// Holder for a sample iterator. May be iterated in python, or eagerly loaded
+// or even dumped as raw chunks (not yet implemented)
+class SeriesSamples {
+public:
+    SeriesSamples(const CrossIndexSampleIterator& cisi) : iterator(cisi) {
+    }
+
+    const CrossIndexSampleIterator& getIterator() const {
+        return iterator;
+    }
+
+    const std::vector<RawSample>& getSamples() const {
+        if (loadedSamples) {
+            return *loadedSamples;
+        }
+
+        loadedSamples = std::vector<RawSample>();
+        auto& samples = *loadedSamples;
+        auto itr = iterator;
+        samples.reserve(itr.getNumSamples());
+        for (const auto& sample : itr) {
+            samples.emplace_back(sample);
+        }
+        return samples;
+    }
+
+private:
+    CrossIndexSampleIterator iterator;
+    mutable std::optional<std::vector<RawSample>> loadedSamples;
+};
 
 PYBIND11_MAKE_OPAQUE(std::vector<RawSample>);
 
@@ -200,6 +233,35 @@ PYBIND11_MODULE(pypdu, m) {
                     },
                     py::keep_alive<0, 1>());
 
+    py::class_<SeriesSamples>(m, "SeriesSamples")
+            .def(
+                    "__iter__",
+                    [](const SeriesSamples& ss) {
+                        return py::make_iterator<py::return_value_policy::copy,
+                                                 CrossIndexSampleIterator,
+                                                 EndSentinel,
+                                                 Sample>(ss.getIterator(),
+                                                         EndSentinel());
+                    },
+                    py::keep_alive<0, 1>())
+            .def(
+                    "__len__",
+                    [](const SeriesSamples& ss) {
+                        return ss.getIterator().getNumSamples();
+                    },
+                    py::return_value_policy::copy)
+            .def(
+                    "as_list",
+                    [](const SeriesSamples& ss) { return ss.getSamples(); },
+                    py::keep_alive<0, 1>())
+            .def(
+                    "as_array",
+                    [](const SeriesSamples& ss) {
+                        const auto& samples = ss.getSamples();
+                        return py::array_t(samples.size(), samples.data());
+                    },
+                    py::keep_alive<0, 1>());
+
     py::class_<CrossIndexSeries>(m, "Series")
             .def_property_readonly(
                     "name",
@@ -221,21 +283,9 @@ PYBIND11_MODULE(pypdu, m) {
                         return cis.series->labels;
                     },
                     py::keep_alive<0, 1>())
-            .def_property_readonly(
-                    "sample_iterator",
-                    [](const CrossIndexSeries& cis) {
-                        return cis.sampleIterator;
-                    },
-                    py::keep_alive<0, 1>())
             .def_property_readonly("samples",
                                    [](const CrossIndexSeries& cis) {
-                                       std::vector<RawSample> samples;
-                                       auto& itr = cis.sampleIterator;
-                                       samples.reserve(itr.getNumSamples());
-                                       for (const auto& sample : itr) {
-                                           samples.emplace_back(sample);
-                                       }
-                                       return samples;
+                                       return SeriesSamples(cis.sampleIterator);
                                    })
 
             // support unpacking in the form of
