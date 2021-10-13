@@ -5,46 +5,6 @@
 #include <string>
 #include <utility>
 
-template <>
-uint8_t to_host(uint8_t v) {
-    return v;
-}
-
-#if (defined __APPLE__)
-#include <arpa/inet.h>
-template <>
-uint16_t to_host(uint16_t v) {
-    return ntohs(v);
-}
-
-template <>
-uint32_t to_host(uint32_t v) {
-    return ntohl(v);
-}
-
-template <>
-uint64_t to_host(uint64_t v) {
-    return ntohll(v);
-}
-#elif (defined __linux__)
-#include <endian.h>
-
-template <>
-uint16_t to_host(uint16_t v) {
-    return be16toh(v);
-}
-
-template <>
-uint32_t to_host(uint32_t v) {
-    return be32toh(v);
-}
-
-template <>
-uint64_t to_host(uint64_t v) {
-    return be64toh(v);
-}
-#endif
-
 Decoder Decoder::substr(size_t pos, size_t count) const {
     return {view.substr(pos, count)};
 }
