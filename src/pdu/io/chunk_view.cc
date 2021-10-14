@@ -202,11 +202,14 @@ double SampleIterator::readValue() {
 }
 
 ChunkView::ChunkView(ChunkFileCache& cfc, const ChunkReference& chunkRef)
-    : res(cfc.get(chunkRef.getSegmentFileId())), dec(res->get()) {
-    dec.seek(chunkRef.getOffset());
+    : baseOffset(chunkRef.getOffset()),
+      res(cfc.get(chunkRef.getSegmentFileId())),
+      dec(res->get()) {
+    dec.seek(baseOffset);
 
     if (chunkRef.type == ChunkType::Raw) {
         rawChunk = true;
+        dataOffset = 0;
         dataLen = dec.remaining();
         sampleCount = dataLen / (sizeof(int64_t) + sizeof(double));
         return;
