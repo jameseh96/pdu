@@ -73,3 +73,21 @@ private:
     std::string_view view;
     std::string_view subview;
 };
+
+class StreamDecoder : public DecoderBase<StreamDecoder> {
+public:
+    StreamDecoder(std::istream& stream);
+
+    using DecoderBase<StreamDecoder>::seek;
+    using DecoderBase<StreamDecoder>::read;
+    StreamDecoder& seek(size_t offset, std::ios_base::seekdir seekdir);
+
+    size_t tell() const;
+
+    StreamDecoder& read(char* dest, size_t count);
+
+    char peek() const;
+
+private:
+    std::istream& stream;
+};
