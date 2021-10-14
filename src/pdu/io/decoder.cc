@@ -127,3 +127,27 @@ size_t Decoder::remaining() const {
 bool Decoder::empty() const {
     return subview.empty();
 }
+
+//////
+
+StreamDecoder::StreamDecoder(std::istream& stream) : stream(stream) {
+}
+
+StreamDecoder& StreamDecoder::seek(size_t offset,
+                                   std::ios_base::seekdir seekdir) {
+    stream.seekg(offset, seekdir);
+    return *this;
+}
+
+size_t StreamDecoder::tell() const {
+    return stream.tellg();
+}
+
+StreamDecoder& StreamDecoder::read(char* dest, size_t count) {
+    stream.read(dest, count);
+    return *this;
+}
+
+char StreamDecoder::peek() const {
+    return stream.peek();
+}
