@@ -5,28 +5,26 @@
 #include <string>
 #include <utility>
 
-Decoder Decoder::substr(size_t pos, size_t count) const {
-    return {view.substr(pos, count)};
-}
-
-uint64_t Decoder::read_varuint() {
+template <class Derived>
+uint64_t DecoderBase<Derived>::read_varuint() {
     uint8_t byte;
 
-    read(reinterpret_cast<char*>(&byte), 1);
+    impl().read(reinterpret_cast<char*>(&byte), 1);
     if (byte < 128) {
         return byte;
     }
     uint64_t value = byte & 0x7f;
     unsigned shift = 7;
     do {
-        read(reinterpret_cast<char*>(&byte), 1);
+        impl().read(reinterpret_cast<char*>(&byte), 1);
         value |= uint64_t(byte & 0x7f) << shift;
         shift += 7;
     } while (byte >= 128);
     return value;
 }
 
-uint64_t Decoder::read_varint() {
+template <class Derived>
+uint64_t DecoderBase<Derived>::read_varint() {
     auto raw = read_varuint();
     auto value = raw >> 1;
     if (raw & 1) {
@@ -35,27 +33,44 @@ uint64_t Decoder::read_varint() {
     return value;
 }
 
-void Decoder::consume_null() {
-    while (peek() == 0) {
-        seek(1, std::ios_base::cur);
+template <class Derived>
+void DecoderBase<Derived>::consume_null() {
+    while (impl().peek() == 0) {
+        impl().seek(1, std::ios_base::cur);
     }
 }
 
-size_t Decoder::consume_to_alignment(size_t alignment) {
-    auto pos = tell();
+template <class Derived>
+size_t DecoderBase<Derived>::consume_to_alignment(size_t alignment) {
+    auto pos = impl().tell();
     auto remainder = pos % alignment;
     if (!remainder) {
         return pos;
     }
-    seek(16 - remainder, std::ios_base::cur);
-    return tell();
+    impl().seek(16 - remainder, std::ios_base::cur);
+    return impl().tell();
 }
 
-std::string Decoder::read(size_t count) {
+template <class Derived>
+std::string DecoderBase<Derived>::read(size_t count) {
     std::string value;
     value.resize(count);
-    read(value.data(), count);
+    impl().read(value.data(), count);
     return value;
+}
+
+template <class Derived>
+Derived& DecoderBase<Derived>::seek(size_t offset) {
+    impl().seek(offset, std::ios_base::beg);
+    return impl();
+}
+
+template class DecoderBase<Decoder>;
+
+//////
+
+Decoder Decoder::substr(size_t pos, size_t count) const {
+    return {view.substr(pos, count)};
 }
 
 std::string_view Decoder::read_view(size_t count) {
@@ -65,11 +80,6 @@ std::string_view Decoder::read_view(size_t count) {
     auto value = subview.substr(0, count);
     subview.remove_prefix(count);
     return value;
-}
-
-Decoder& Decoder::seek(size_t offset) {
-    seek(offset, std::ios_base::beg);
-    return *this;
 }
 
 Decoder& Decoder::seek(size_t offset, std::ios_base::seekdir seekdir) {
