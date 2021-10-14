@@ -5,6 +5,8 @@
 #include <limits>
 #include <utility>
 
+class Encoder;
+
 enum class ChunkType {
     Block, // persistent block chunk
     Head, // head block chunk (slightly different prologue)

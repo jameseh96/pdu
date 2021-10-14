@@ -1,12 +1,14 @@
 #pragma once
 
+#include "../serialisation/serialisation_impl_fwd.h"
+#include "../util/iterator_facade.h"
 #include "bit_decoder.h"
 #include "chunk_file_cache.h"
-#include "../util/iterator_facade.h"
 
 #include <limits>
 
 class ChunkReference;
+class Encoder;
 
 struct RawSample {
     int64_t timestamp;
@@ -81,7 +83,7 @@ public:
     size_t sampleCount;
 
 private:
-    friend void serialise(Encoder& e, const ChunkView& cv);
+    friend void pdu::detail::serialise_impl(Encoder& e, const ChunkView& cv);
     // offset into the resource to the chunk start
     size_t baseOffset;
     std::shared_ptr<Resource> res;

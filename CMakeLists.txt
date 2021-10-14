@@ -57,6 +57,8 @@ add_library(plib
         src/pdu/query/sample_visitor.cc
         src/pdu/query/series_iterator.cc
         src/pdu/query/cross_index_sample_iterator.cc
+        src/pdu/serialisation/deserialised_cross_index_series.cc
+        src/pdu/serialisation/serialisation.cc
         src/pdu/util/host.cc)
 
 target_include_directories(plib PUBLIC src/)
@@ -64,6 +66,7 @@ target_link_libraries(plib PUBLIC
         Boost::boost
         Boost::program_options
         Boost::filesystem
+        Boost::iostreams
         fmt::fmt
         nlohmann_json::nlohmann_json
         Snappy::snappy

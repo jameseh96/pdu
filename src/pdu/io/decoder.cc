@@ -66,6 +66,7 @@ Derived& DecoderBase<Derived>::seek(size_t offset) {
 }
 
 template class DecoderBase<Decoder>;
+template class DecoderBase<StreamDecoder>;
 
 //////
 
