@@ -62,8 +62,11 @@ std::string DecoderBase<Derived>::read(size_t count) {
 template <class Derived>
 Derived& DecoderBase<Derived>::seek(size_t offset) {
     impl().seek(offset, std::ios_base::beg);
-    return *this;
+    return impl();
 }
+
+template class DecoderBase<Decoder>;
+template class DecoderBase<StreamDecoder>;
 
 //////
 

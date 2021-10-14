@@ -17,8 +17,10 @@ SeriesSampleIterator::SeriesSampleIterator(const SeriesSampleIterator& other) {
     series = other.series;
     itr = other.itr;
     cfc = other.cfc;
-    cv = ChunkView(*cfc, *itr);
-    sampleItr = cv.samples();
+    if (itr != series->end()) {
+        cv = ChunkView(*cfc, *itr);
+        sampleItr = cv.samples();
+    }
 }
 
 void SeriesSampleIterator::increment() {
