@@ -81,6 +81,9 @@ public:
     size_t sampleCount;
 
 private:
+    friend void serialise(Encoder& e, const ChunkView& cv);
+    // offset into the resource to the chunk start
+    size_t baseOffset;
     std::shared_ptr<Resource> res;
     Decoder dec;
     bool rawChunk = false;
