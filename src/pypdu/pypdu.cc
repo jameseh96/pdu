@@ -2,6 +2,7 @@
 
 #include "pypdu_histogram.h"
 #include "pypdu_version.h"
+#include "serial.h"
 
 #include <pdu/histogram/histogram_iterator.h>
 #include <pdu/pdu.h>
@@ -382,4 +383,6 @@ PYBIND11_MODULE(pypdu, m) {
         "histograms",
         &PrometheusData::getHistograms,
     py::keep_alive<0, 1>());
+
+    def_serial(m);
 }

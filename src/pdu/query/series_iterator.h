@@ -6,6 +6,8 @@
 
 #include <list>
 
+class Encoder;
+
 struct CrossIndexSeries {
     const Series* series = nullptr;
     CrossIndexSampleIterator sampleIterator;
