@@ -81,18 +81,6 @@ SeriesFilter makeFilter(const WrappedFilter& wf) {
     return f;
 }
 
-auto makeFilteredPyIterator(const PrometheusData& pd, const SeriesFilter& f) {
-    return py::make_iterator<py::return_value_policy::copy,
-                             SeriesIterator,
-                             EndSentinel,
-                             CrossIndexSeries>(pd.filtered(f), pd.end());
-}
-
-template <class T>
-auto makeFilteredPyIterator(const PrometheusData& pd, const T& val) {
-    return makeFilteredPyIterator(pd, makeFilter(val));
-}
-
 auto getFirstMatching(const PrometheusData& pd, const SeriesFilter& f) {
     auto itr = pd.filtered(f);
     if (itr == pd.end()) {
@@ -314,6 +302,18 @@ PYBIND11_MODULE(pypdu, m) {
                  })
             .def("__len__", []() { return 3; });
 
+    py::class_<SeriesIterator>(m, "SeriesIterator")
+            .def(
+                    "__iter__",
+                    [](const SeriesIterator& si) {
+                        return py::make_iterator<py::return_value_policy::copy,
+                                                 SeriesIterator,
+                                                 EndSentinel,
+                                                 CrossIndexSeries>(
+                                si, EndSentinel());
+                    },
+                    py::keep_alive<0, 1>());
+
     py::class_<PrometheusData>(m, "PrometheusData")
                     .def(py::init<std::string>())
     // Allow iteration, default to unfiltered (all time series will be listed)
@@ -330,26 +330,26 @@ PYBIND11_MODULE(pypdu, m) {
     .def(
         "filter",
         [](const PrometheusData& pd, const SeriesFilter& f) {
-            return makeFilteredPyIterator(pd, f);
+            return pd.filtered(f);
         },
         py::keep_alive<0, 1>() /* Essential: keep object alive while iterator exists */)
     .def(
         "filter",
         [](const PrometheusData& pd, const py::dict& dict) {
-            return makeFilteredPyIterator(pd, dict);
+            return pd.filtered(makeFilter(dict));
         },
         py::keep_alive<0, 1>())
     .def(
         "filter",
         [](const PrometheusData& pd, const py::str& s) {
-            return makeFilteredPyIterator(pd, s);
+            return pd.filtered(makeFilter(s));
         },
         py::keep_alive<0, 1>())
     // support an arbitrary python callback as a __name__ filter
     .def(
         "filter",
         [](const PrometheusData& pd, const pdu::filter::Filter& f) {
-            return makeFilteredPyIterator(pd, f);
+            return pd.filtered(makeFilter(f));
         },
         py::keep_alive<0, 1>())
     // support a C++ constructed filter (avoiding it being treated as a
@@ -357,7 +357,7 @@ PYBIND11_MODULE(pypdu, m) {
     .def(
         "filter",
         [](const PrometheusData& pd, const WrappedFilter& f) {
-            return makeFilteredPyIterator(pd, f);
+            return pd.filtered(makeFilter(f));
         },
         py::keep_alive<0, 1>())
     .def("__getitem__", [](const PrometheusData& pd, const SeriesFilter& f) {
