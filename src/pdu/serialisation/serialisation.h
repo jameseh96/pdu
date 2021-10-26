@@ -3,11 +3,14 @@
 #include "../util/iterator_facade.h"
 #include "deserialised_cross_index_series.h"
 
+// using boost variant to allow targeting older MacOS before std::visit
+// was available.
+#include <boost/variant.hpp>
+
 #include <cstddef>
 #include <cstdint>
 #include <functional>
 #include <optional>
-#include <variant>
 
 // Forward declarations
 class Encoder;
@@ -68,7 +71,7 @@ extern template std::vector<DeserialisedSeries> deserialise_group(
         StreamDecoder& decoder);
 
 using SeriesOrGroup =
-        std::variant<DeserialisedSeries, std::vector<DeserialisedSeries>>;
+        boost::variant<DeserialisedSeries, std::vector<DeserialisedSeries>>;
 
 template <class Dec>
 SeriesOrGroup deserialise(Dec& decoder);

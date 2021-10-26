@@ -7,6 +7,9 @@
 
 #include <boost/iostreams/device/file_descriptor.hpp>
 #include <boost/iostreams/stream.hpp>
+// using boost variant to allow targeting older MacOS before std::visit
+// was available.
+#include <boost/variant.hpp>
 
 #include <sstream>
 #include <utility>
@@ -125,7 +128,7 @@ void def_serial(py::module m) {
                         fd, boost::iostreams::never_close_handle);
                 std::istream is(&fpstream);
                 StreamDecoder d(is);
-                return std::visit(
+                return boost::apply_visitor(
                         [](const auto& value) { return py::cast(value); },
                         pdu::deserialise(d));
             },
@@ -170,7 +173,7 @@ void def_serial(py::module m) {
                         reinterpret_cast<char*>(info.ptr), size_t(info.size));
                 std::istream is(&arrayStream);
                 StreamDecoder d(is);
-                return std::visit(
+                return boost::apply_visitor(
                         [](const auto& value) { return py::cast(value); },
                         pdu::deserialise(d));
             },
