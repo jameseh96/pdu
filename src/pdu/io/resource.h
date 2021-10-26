@@ -41,3 +41,24 @@ struct MemResource : public Resource {
 private:
     std::string_view data;
 };
+
+struct OwningMemResource : public Resource {
+    OwningMemResource(std::string data) : data(std::move(data)) {
+    }
+
+    Decoder get() const override {
+        return {data};
+    }
+
+    const std::string& getDirectory() const override {
+        throw std::runtime_error(
+                "OwningMemResource::getDirectory() not implemented");
+    }
+
+    bool empty() const override {
+        return data.empty();
+    }
+
+private:
+    std::string data;
+};
