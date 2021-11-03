@@ -93,6 +93,72 @@ If none match, a `KeyError` is raised.
 
 All types of filter demonstrated above with `.filter(...)` may be used in this manner also.
 
+#### Histograms
+
+`PrometheusData(...).histograms` allows iterating all histograms represented by the time series in a data directory.
+
+The histograms are exposed as `HistogramTimeSeries`, grouping all the component `..._bucket` time series together. Indexing into this series provides access to the histogram at a single point in time.
+
+e.g.,
+
+```
+data = pypdu.load("<...>")
+
+for histSeries in data.histograms:
+    print("Labels: ", histSeries.labels)
+    print("Number of samples: ", len(histSeries))
+    for hist in histSeries:
+        print("TS: ", hist.timestamp)
+        print(list(zip(histSeries.buckets, hist)))
+```
+
+Iterates over every histogram found in the Prometheus data, then iterates over every sample contained in that time series.
+
+Example output:
+
+```
+Labels:  {'__name__': 'cm_http_requests_seconds', 'instance': 'ns_server', 'job': 'ns_server_high_cardinality'}
+Number of samples:  3826
+TS:  1621268098827
+[(0.001, 8.0), (0.01, 25.0), (0.1, 25.0), (1.0, 25.0), (10.0, 25.0), (inf, 25.0)]
+TS:  1621268158827
+[(0.001, 39.0), (0.01, 118.0), (0.1, 126.0), (1.0, 127.0), (10.0, 127.0), (inf, 127.0)]
+TS:  1621268218827
+[(0.001, 43.0), (0.01, 132.0), (0.1, 140.0), (1.0, 141.0), (10.0, 141.0), (inf, 141.0)]
+TS:  1621268278827
+[(0.001, 48.0), (0.01, 145.0), (0.1, 153.0), (1.0, 154.0), (10.0, 154.0), (inf, 154.0)]
+TS:  1621268338827
+[(0.001, 53.0), (0.01, 158.0), (0.1, 166.0), (1.0, 167.0), (10.0, 167.0), (inf, 167.0)]
+TS:  1621268398827
+[(0.001, 55.0), (0.01, 171.0), (0.1, 179.0), (1.0, 180.0), (10.0, 180.0), (inf, 180.0)]
+TS:  1621268458827
+[(0.001, 60.0), (0.01, 191.0), (0.1, 199.0), (1.0, 200.0), (10.0, 200.0), (inf, 200.0)]
+TS:  1621268518827
+[(0.001, 66.0), (0.01, 204.0), (0.1, 212.0), (1.0, 213.0), (10.0, 213.0), (inf, 213.0)]
+TS:  1621268578827
+[(0.001, 71.0), (0.01, 217.0), (0.1, 225.0), (1.0, 226.0), (10.0, 226.0), (inf, 226.0)]
+TS:  1621268638827
+[(0.001, 73.0), (0.01, 230.0), (0.1, 238.0), (1.0, 239.0), (10.0, 239.0), (inf, 239.0)]
+...
+Labels: ...
+```
+
+`HistogramTimeSeries` (in the above example, this is `histSeries`), can be indexed into - currently
+only by a sample index, but in the future, selecting the histogram closest to a given timestamp may be supported.
+
+E.g., the first and last point in time view available for a specific histogram can be found with:
+
+```
+first = histSeries[0]
+last = histSeries[-1]
+```
+From which the timestamp and buckets could be read:
+```
+last_ts = last.timestamp
+last_buckets = last.buckets
+
+```
+
 #### Alternative installation steps
 
 ##### setup.py
