@@ -4,6 +4,7 @@
 #include "histogram.h"
 
 #include <gsl/gsl-lite.hpp>
+#include <memory>
 #include <vector>
 
 class HistogramTimeSpan {
@@ -21,8 +22,8 @@ public:
         return labels;
     }
 
-    const auto& getBuckets() const {
-        return bucketBoundaries;
+    const auto& getBounds() const {
+        return *bucketBoundaries;
     }
 
     size_t size() const {
@@ -39,6 +40,9 @@ public:
 
 private:
     std::map<std::string_view, std::string_view> labels;
-    std::vector<double> bucketBoundaries;
+    // shared so each timestamped histogram can extend the life of the bounds.
+    // The bounds are constant over time, so don't need to be unique per
+    // timestamped histogram.
+    std::shared_ptr<std::vector<double>> bucketBoundaries;
     std::vector<TimestampedHistogram> histograms;
 };
