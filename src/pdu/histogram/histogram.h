@@ -4,14 +4,20 @@
 #include <cstdint>
 #include <utility>
 #include <vector>
+#include <memory>
 
 class Histogram {
 public:
     Histogram();
-    Histogram(std::vector<double> bucketValues, double sum);
+    Histogram(std::vector<double> bucketValues,
+              std::shared_ptr<std::vector<double>> bucketBounds,
+              double sum);
 
     const std::vector<double>& getValues() const {
         return bucketValues;
+    }
+    const std::vector<double>& getBounds() const {
+        return *bucketBounds;
     }
     double getSum() const {
         return sum;
@@ -19,6 +25,7 @@ public:
 
 private:
     std::vector<double> bucketValues;
+    std::shared_ptr<std::vector<double>> bucketBounds;
     double sum;
 };
 

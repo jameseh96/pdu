@@ -6,6 +6,8 @@
 
 #include <pybind11/stl.h>
 
+#include <fmt/format.h>
+
 void init_histogram(py::module_& m) {
     py::class_<Histogram>(m, "Histogram")
             .def("__len__",
@@ -17,8 +19,27 @@ void init_histogram(py::module_& m) {
                                                  th.getValues().end());
                     },
                     py::keep_alive<0, 1>())
-            .def("__getitem__", [](const Histogram& th, size_t i) {
-                return th.getValues().at(i);
+            .def("__getitem__",
+                 [](const Histogram& th, size_t i) {
+                     return th.getValues().at(i);
+                 })
+            .def("bucket_values", &Histogram::getValues)
+            .def("bucket_bounds", &Histogram::getBounds)
+            .def("buckets", [](const Histogram& hist) {
+                const auto& values = hist.getValues();
+                const auto& bounds = hist.getBounds();
+                std::vector<std::pair<double, double>> buckets;
+                if (values.size() != bounds.size()) {
+                    throw std::runtime_error(
+                            fmt::format("Histogram: different number of "
+                                        "values:{} and boundaries:{} (bug)",
+                                        values.size(),
+                                        bounds.size()));
+                }
+                for (int i = 0; i < values.size(); ++i) {
+                    buckets.emplace_back(bounds[i], values[i]);
+                }
+                return buckets;
             });
 
     py::class_<TimestampedHistogram, Histogram>(m, "TimepointHistogram")
@@ -28,7 +49,8 @@ void init_histogram(py::module_& m) {
     py::class_<HistogramTimeSpan>(m, "HistogramTimeSeries")
             .def_property_readonly("name", &HistogramTimeSpan::getName)
             .def_property_readonly("labels", &HistogramTimeSpan::getLabels)
-            .def_property_readonly("buckets", &HistogramTimeSpan::getBuckets)
+            .def_property_readonly("bucket_bounds",
+                                   &HistogramTimeSpan::getBounds)
             .def("__len__", &HistogramTimeSpan::size)
             .def(
                     "__getitem__",

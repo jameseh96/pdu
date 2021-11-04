@@ -6,7 +6,8 @@ HistogramTimeSpan::HistogramTimeSpan(
         std::map<std::string_view, std::string_view> labels,
         std::vector<CrossIndexSeries> buckets,
         CrossIndexSeries sum)
-    : labels(labels) {
+    : labels(labels),
+      bucketBoundaries(std::make_shared<std::vector<double>>()) {
     if (buckets.empty()) {
         return;
     }
@@ -17,7 +18,7 @@ HistogramTimeSpan::HistogramTimeSpan(
         if (auto itr = labels.find("le"); itr != labels.end()) {
             try {
                 auto bound = boost::lexical_cast<double>(itr->second);
-                bucketBoundaries.push_back(bound);
+                bucketBoundaries->push_back(bound);
             } catch (const boost::bad_lexical_cast& e) {
                 throw std::runtime_error(
                         "Histogram bucket has invalid \"le\" :" +
@@ -101,6 +102,6 @@ HistogramTimeSpan::HistogramTimeSpan(
         auto sumValue = sum.sampleIterator->value;
         ++sum.sampleIterator;
 
-        histograms.emplace_back(timestamp, values, sumValue);
+        histograms.emplace_back(timestamp, values, bucketBoundaries, sumValue);
     }
 }

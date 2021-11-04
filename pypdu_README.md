@@ -109,7 +109,7 @@ for histSeries in data.histograms:
     print("Number of samples: ", len(histSeries))
     for hist in histSeries:
         print("TS: ", hist.timestamp)
-        print(list(zip(histSeries.buckets, hist)))
+        print(hist.buckets())
 ```
 
 Iterates over every histogram found in the Prometheus data, then iterates over every sample contained in that time series.
@@ -153,9 +153,19 @@ first = histSeries[0]
 last = histSeries[-1]
 ```
 From which the timestamp and buckets could be read:
+
 ```
-last_ts = last.timestamp
-last_buckets = last.buckets
+>>> print(last.timestamp) # time since epoch in ms
+1631007596974
+
+>>> print(last.bucket_bounds()))
+[0.001, 0.01, 0.1, 1.0, 10.0, inf]
+
+>>> print(last.bucket_values())
+[4279.0, 4371.0, 4666.0, 5044.0, 5044.0, 5044.0]
+
+>>> print(last.buckets()) # convenience zip of (bounds, values)
+[(0.001, 4279.0), (0.01, 4371.0), (0.1, 4666.0), (1.0, 5044.0), (10.0, 5044.0), (inf, 5044.0)]
 
 ```
 
