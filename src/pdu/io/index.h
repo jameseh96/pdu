@@ -57,7 +57,7 @@ inline std::ostream& operator<<(std::ostream& os, const Series& s) {
     return os;
 }
 
-inline uint8_t compare(const Series& a, const Series& b) {
+inline int8_t compare(const Series& a, const Series& b) {
     if (a.labels.size() != b.labels.size()) {
         return a.labels.size() < b.labels.size() ? -1 : 1;
     }
