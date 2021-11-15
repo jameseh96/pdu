@@ -129,7 +129,7 @@ def readme():
 # logic and declaration, and simpler if you include description/version in a file.
 setup(
     name="pypdu",
-    version="0.0.9",
+    version="0.0.10",
     author="jameseh96",
     author_email="",
     description="Python bindings for C++ library for reading Prometheus on-disk data",
@@ -139,4 +139,7 @@ setup(
     cmdclass={"build_ext": CMakeBuild},
     zip_safe=False,
     extras_require={},
+    install_requires=[
+        'numpy',
+    ],
 )
