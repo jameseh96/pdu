@@ -56,6 +56,13 @@ void init_histogram(py::module_& m) {
                     "__getitem__",
                     [](const HistogramTimeSpan& hts, int i) {
                         if (i < 0) {
+                            if (-i > hts.size()) {
+                                throw py::index_error(fmt::format(
+                                        "Negative index {} out of range for "
+                                        "HistogramTimeSeries with size {}",
+                                        i,
+                                        hts.size()));
+                            }
                             // allow negative indexing
                             i = i + hts.size();
                         }
