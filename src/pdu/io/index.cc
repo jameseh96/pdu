@@ -16,15 +16,23 @@ std::ostream& operator<<(std::ostream& os, const Series& s) {
 }
 
 int8_t compare(const Series& a, const Series& b) {
-    if (a.labels.size() != b.labels.size()) {
-        return a.labels.size() < b.labels.size() ? -1 : 1;
-    }
     auto aItr = a.labels.begin();
     auto bItr = b.labels.begin();
-    for (; aItr != a.labels.end(); ++aItr, ++bItr) {
+    for (; aItr != a.labels.end() && bItr != b.labels.end(); ++aItr, ++bItr) {
         if (*aItr != *bItr) {
             return *aItr < *bItr ? -1 : 1;
         }
+    }
+    // to reach this point, the first N labels must have matched between
+    // both series. If either series has more labels, sort that one after
+    // the one with fewer.
+    if (aItr != a.labels.end()) {
+        // series a has more labels, sort it _after_ b
+        return 1;
+    }
+    if (bItr != b.labels.end()) {
+        // series a has fewer labels, sort it _before_ b
+        return -1;
     }
     return 0;
 }

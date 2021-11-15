@@ -52,6 +52,8 @@ struct Series {
 
 std::ostream& operator<<(std::ostream& os, const Series& s);
 
+// perform 3 way lexicographical compare on the labels from a pair of series
+// (i.e., in the style of strcmp, or C++ 20 <=>)
 int8_t compare(const Series& a, const Series& b);
 
 inline bool operator<(const Series& a, const Series& b) {
