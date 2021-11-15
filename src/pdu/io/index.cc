@@ -8,6 +8,27 @@
 #include <boost/filesystem.hpp>
 #include <nlohmann/json.hpp>
 
+std::ostream& operator<<(std::ostream& os, const Series& s) {
+    for (const auto& [k, v] : s.labels) {
+        os << k << " " << v << "\n";
+    }
+    return os;
+}
+
+int8_t compare(const Series& a, const Series& b) {
+    if (a.labels.size() != b.labels.size()) {
+        return a.labels.size() < b.labels.size() ? -1 : 1;
+    }
+    auto aItr = a.labels.begin();
+    auto bItr = b.labels.begin();
+    for (; aItr != a.labels.end(); ++aItr, ++bItr) {
+        if (*aItr != *bItr) {
+            return *aItr < *bItr ? -1 : 1;
+        }
+    }
+    return 0;
+}
+
 std::string_view SymbolTable::lookup(size_t index) const {
     if (index >= symbols.size()) {
         throw std::domain_error("SymbolTable: too high index");

@@ -50,26 +50,9 @@ struct Series {
     void load(Decoder& dec, const SymbolTable& symbols);
 };
 
-inline std::ostream& operator<<(std::ostream& os, const Series& s) {
-    for (const auto& [k, v] : s.labels) {
-        os << k << " " << v << "\n";
-    }
-    return os;
-}
+std::ostream& operator<<(std::ostream& os, const Series& s);
 
-inline int8_t compare(const Series& a, const Series& b) {
-    if (a.labels.size() != b.labels.size()) {
-        return a.labels.size() < b.labels.size() ? -1 : 1;
-    }
-    auto aItr = a.labels.begin();
-    auto bItr = b.labels.begin();
-    for (; aItr != a.labels.end(); ++aItr, ++bItr) {
-        if (*aItr != *bItr) {
-            return *aItr < *bItr ? -1 : 1;
-        }
-    }
-    return 0;
-}
+int8_t compare(const Series& a, const Series& b);
 
 inline bool operator<(const Series& a, const Series& b) {
     return compare(a, b) < 0;
