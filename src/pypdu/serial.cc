@@ -11,6 +11,29 @@
 #include <sstream>
 #include <utility>
 
+int fdFromObj(py::object fileLike) {
+    auto fdObj = fileLike.attr("fileno")();
+    if (!py::isinstance<py::int_>(fdObj)) {
+        throw std::invalid_argument(
+                "fileLike.fileno() does not return an integer file descriptor");
+    }
+    return fdObj.cast<int>();
+}
+
+auto load(int fd) {
+    namespace io = boost::iostreams;
+    io::stream_buffer<io::file_descriptor_source> fpstream(
+            fd, boost::iostreams::never_close_handle);
+    std::istream is(&fpstream);
+    StreamDecoder d(is);
+    return std::visit([](const auto& value) { return py::cast(value); },
+                      pdu::deserialise(d));
+}
+
+auto load(py::object fileLike) {
+    return load(fdFromObj(fileLike));
+}
+
 template <class T>
 void dump(int fd, const T& value) {
     namespace io = boost::iostreams;
@@ -19,6 +42,11 @@ void dump(int fd, const T& value) {
     std::ostream os(&fpstream);
     Encoder e(os);
     pdu::serialise(e, value);
+}
+
+template <class T>
+void dumpToObj(py::object fileLike, const T& value) {
+    dump(fdFromObj(fileLike), value);
 }
 
 template <class T>
@@ -87,6 +115,29 @@ void def_serial(py::module m) {
           "Write a serialised representation of all Series in a (potentially "
           "filtered) iterator to a file descriptor");
 
+    // dump to file-like object with .fileno()
+    m.def("dump",
+          &dumpToObj<CrossIndexSeries>,
+          "Write a serialised representation of a Series to a file-like object "
+          "supporting .fileno(), returning a file descriptor");
+    m.def(
+            "dump",
+            [](int fd, py::list list) { dump(fd, toSeriesVector(list)); },
+            "Write a serialised representation of a list of Series to a "
+            "file-like object supporting .fileno(), returning a file "
+            "descriptor");
+    m.def("dump",
+          &dumpToObj<PrometheusData>,
+          "Write a serialised representation of all Series contained in a "
+          "PrometheusData instance to a file-like object supporting .fileno(), "
+          "returning a file "
+          "descriptor");
+    m.def("dump",
+          &dumpToObj<SeriesIterator>,
+          "Write a serialised representation of all Series in a (potentially "
+          "filtered) iterator to a file-like object supporting .fileno(), "
+          "returning a file descriptor");
+
     m.def("dumps",
           &dumps<CrossIndexSeries>,
           "Write a serialised representation of a Series to bytes");
@@ -117,20 +168,15 @@ void def_serial(py::module m) {
                     },
                     py::keep_alive<0, 1>());
 
-    m.def(
-            "load",
-            [](int fd) {
-                namespace io = boost::iostreams;
-                io::stream_buffer<io::file_descriptor_source> fpstream(
-                        fd, boost::iostreams::never_close_handle);
-                std::istream is(&fpstream);
-                StreamDecoder d(is);
-                return std::visit(
-                        [](const auto& value) { return py::cast(value); },
-                        pdu::deserialise(d));
-            },
-            "Load a Series from a serialised representation read from a file "
-            "descriptor");
+    m.def("load",
+          py::overload_cast<int>(&load),
+          "Load a Series from a serialised representation read from a file "
+          "descriptor");
+    m.def("load",
+          py::overload_cast<py::object>(&load),
+          "Load a Series from a serialised representation read from a "
+          "file-like object supporting .fileno(), returning a file "
+          "descriptor");
     m.def(
             "loads",
             [](py::buffer buffer) {
@@ -182,4 +228,12 @@ void def_serial(py::module m) {
             [](int fd) { return std::make_unique<StreamLoader>(fd); },
             "Lazily load one or more Series from a serialised representation "
             "read from a file descriptor");
+    m.def(
+            "load_lazy",
+            [](py::object obj) {
+                return std::make_unique<StreamLoader>(fdFromObj(obj));
+            },
+            "Lazily load one or more Series from a serialised representation "
+            "read from a file-like object supporting .fileno(), returning a "
+            "file descriptor");
 }
