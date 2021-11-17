@@ -173,17 +173,21 @@ From which the timestamp and buckets could be read:
 
 Time series may be dumped individually to a file or bytes. This may be useful if you need to store some number of series (e.g., in a key-value store), but don't wish to retain the entire Prometheus data directory.
 
-`pypdu.dump`/`pypdu.load` take a file descriptor, rather than a file-like object. This could be used to write output to a pipe or socket, not just a file on disk, without the overhead of calling back into Python from the underlying C++ library to support arbitrary file-like objects.
+`pypdu.dump`/`pypdu.load` take an `int` file descriptor or, for convenience, a file-like object supporting `fileLike.fileno() -> int`.
 
-As a file descriptor may not represent a file on disk, when loading, the series data will be held in memory (rather than memory-mapped from a file, as they are when loading a full Prometheus stats directory) - this may be costly if there are many Series. `pypdu.load_lazy` can instead be used to consume Series one at a time. 
+This could be used to write output to a pipe or socket, not just a file on disk. Note, arbitrary file-like objects which are not backed by a file descriptor are not supported.
 
-`pypdu.dumps` creates a `bytes` object, while `pypdu.loads` operates on a [buffer](https://docs.python.org/3/c-api/buffer.html). Anything supporting the buffer protocol, with a contiguous buffer may be used. This includes `bytes` objects, but also `numpy` arrays, and many other types.
+When `load`ing many series, the underlying data for all Series will be read into memory - this may be costly if there are many Series. `pypdu.load_lazy` can instead be used to consume Series one at a time.
+
+`pypdu.dumps` creates a `bytes` object, while `pypdu.loads` operates on a [buffer](https://docs.python.org/3/c-api/buffer.html). Anything supporting the buffer protocol exposing a contiguous buffer may be used. This includes `bytes` objects, but also `numpy` arrays and many other types.
 
 A [memoryview](https://docs.python.org/3/library/stdtypes.html#memoryview) may be used to slice a buffer, allowing deserialisation from _part_ of a buffer, without having to copy out the relevant bytes.
 
 
 
 ```
+# fd : int or file-like object with .fileno() method
+
 pypdu.dump(fd, series)
 pypdu.dump(fd, [series, series, ...])
 pypdu.dump(fd, PrometheusData)
@@ -217,28 +221,11 @@ for series in pypdu.load("foobar/baz/stats_data"):
         series_to_serialise.append(series)
 
 with open("somefile", "wb") as f:
-    pypdu.dump(f.fileno(), to_serialise)
+    pypdu.dump(f, to_serialise)
 ...
 with open("somefile", "rb") as f:
-    for series in pypdu.load_lazy(f.fileno()):
+    for series in pypdu.load_lazy(f):
         # do something with the loaded series
-```
-
-Reading from stdin:
-
-```
-for series in pypdu.load_lazy(sys.stdin.fileno()):
-        # do something with the loaded series
-```
-
-Or a socket:
-
-```
-s = socket.create_connection(...)
-
-for series in pypdu.load_lazy(s.fileno()):
-        # do something with the loaded series
-
 ```
 
 
