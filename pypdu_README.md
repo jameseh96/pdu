@@ -237,10 +237,10 @@ pypdu.load_lazy(fd) -> Iterable
 Example dumping and loading multiple series to/from a file:
 
 ```
-series_to_serialise = []
+to_serialise = []
 for series in pypdu.load("foobar/baz/stats_data"):
     if some_condition(series):
-        series_to_serialise.append(series)
+        to_serialise.append(series)
 
 with open("somefile", "wb") as f:
     pypdu.dump(f, to_serialise)
@@ -248,6 +248,18 @@ with open("somefile", "wb") as f:
 with open("somefile", "rb") as f:
     for series in pypdu.load_lazy(f):
         # do something with the loaded series
+```
+
+Example dumping and loading a single series to/from stdin/out:
+
+```
+data = pypdu.load("foobar/baz/stats_data")
+series = data["foobar_series_name"]
+pypdu.dump(sys.stdout, series)
+
+...
+
+series = pypdu.load(sys.stdin)
 ```
 
 
