@@ -169,6 +169,35 @@ From which the timestamp and buckets could be read:
 
 ```
 
+#### Runtime version checking
+
+The `pypdu` version can be specified at install time (e.g., in `requirements.txt`), but you can also verify the correct version is available at runtime (maybe someone is building locally and forgot to update some dependencies!).
+
+```
+>>> import pypdu
+>>> pypdu.__version__
+'0.0.12a3'
+>>> pypdu.__git_rev__
+'a096f0d'
+>>> pypdu.__git_tag__
+''
+>>> pypdu.require(0, 0, 0)
+>>> pypdu.require(0, 0, 12)
+>>> pypdu.require(0, 1, 0)
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+RuntimeError: Current pypdu version 0.0.12a3 does not meet required 0.1.0
+>>> pypdu.require(0, 0, 12, "a3")
+>>> pypdu.require(0, 0, 12, "a4")
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+RuntimeError: Current pypdu version 0.0.12a3 does not meet required 0.0.12a4
+```
+
+If using a feature introduced in version `X.Y.Z`, `pypdu.require(X, Y, Z)` will raise an exception if an older version is in use.
+This exception can be caught, if you want to provide a more specific error message (e.g., "Remember to update dependencies by running ...").
+
+
 #### Alternative installation steps
 
 ##### setup.py

@@ -1,6 +1,7 @@
 #include "pypdu.h"
 
 #include "pypdu_histogram.h"
+#include "pypdu_version.h"
 
 #include <pdu/histogram/histogram_iterator.h>
 #include <pdu/pdu.h>
@@ -110,6 +111,7 @@ PYBIND11_MODULE(pypdu, m) {
 
     m.doc() = "Python bindings to pdu, for reading Prometheus on-disk data";
 
+    init_version(m);
     init_histogram(m);
 
     m.def("load",
