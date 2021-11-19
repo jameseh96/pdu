@@ -4,6 +4,7 @@
 #include <pdu/histogram/histogram_iterator.h>
 #include <pdu/histogram/histogram_time_span.h>
 
+#include <pybind11/operators.h>
 #include <pybind11/stl.h>
 
 #include <fmt/format.h>
@@ -44,7 +45,12 @@ void init_histogram(py::module_& m) {
 
     py::class_<TimestampedHistogram, Histogram>(m, "TimepointHistogram")
             .def_property_readonly("timestamp",
-                                   &TimestampedHistogram::getTimestamp);
+                                   &TimestampedHistogram::getTimestamp)
+            .def(py::self + py::self)
+            .def(py::self - py::self);
+
+    py::class_<DeltaHistogram, Histogram>(m, "DeltaHistogram")
+            .def_property_readonly("time_delta", &DeltaHistogram::getTimeDelta);
 
     py::class_<HistogramTimeSpan>(m, "HistogramTimeSeries")
             .def_property_readonly("name", &HistogramTimeSpan::getName)

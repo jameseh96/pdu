@@ -169,6 +169,26 @@ From which the timestamp and buckets could be read:
 
 ```
 
+The difference between histograms at two points in time can also be calculated:
+
+```
+delta = last-first
+>>> delta.time_delta
+60000
+>>> delta.buckets()
+[(0.001, 653.0), (0.01, 653.0), (0.1, 653.0), (1.0, 653.0), (10.0, 653.0), (inf, 653.0)]
+```
+
+Or the summation of two histograms:
+
+```
+total = histA+histB
+>>> total.buckets()
+[(0.001, 1985.0), (0.01, 1985.0), (0.1, 1985.0), (1.0, 1985.0), (10.0, 1985.0), (inf, 1985.0)]
+```
+
+For either of addition or subtraction, the bucket boundaries must exactly match.
+
 #### Runtime version checking
 
 The `pypdu` version can be specified at install time (e.g., in `requirements.txt`), but you can also verify the correct version is available at runtime (maybe someone is building locally and forgot to update some dependencies!).
