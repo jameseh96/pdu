@@ -18,10 +18,16 @@ void IndexIterator::advanceToValidIndex() {
     while (dirIter != end(dirIter)) {
         const auto& file = *dirIter;
         const auto& subdir = file.path();
-        if (boost::ends_with(subdir.string(), ".tmp")) {
+        if (subdir.filename().string().find(".tmp") != std::string::npos) {
+            ++dirIter;
             // this is a directory left over during compaction
             // probably shouldn't read it as it may be partial
-            // and probably duplicates other data
+            // and probably duplicates other data.
+            // may be
+            //  "XXX.tmp-for-deletion"
+            //  "XXX.tmp-for-creation"
+            // or the legacy
+            //  "XXX.tmp"
             continue;
         }
         const auto& indexFile = subdir / "index";
