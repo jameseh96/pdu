@@ -17,6 +17,8 @@
 
 #include <pybind11/stl_bind.h>
 
+#include "pypdu_boost_variant_helper.h"
+
 int fdFromObj(py::object fileLike) {
     auto fdObj = fileLike.attr("fileno")();
     if (!py::isinstance<py::int_>(fdObj)) {
@@ -32,9 +34,7 @@ auto load(int fd) {
             fd, boost::iostreams::never_close_handle);
     std::istream is(&fpstream);
     StreamDecoder d(is);
-    return boost::apply_visitor(
-            [](const auto& value) { return py::cast(value); },
-            pdu::deserialise(d));
+    return pdu::deserialise(d);
 }
 
 auto load(py::object fileLike) {
@@ -225,9 +225,7 @@ void def_serial(py::module m) {
                         reinterpret_cast<char*>(info.ptr), size_t(info.size));
                 std::istream is(&arrayStream);
                 StreamDecoder d(is);
-                return boost::apply_visitor(
-                        [](const auto& value) { return py::cast(value); },
-                        pdu::deserialise(d));
+                return pdu::deserialise(d);
             },
             "Load a Series from a serialised representation read from a bytes "
             "object");
