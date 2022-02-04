@@ -17,8 +17,8 @@ std::shared_ptr<Resource> ChunkFileCache::get(uint32_t segmentId) {
         throw std::runtime_error(fmt::format(
                 "Index references missing chunk file: {}\n", path.string()));
     }
-    auto res = cache.try_emplace(segmentId,
-                                 std::make_shared<MappedFileResource>(path));
+    auto res = cache.try_emplace(
+            segmentId, std::make_shared<MappedNamedFileResource>(path));
     auto itr = res.first;
 
     return itr->second;
