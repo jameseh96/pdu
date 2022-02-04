@@ -1,8 +1,8 @@
 #include "pypdu.h"
 
 #include "pypdu_histogram.h"
+#include "pypdu_serialisation.h"
 #include "pypdu_version.h"
-#include "serial.h"
 
 #include <pdu/histogram/histogram_iterator.h>
 #include <pdu/pdu.h>
