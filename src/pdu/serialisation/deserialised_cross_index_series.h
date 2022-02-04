@@ -1,9 +1,12 @@
 #pragma once
 
-#include "../io/decoder.h"
 #include "../query/series_iterator.h"
 
 #include <list>
+#include <memory>
+#include <string>
+
+class Series;
 
 /**
  * Extension of CrossIndexSeries which owns the underlying data which
