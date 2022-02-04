@@ -13,6 +13,9 @@
 
 #include <sstream>
 #include <utility>
+#include <vector>
+
+#include <pybind11/stl_bind.h>
 
 int fdFromObj(py::object fileLike) {
     auto fdObj = fileLike.attr("fileno")();
@@ -159,6 +162,8 @@ void def_serial(py::module m) {
           "filtered) iterator to bytes");
 
     py::class_<DeserialisedSeries, CrossIndexSeries>(m, "DeserialisedSeries");
+    py::bind_vector<std::vector<DeserialisedSeries>>(
+            m, "DeserialisedSeriesVector");
 
     py::class_<StreamLoader>(m, "LazyLoader")
             .def(

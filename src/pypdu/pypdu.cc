@@ -126,8 +126,6 @@ private:
     mutable std::optional<std::vector<RawSample>> loadedSamples;
 };
 
-PYBIND11_MAKE_OPAQUE(std::vector<RawSample>);
-
 PYBIND11_MODULE(pypdu, m) {
     PYBIND11_NUMPY_DTYPE(RawSample, timestamp, value);
 
