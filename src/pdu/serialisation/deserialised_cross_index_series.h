@@ -7,6 +7,7 @@
 #include <string>
 
 class Series;
+class Resource;
 
 /**
  * Extension of CrossIndexSeries which owns the underlying data which
@@ -19,9 +20,10 @@ class Series;
 class DeserialisedSeries : public CrossIndexSeries {
 public:
     std::shared_ptr<const Series> ownedSeries;
-    // shared ownership because a copy constructed DeserialisedSeries
-    // will contain string_views into this list, so need to ensure it
-    // has the same lifetime
-    // todo: compact into a single buffer
-    std::shared_ptr<std::list<std::string>> labelStorage;
+    // If this series is constructed from a stream (socket, pipe, etc.)
+    // data needs to be buffered in memory..
+    // If constructed from an mmapped file, all series parsed from the file
+    // can reference into the mmapped data, but use this to extend the
+    // life of the mapped file resource.
+    std::shared_ptr<Resource> storage;
 };

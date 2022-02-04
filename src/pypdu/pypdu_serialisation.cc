@@ -28,26 +28,27 @@ int fdFromObj(py::object fileLike) {
     return fdObj.cast<int>();
 }
 
-auto load(int fd) {
-    auto mappedResource = try_map_fd(fd);
-    if (mappedResource) {
-        // this fd does represent a file on disk, and has been mmapped
-        Decoder d(mappedResource->get());
-        return pdu::deserialise(d);
-    } else {
-        // this fd might be a pipe or socket, and can't be mmapped.
-        // fall back to reading sequentially, and buffering data in memory.
-        namespace io = boost::iostreams;
-        io::stream_buffer<io::file_descriptor_source> fpstream(
-                fd, boost::iostreams::never_close_handle);
-        std::istream is(&fpstream);
-        StreamDecoder d(is);
-        return pdu::deserialise(d);
+auto load(int fd, bool allowMmap = true) {
+    if (allowMmap) {
+        auto mappedResource = try_map_fd(fd);
+        if (mappedResource) {
+            // this fd does represent a file on disk, and has been mmapped
+            return pdu::deserialise(mappedResource);
+        }
     }
+
+    // this fd might be a pipe or socket, and can't be mmapped.
+    // fall back to reading sequentially, and buffering data in memory.
+    namespace io = boost::iostreams;
+    io::stream_buffer<io::file_descriptor_source> fpstream(
+            fd, boost::iostreams::never_close_handle);
+    std::istream is(&fpstream);
+    StreamDecoder d(is);
+    return pdu::deserialise(d);
 }
 
-auto load(py::object fileLike) {
-    return load(fdFromObj(fileLike));
+auto load(py::object fileLike, bool allowMmap = true) {
+    return load(fdFromObj(fileLike), allowMmap);
 }
 
 template <class T>
@@ -186,15 +187,21 @@ void def_serial(py::module m) {
                     },
                     py::keep_alive<0, 1>());
 
+    using namespace pybind11::literals;
+
     m.def("load",
-          py::overload_cast<int>(&load),
+          py::overload_cast<int, bool>(&load),
           "Load a Series from a serialised representation read from a file "
-          "descriptor");
+          "descriptor",
+          "file_descriptor"_a,
+          "allow_mmap"_a = true);
     m.def("load",
-          py::overload_cast<py::object>(&load),
+          py::overload_cast<py::object, bool>(&load),
           "Load a Series from a serialised representation read from a "
           "file-like object supporting .fileno(), returning a file "
-          "descriptor");
+          "descriptor",
+          "file_descriptor"_a,
+          "allow_mmap"_a = true);
     m.def(
             "loads",
             [](py::buffer buffer) {

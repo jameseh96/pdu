@@ -79,6 +79,10 @@ SeriesOrGroup deserialise(Dec& decoder);
 extern template SeriesOrGroup deserialise(Decoder& decoder);
 extern template SeriesOrGroup deserialise(StreamDecoder& decoder);
 
+// Overload taking a resource. The underlying data is already in memory.
+// Decode it, and ensure all series reference the resource.
+SeriesOrGroup deserialise(std::shared_ptr<Resource> resource);
+
 struct StreamIterator
     : public iterator_facade<StreamIterator, DeserialisedSeries> {
 public:

@@ -195,11 +195,21 @@ Time series may be dumped individually to a file or bytes. This may be useful if
 
 `pypdu.dump`/`pypdu.load` take an `int` file descriptor or, for convenience, a file-like object supporting `fileLike.fileno() -> int`.
 
-This could be used to write output to a pipe or socket, not just a file on disk. Note, arbitrary file-like objects which are not backed by a file descriptor are not supported.
+These methods be used to read/write data from/to a pipe or socket, not just a file on disk. Note, arbitrary file-like objects which are not backed by a file descriptor are not supported.
 
-When loading from a serialised form, the series data will be held in memory - this may be costly if there are many Series. `pypdu.load_lazy` can instead be used to consume Series one at a time.
 
-When `load`ing many series, the underlying data for all Series will be read into memory - this may be costly if there are many Series. `pypdu.load_lazy` can instead be used to consume Series one at a time.
+If provided a file handle which actually refers to a file on disk, `load` will try to mmap the file. If this fails, it will fall back to reading it like a stream. If mmapping is not desired, it can be disabled with:
+
+```
+pypdu.load(fileDescriptor, allow_mmap=False)
+```
+
+When `load`ing many series from a _stream_ (socket, pipe, etc), the underlying data for all Series will be read into memory - this may be costly if there are many Series. `pypdu.load_lazy` can instead be used to consume Series from a stream, one at a time.
+
+```
+for series in pypdu.load_lazy(someSocket):
+    # series are read and deserialised on demand while iterating
+```
 
 `pypdu.dumps` creates a `bytes` object, while `pypdu.loads` operates on a [buffer](https://docs.python.org/3/c-api/buffer.html). Anything supporting the buffer protocol exposing a contiguous buffer may be used. This includes `bytes` objects, but also `numpy` arrays and many other types.
 

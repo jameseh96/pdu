@@ -150,6 +150,15 @@ template void serialise(Encoder&, const PrometheusData&);
 
 /// Deserialisation
 
+template <typename T, typename = void>
+constexpr bool is_streaming_v = false;
+
+template <typename T>
+constexpr bool is_streaming_v<
+        T,
+        std::enable_if_t<std::is_same_v<std::decay_t<T>, StreamDecoder>>> =
+        true;
+
 template <class Dec>
 std::pair<ChunkReference, std::shared_ptr<Resource>> deserialise_chunk(Dec& d) {
     ChunkReference ref;
@@ -159,9 +168,83 @@ std::pair<ChunkReference, std::shared_ptr<Resource>> deserialise_chunk(Dec& d) {
     ref.type = ChunkType(d.template read_int<uint8_t>());
 
     auto chunkLen = d.read_varuint();
-    auto res = std::make_shared<OwningMemResource>(d.read(chunkLen));
+    std::shared_ptr<Resource> res;
+    if constexpr (is_streaming_v<Dec>) {
+        // needs to own the chunk of data, as it has been read from a stream
+        // and isn't stored anywhere else.
+        res = std::make_shared<OwningMemResource>(d.read(chunkLen));
+    } else {
+        // non-owning resource pointing into data in memory (possibly an
+        // mmapped file). Don't need to copy it.
+        res = std::make_shared<MemResource>(d.read_view(chunkLen));
+    }
 
     return {ref, std::move(res)};
+}
+
+std::shared_ptr<Resource> deserialise_labels(Decoder& d, Series& series) {
+    // read labels
+    auto numLabels = d.read_varuint();
+    for (int i = 0; i < numLabels; ++i) {
+        // no need to copy the label values, decoding from in-memory
+        // (or mmapped) data already
+        auto keySize = d.read_varuint();
+        auto key = d.read_view(keySize);
+
+        auto valSize = d.read_varuint();
+        auto val = d.read_view(valSize);
+        series.labels.emplace(key, val);
+    }
+    return {};
+}
+
+std::shared_ptr<Resource> deserialise_labels(StreamDecoder& d, Series& series) {
+    std::string labelStorage;
+
+    struct StringRef {
+        size_t offset;
+        size_t length;
+
+        std::string_view getFrom(std::string_view data) const {
+            return data.substr(offset, length);
+        }
+    };
+
+    struct KVRef {
+        StringRef key;
+        StringRef value;
+    };
+    // the string will be reallocated as it is extended; collect up offsets
+    // into it rather than pointers.
+    std::list<KVRef> refs;
+
+    auto readStr = [&] {
+        auto size = d.read_varuint();
+        StringRef ref = {labelStorage.size(), size};
+        labelStorage += d.read(size);
+        return ref;
+    };
+
+    // read labels
+    auto numLabels = d.read_varuint();
+    for (int i = 0; i < numLabels; ++i) {
+        KVRef ref;
+
+        ref.key = readStr();
+        ref.value = readStr();
+
+        refs.emplace_back(std::move(ref));
+    }
+
+    auto res = std::make_shared<OwningMemResource>(std::move(labelStorage));
+
+    auto resView = res->getView();
+
+    for (const auto& [key, val] : refs) {
+        series.labels.emplace(key.getFrom(resView), val.getFrom(resView));
+    }
+
+    return res;
 }
 
 template <class Dec>
@@ -177,19 +260,9 @@ DeserialisedSeries deserialise_series(Dec& d) {
     cis.ownedSeries = series;
     cis.series = series.get();
 
-    cis.labelStorage = std::make_shared<std::list<std::string>>();
-
-    // read labels
-    auto numLabels = d.read_varuint();
-    for (int i = 0; i < numLabels; ++i) {
-        auto keySize = d.read_varuint();
-        cis.labelStorage->push_back(d.read(keySize));
-        auto key = std::string_view(cis.labelStorage->back());
-
-        auto valSize = d.read_varuint();
-        cis.labelStorage->push_back(d.read(valSize));
-        auto val = std::string_view(cis.labelStorage->back());
-        series->labels.emplace(key, val);
+    auto labelStorage = deserialise_labels(d, *series);
+    if (labelStorage) {
+        cis.storage = std::move(labelStorage);
     }
 
     // read chunks
@@ -247,6 +320,24 @@ SeriesOrGroup deserialise(Dec& decoder) {
 
 template SeriesOrGroup deserialise(Decoder& decoder);
 template SeriesOrGroup deserialise(StreamDecoder& decoder);
+
+// Overload taking a resource. The underlying data is already in memory.
+// Decode it, and ensure all series reference the resource.
+SeriesOrGroup deserialise(std::shared_ptr<Resource> resource) {
+    auto dec = resource->get();
+    auto res = deserialise(dec);
+
+    if (auto* ptr = boost::get<DeserialisedSeries>(&res)) {
+        ptr->storage = resource;
+    }
+
+    if (auto* ptr = boost::get<std::vector<DeserialisedSeries>>(&res)) {
+        for (auto& series : *ptr) {
+            series.storage = resource;
+        }
+    }
+    return res;
+}
 
 StreamIterator::StreamIterator(std::istream& stream)
     : stream(stream), d(stream) {
