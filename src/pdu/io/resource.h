@@ -15,6 +15,8 @@ struct Resource {
     }
     virtual Decoder get() const = 0;
 
+    virtual std::string_view getView() const = 0;
+
     virtual const std::string& getDirectory() const = 0;
 
     virtual bool empty() const = 0;
@@ -27,6 +29,10 @@ struct MemResource : public Resource {
     }
 
     Decoder get() const override {
+        return {data};
+    }
+
+    std::string_view getView() const override {
         return {data};
     }
 
@@ -47,6 +53,10 @@ struct OwningMemResource : public Resource {
     }
 
     Decoder get() const override {
+        return {data};
+    }
+
+    std::string_view getView() const override {
         return {data};
     }
 

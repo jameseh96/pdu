@@ -27,6 +27,9 @@ struct MappedFileResource : public Resource {
     Decoder get() const override {
         return {data};
     }
+    std::string_view getView() const override {
+        return {data};
+    }
 
     const std::string& getDirectory() const override {
         throw std::runtime_error(
