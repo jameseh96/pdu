@@ -29,12 +29,21 @@ int fdFromObj(py::object fileLike) {
 }
 
 auto load(int fd) {
-    namespace io = boost::iostreams;
-    io::stream_buffer<io::file_descriptor_source> fpstream(
-            fd, boost::iostreams::never_close_handle);
-    std::istream is(&fpstream);
-    StreamDecoder d(is);
-    return pdu::deserialise(d);
+    auto mappedResource = try_map_fd(fd);
+    if (mappedResource) {
+        // this fd does represent a file on disk, and has been mmapped
+        Decoder d(mappedResource->get());
+        return pdu::deserialise(d);
+    } else {
+        // this fd might be a pipe or socket, and can't be mmapped.
+        // fall back to reading sequentially, and buffering data in memory.
+        namespace io = boost::iostreams;
+        io::stream_buffer<io::file_descriptor_source> fpstream(
+                fd, boost::iostreams::never_close_handle);
+        std::istream is(&fpstream);
+        StreamDecoder d(is);
+        return pdu::deserialise(d);
+    }
 }
 
 auto load(py::object fileLike) {
