@@ -61,6 +61,8 @@ add_library(plib
         src/pdu/serialisation/serialisation.cc
         src/pdu/util/host.cc)
 
+set_property(TARGET plib PROPERTY CXX_VISIBILITY_PRESET hidden)
+
 target_include_directories(plib PUBLIC src/)
 target_link_libraries(plib PUBLIC
         Boost::boost
