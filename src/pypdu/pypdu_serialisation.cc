@@ -144,7 +144,9 @@ void def_serial(py::module m) {
           "supporting .fileno(), returning a file descriptor");
     m.def(
             "dump",
-            [](int fd, py::list list) { dump(fd, toSeriesVector(list)); },
+            [](py::object fileLike, py::list list) {
+                dumpToObj(fileLike, toSeriesVector(list));
+            },
             "Write a serialised representation of a list of Series to a "
             "file-like object supporting .fileno(), returning a file "
             "descriptor");
