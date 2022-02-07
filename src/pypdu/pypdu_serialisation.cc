@@ -29,6 +29,7 @@ int fdFromObj(py::object fileLike) {
 }
 
 auto load(int fd, bool allowMmap = true) {
+    py::gil_scoped_release release;
     if (allowMmap) {
         auto mappedResource = try_map_fd(fd);
         if (mappedResource) {
@@ -53,6 +54,7 @@ auto load(py::object fileLike, bool allowMmap = true) {
 
 template <class T>
 void dump(int fd, const T& value) {
+    py::gil_scoped_release release;
     namespace io = boost::iostreams;
     io::stream_buffer<io::file_descriptor_sink> fpstream(
             fd, boost::iostreams::never_close_handle);
@@ -69,8 +71,11 @@ void dumpToObj(py::object fileLike, const T& value) {
 template <class T>
 py::bytes dumps(const T& value) {
     std::stringstream ss;
-    Encoder e(ss);
-    pdu::serialise(e, value);
+    {
+        py::gil_scoped_release release;
+        Encoder e(ss);
+        pdu::serialise(e, value);
+    }
     return py::bytes(ss.str());
 }
 

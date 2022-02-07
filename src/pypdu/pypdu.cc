@@ -136,7 +136,8 @@ PYBIND11_MODULE(pypdu, m) {
 
     m.def("load",
           py::overload_cast<const std::string&>(&pdu::load),
-          "Load data from a Prometheus data directory");
+          "Load data from a Prometheus data directory",
+          py::call_guard<py::gil_scoped_release>());
 
     m.def(
             "regex",
