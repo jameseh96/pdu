@@ -257,13 +257,10 @@ void def_serial(py::module m) {
                             "pypdu.loads received empty buffer");
                 }
 
-                namespace io = boost::iostreams;
-                io::stream_buffer<io::array_source> arrayStream(
-                        reinterpret_cast<char*>(info.ptr), size_t(info.size));
-                std::istream is(&arrayStream);
-                StreamDecoder d(is);
+                Decoder d(reinterpret_cast<char*>(info.ptr), size_t(info.size));
                 return pdu::deserialise(d);
             },
+            py::keep_alive<0, 1>(),
             "Load a Series from a serialised representation read from a bytes "
             "object");
 
