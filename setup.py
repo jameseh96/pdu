@@ -140,6 +140,9 @@ setup(
     description="Python bindings for C++ library for reading Prometheus on-disk data",
     long_description=get_readme(),
     long_description_content_type='text/markdown',
+    project_urls={
+        'Source': 'https://github.com/jameseh96/pdu',
+    },
     ext_modules=[CMakeExtension("pypdu")],
     cmdclass={"build_ext": CMakeBuild},
     zip_safe=False,
