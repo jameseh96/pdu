@@ -1,5 +1,7 @@
 #include "decoder.h"
 
+#include "../exceptions.h"
+
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -78,7 +80,10 @@ Decoder Decoder::substr(size_t pos, size_t count) const {
 
 std::string_view Decoder::read_view(size_t count) {
     if (count > subview.size()) {
-        throw std::runtime_error("read_view: too few left");
+        throw pdu::EOFError(
+                fmt::format("read_view: reading {} bytes, only {} left",
+                            count,
+                            subview.size()));
     }
     auto value = subview.substr(0, count);
     subview.remove_prefix(count);
@@ -111,10 +116,8 @@ size_t Decoder::tell() const {
 
 Decoder& Decoder::read(char* dest, size_t count) {
     if (count > subview.size()) {
-        throw std::runtime_error(
-                fmt::format("read: EOF - reading {} bytes, only {} left",
-                            count,
-                            subview.size()));
+        throw pdu::EOFError(fmt::format(
+                "read: reading {} bytes, only {} left", count, subview.size()));
     }
     memcpy(dest, subview.data(), count);
     subview.remove_prefix(count);
@@ -123,7 +126,7 @@ Decoder& Decoder::read(char* dest, size_t count) {
 
 char Decoder::peek() const {
     if (subview.empty()) {
-        throw std::runtime_error("peek: no bytes left");
+        throw pdu::EOFError("peek: no bytes left");
     }
     return subview[0];
 }
