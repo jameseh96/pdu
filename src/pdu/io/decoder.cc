@@ -5,6 +5,8 @@
 #include <string>
 #include <utility>
 
+#include <fmt/format.h>
+
 template <class Derived>
 uint64_t DecoderBase<Derived>::read_varuint() {
     uint8_t byte;
@@ -109,7 +111,10 @@ size_t Decoder::tell() const {
 
 Decoder& Decoder::read(char* dest, size_t count) {
     if (count > subview.size()) {
-        throw std::runtime_error("read: too few left");
+        throw std::runtime_error(
+                fmt::format("read: EOF - reading {} bytes, only {} left",
+                            count,
+                            subview.size()));
     }
     memcpy(dest, subview.data(), count);
     subview.remove_prefix(count);

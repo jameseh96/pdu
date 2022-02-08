@@ -18,6 +18,7 @@
 #include <pybind11/stl_bind.h>
 
 #include "pypdu_boost_variant_helper.h"
+#include "pypdu_exceptions.h"
 
 int fdFromObj(py::object fileLike) {
     auto fdObj = fileLike.attr("fileno")();
@@ -38,14 +39,27 @@ auto load(int fd, bool allowMmap = true) {
         }
     }
 
+    // Note, empty files will fail to be mapped, and will lead to EOFError
+    // being thrown below
+
     // this fd might be a pipe or socket, and can't be mmapped.
     // fall back to reading sequentially, and buffering data in memory.
     namespace io = boost::iostreams;
     io::stream_buffer<io::file_descriptor_source> fpstream(
             fd, boost::iostreams::never_close_handle);
     std::istream is(&fpstream);
-    StreamDecoder d(is);
-    return pdu::deserialise(d);
+    is.exceptions(std::istream::failbit | std::istream::badbit |
+                  std::istream::eofbit);
+    try {
+        StreamDecoder d(is);
+        return pdu::deserialise(d);
+    } catch (const std::istream::failure& e) {
+        if (is.eof()) {
+            throw py::EOFError("reached end of file prematurely");
+        }
+        // other error, just rethrow and allow pybind to wrap in runtime error
+        throw;
+    }
 }
 
 auto load(py::object fileLike, bool allowMmap = true) {

@@ -1,5 +1,6 @@
 #include "pypdu.h"
 
+#include "pypdu_exceptions.h"
 #include "pypdu_histogram.h"
 #include "pypdu_serialisation.h"
 #include "pypdu_version.h"
@@ -133,6 +134,7 @@ PYBIND11_MODULE(pypdu, m) {
 
     init_version(m);
     init_histogram(m);
+    init_exceptions(m);
 
     m.def("load",
           py::overload_cast<const std::string&>(&pdu::load),

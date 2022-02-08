@@ -4,7 +4,7 @@ project(pypdu)
 set(CMAKE_CXX_STANDARD 17)
 
 add_subdirectory(../../third_party/pybind11 ${CMAKE_CURRENT_BINARY_DIR}/pybind11)
-pybind11_add_module(pypdu pypdu.cc pypdu_histogram.cc pypdu_serialisation.cc pypdu_version.cc)
+pybind11_add_module(pypdu pypdu.cc pypdu_histogram.cc pypdu_serialisation.cc pypdu_version.cc pypdu_exceptions.cc)
 
 set_property(TARGET pypdu PROPERTY CXX_VISIBILITY_PRESET hidden)
 
