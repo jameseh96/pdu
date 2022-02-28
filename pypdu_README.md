@@ -304,6 +304,26 @@ This exception can be caught, if you want to provide a more specific error messa
 
 #### Alternative installation steps
 
+##### pip install from source
+
+If a wheel is not available for your platform or architecture, `pypdu` can be built and installed with:
+
+```
+pip install git+https://github.com/jameseh96/pdu.git
+```
+
+or for a specific version:
+
+```
+pip install git+https://github.com/jameseh96/pdu.git@vX.Y.Z
+e.g.,
+pip install git+https://github.com/jameseh96/pdu.git@v0.0.19
+```
+
+Building `pypdu` will require the dependencies listed in the [installation instructions](https://github.com/jameseh96/pdu#installing).
+
+`pypdu` is relatively platform independent, but has not been tested on platforms/architectures that don't have a wheel built (e.g., Windows, MacOS+Apple Silicon) - be prepared for potential issues at build and runtime.
+
 ##### setup.py
 `pypdu` may be installed without `pip`. To use, clone the repository as in the [installation instructions](https://github.com/jameseh96/pdu#installing).
 
@@ -312,8 +332,6 @@ Then run:
 ```
 python setup.py install
 ```
-
-This should also work on Windows, but is untested.
 
 ##### manual .so
 
