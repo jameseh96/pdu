@@ -33,7 +33,7 @@ jobs:
         with:
           submodules: recursive
       - name: build wheels
-        uses: pypa/cibuildwheel@v2.1.1
+        uses: pypa/cibuildwheel@v2.12.1
       - uses: actions/upload-artifact@v2
         with:
             name: manylinux-3_X
@@ -78,7 +78,7 @@ jobs:
       - name: Add conancenter remote
         run: conan remote add -f conancenter https://center.conan.io
       - name: build wheels
-        uses: pypa/cibuildwheel@v2.1.1
+        uses: pypa/cibuildwheel@v2.12.1
       - uses: actions/upload-artifact@v2
         with:
             name: mac-3_X
@@ -108,7 +108,7 @@ jobs:
       - name: Add conancenter remote
         run: conan remote add -f conancenter https://center.conan.io
       - name: build wheels
-        uses: pypa/cibuildwheel@v2.1.1
+        uses: pypa/cibuildwheel@v2.12.1
       - uses: actions/upload-artifact@v2
         with:
             name: mac-3_X-arm
