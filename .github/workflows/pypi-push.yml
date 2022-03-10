@@ -6,6 +6,21 @@ on:
     tags:
       - "*"
 jobs:
+  build-source-archive:
+    name: Build source archive (sdist)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+        with:
+          submodules: recursive
+      - name: build sdist
+        run: |
+           python3 setup.py sdist
+      - uses: actions/upload-artifact@v2
+        with:
+            name: source-archive
+            path: dist/*.tar.gz
+
   build-manylinux-3_X:
     name: Build manylinux wheels (Python3.X)
     runs-on: ubuntu-latest
@@ -101,10 +116,14 @@ jobs:
   upload:
     name: Publish to PyPI
     runs-on: ubuntu-latest
-    needs: [build-manylinux-3_X, build-manylinux-2_7, build-mac-3_X, build-mac-2_7]
+    needs: [build-source-archive, build-manylinux-3_X, build-manylinux-2_7, build-mac-3_X, build-mac-2_7]
     steps:
       - name: Create ./dist
         run: mkdir ./dist
+      - uses: actions/download-artifact@v2
+        with:
+            name: source-archive
+            path: dist
       - uses: actions/download-artifact@v2
         with:
             name: manylinux-3_X
