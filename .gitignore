@@ -8,3 +8,4 @@ dist/
 pypdu.egg-info/
 wheelhouse/
 src/pypdu/generated_version.cc
+.eggs/

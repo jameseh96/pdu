@@ -1,0 +1,7 @@
+recursive-include third_party *
+recursive-include src *
+include ./*.md
+include ./*.txt
+include ./*.cmake
+
+
