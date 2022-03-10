@@ -2,7 +2,7 @@ name: Publish Python distributions to PyPI and TestPyPI
 on:
   push:
     branches:
-      - "!*"
+      - "*"
     tags:
       - "*"
 jobs:
@@ -214,13 +214,7 @@ jobs:
             name: mac-2_7-arm
             path: dist
       - name: Publish distribution to Test PyPI
-        if: startsWith(github.ref, 'refs/tags/v')
         uses: pypa/gh-action-pypi-publish@master
         with:
           password: ${{ secrets.TEST_PYPI_API_TOKEN }}
           repository_url: https://test.pypi.org/legacy/
-      - name: Publish distribution to PyPI
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: pypa/gh-action-pypi-publish@master
-        with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
