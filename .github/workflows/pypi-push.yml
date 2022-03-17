@@ -145,8 +145,8 @@ jobs:
     name: Build mac wheel (Python2.7 + Arm)
     runs-on: macos-11
     env:
-        MACOSX_DEPLOYMENT_TARGET: "11"
-        _PYTHON_HOST_PLATFORM: "macosx-11.0-arm64"
+        MACOSX_DEPLOYMENT_TARGET: "10.16"
+        _PYTHON_HOST_PLATFORM: "macosx-10.16-arm64"
         ARCHFLAGS: "-arch arm64"
     steps:
       - uses: actions/checkout@master
@@ -161,7 +161,10 @@ jobs:
         with:
           cmake-version: '3.17.x'
       - name: Install Python packages
-        run: python2 -m pip install setuptools wheel
+        # install specific version to avoid the wheel being
+        # forced up to 11.0. Strictly speaking, it should be, but
+        # python2 pip does not appear to handle wheels tagged 11.0
+        run: python2 -m pip install setuptools==41.0.1 wheel==0.33.1
       - name: Install conan
         run: python3 -m pip install conan
       - name: Add conancenter remote
