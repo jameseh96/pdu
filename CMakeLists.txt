@@ -18,10 +18,26 @@ conan_cmake_configure(REQUIRES
 
 conan_cmake_autodetect(settings)
 
+option(CONAN_MACOS_ARM64 "Dowload (or build) MacOS Arm64 deps from conan" OFF)
+
+if(DEFINED ENV{CONAN_MACOS_ARM64})
+    if($ENV{CONAN_MACOS_ARM64} MATCHES "ON")
+        set(CONAN_MACOS_ARM64 ON)
+    endif()
+endif()
+
+if (CONAN_MACOS_ARM64)
+    set(CONAN_PROFILE_HOST_ARG "${PROJECT_SOURCE_DIR}/conan/profiles/armv8")
+else()
+    set(CONAN_PROFILE_HOST_ARG "")
+endif()
+
+
 conan_cmake_install(PATH_OR_REFERENCE .
         BUILD missing
         REMOTE conancenter
-        SETTINGS ${settings})
+        SETTINGS ${settings}
+        PROFILE_HOST ${CONAN_PROFILE_HOST_ARG})
 
 list(PREPEND CMAKE_MODULE_PATH "${CMAKE_BINARY_DIR}")
 

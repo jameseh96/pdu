@@ -87,6 +87,7 @@ jobs:
     name: Build mac wheels (Python3.X + Arm)
     runs-on: macos-11
     env:
+        CONAN_MACOS_ARM64: "ON"
         MACOSX_DEPLOYMENT_TARGET: "11"
         CIBW_BUILD: '{cp,pp}3*arm64'
         CIBW_ARCHS_MACOS: 'arm64'
@@ -145,6 +146,7 @@ jobs:
     name: Build mac wheel (Python2.7 + Arm)
     runs-on: macos-11
     env:
+        CONAN_MACOS_ARM64: "ON"
         MACOSX_DEPLOYMENT_TARGET: "10.16"
         _PYTHON_HOST_PLATFORM: "macosx-10.16-arm64"
         ARCHFLAGS: "-arch arm64"
