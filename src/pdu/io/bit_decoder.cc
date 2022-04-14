@@ -33,7 +33,7 @@ uint64_t BitDecoder::readBits(size_t count) {
         remainingBits -= bitsToRead;
     };
 
-    return result & ((1 << bitsRead) - 1);
+    return result;
 }
 
 bool BitDecoder::readBit() {
