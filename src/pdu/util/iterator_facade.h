@@ -15,7 +15,9 @@ struct EndSentinel {};
  *
  * Need only implement:
  *
- *  bool next(BazValue& value);
+ * void increment();
+ * const DeserialisedSeries& dereference() const;
+ * bool is_end() const;
  *
  * If a new value can be generated, it should be stored in `value`
  * and then return true.
