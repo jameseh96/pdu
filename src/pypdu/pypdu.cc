@@ -186,7 +186,8 @@ PYBIND11_MODULE(pypdu, m) {
                         if (i >= 2) {
                             throw py::index_error();
                         }
-                        return i == 0 ? sample.timestamp : sample.value;
+                        return i == 0 ? py::cast(sample.timestamp)
+                                      : py::cast(sample.value);
                     },
                     py::return_value_policy::copy)
             .def("__len__", []() { return 2; })
