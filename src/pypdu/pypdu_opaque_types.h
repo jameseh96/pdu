@@ -7,5 +7,5 @@
 class DeserialisedSeries;
 PYBIND11_MAKE_OPAQUE(std::vector<DeserialisedSeries>);
 
-class RawSample;
-PYBIND11_MAKE_OPAQUE(std::vector<RawSample>);
+class Sample;
+PYBIND11_MAKE_OPAQUE(std::vector<Sample>);

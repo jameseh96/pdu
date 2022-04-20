@@ -24,7 +24,7 @@ public:
 protected:
     virtual void visit(const Series& series) = 0;
 
-    virtual void visit(const Sample& sample) = 0;
+    virtual void visit(const SampleInfo& sample) = 0;
 };
 
 class OrderedSeriesVisitor : public virtual SeriesVisitor {

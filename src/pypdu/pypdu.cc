@@ -107,12 +107,12 @@ public:
         return iterator;
     }
 
-    const std::vector<RawSample>& getSamples() const {
+    const std::vector<Sample>& getSamples() const {
         if (loadedSamples) {
             return *loadedSamples;
         }
 
-        loadedSamples = std::vector<RawSample>();
+        loadedSamples = std::vector<Sample>();
         auto& samples = *loadedSamples;
         auto itr = iterator;
         samples.reserve(itr.getNumSamples());
@@ -124,11 +124,11 @@ public:
 
 private:
     CrossIndexSampleIterator iterator;
-    mutable std::optional<std::vector<RawSample>> loadedSamples;
+    mutable std::optional<std::vector<Sample>> loadedSamples;
 };
 
 PYBIND11_MODULE(pypdu, m) {
-    PYBIND11_NUMPY_DTYPE(RawSample, timestamp, value);
+    PYBIND11_NUMPY_DTYPE(Sample, timestamp, value);
 
     m.doc() = "Python bindings to pdu, for reading Prometheus on-disk data";
 
@@ -173,15 +173,16 @@ PYBIND11_MODULE(pypdu, m) {
                     "ECMAScript regex")
             .def("is_empty", [](const SeriesFilter& f) { return f.empty(); });
 
-    py::class_<RawSample>(m, "RawSample")
-            .def_readonly("timestamp", &RawSample::timestamp)
-            .def_readonly("value", &RawSample::value)
+    py::class_<Sample>(m, "Sample")
+            .def(py::init<int64_t, double>())
+            .def_readonly("timestamp", &Sample::timestamp)
+            .def_readonly("value", &Sample::value)
             // support unpacking in the form of
             // for sample in samples:
             //     ...
             .def(
                     "__getitem__",
-                    [](const RawSample& sample, size_t i) {
+                    [](const Sample& sample, size_t i) {
                         if (i >= 2) {
                             throw py::index_error();
                         }
@@ -191,16 +192,16 @@ PYBIND11_MODULE(pypdu, m) {
             .def("__len__", []() { return 2; })
             // for nice presentation
             .def("__repr__",
-                 [](const RawSample& a) {
+                 [](const Sample& a) {
                      return "{timestamp=" + std::to_string(a.timestamp) +
                             ", value=" + std::to_string(a.value) + "}";
                  })
             .def(py::self == py::self)
             .def(py::self != py::self);
 
-    py::class_<Sample, RawSample>(m, "Sample");
+    py::class_<SampleInfo, Sample>(m, "SampleInfo");
 
-    py::bind_vector<std::vector<RawSample>>(
+    py::bind_vector<std::vector<Sample>>(
             m, "SampleVector", py::buffer_protocol());
 
     // note - this is intentionally inconsistent naming to better reflect
@@ -219,7 +220,7 @@ PYBIND11_MODULE(pypdu, m) {
                         return py::make_iterator<py::return_value_policy::copy,
                                                  CrossIndexSampleIterator,
                                                  EndSentinel,
-                                                 Sample>(cisi, end(cisi));
+                                                 SampleInfo>(cisi, end(cisi));
                     },
                     py::keep_alive<0, 1>());
 
@@ -230,7 +231,7 @@ PYBIND11_MODULE(pypdu, m) {
                         return py::make_iterator<py::return_value_policy::copy,
                                                  CrossIndexSampleIterator,
                                                  EndSentinel,
-                                                 Sample>(ss.getIterator(),
+                                                 SampleInfo>(ss.getIterator(),
                                                          EndSentinel());
                     },
                     py::keep_alive<0, 1>())

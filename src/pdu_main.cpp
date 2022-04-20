@@ -402,7 +402,7 @@ int main(int argc, char* argv[]) {
                 if (params.showBitwidth) {
                     for (const auto& sample : view.samples()) {
                         if (sample.meta.minTimestampBitWidth !=
-                            Sample::noBitWidth) {
+                            SampleInfo::noBitWidth) {
                             acc.minTimestamps.record(
                                     sample.meta.minTimestampBitWidth);
                         }

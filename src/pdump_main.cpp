@@ -65,7 +65,7 @@ public:
         fmt::print("{}\n", series);
         last = 0;
     }
-    void visit(const Sample& sample) override {
+    void visit(const SampleInfo& sample) override {
         fmt::print("{} {}\n", sample.timestamp, sample.value);
         if (sample.timestamp < last) {
             throw std::runtime_error(

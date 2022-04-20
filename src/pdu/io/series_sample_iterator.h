@@ -12,7 +12,7 @@ class ChunkFileCache;
 class Encoder;
 
 class SeriesSampleIterator
-    : public iterator_facade<SeriesSampleIterator, Sample> {
+    : public iterator_facade<SeriesSampleIterator, SampleInfo> {
 public:
     SeriesSampleIterator() = default;
     SeriesSampleIterator(std::shared_ptr<const Series> series,
@@ -20,7 +20,7 @@ public:
     SeriesSampleIterator(const SeriesSampleIterator& other);
 
     void increment();
-    const Sample& dereference() const {
+    const SampleInfo& dereference() const {
         return *sampleItr;
     }
 

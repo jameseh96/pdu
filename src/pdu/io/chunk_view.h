@@ -10,15 +10,15 @@
 class ChunkReference;
 class Encoder;
 
-struct RawSample {
+struct Sample {
     int64_t timestamp;
     double value;
 };
 
-bool operator==(const RawSample& a, const RawSample& b);
-bool operator!=(const RawSample& a, const RawSample& b);
+bool operator==(const Sample& a, const Sample& b);
+bool operator!=(const Sample& a, const Sample& b);
 
-struct Sample : public RawSample {
+struct SampleInfo : public Sample {
     static constexpr uint16_t noBitWidth = std::numeric_limits<uint16_t>::max();
     struct {
         // The first two sample timestamps are not encoded as delta-of-deltas.
@@ -29,12 +29,12 @@ struct Sample : public RawSample {
     } meta;
 };
 
-struct SampleIterator : public iterator_facade<SampleIterator, Sample> {
+struct SampleIterator : public iterator_facade<SampleIterator, SampleInfo> {
     SampleIterator() = default;
     SampleIterator(Decoder& dec, size_t sampleCount, bool rawChunk = false);
 
     void increment();
-    const Sample& dereference() const {
+    const SampleInfo& dereference() const {
         return s;
     }
 
@@ -63,7 +63,7 @@ private:
 
     bool rawChunk = false;
 
-    Sample s;
+    SampleInfo s;
 };
 
 // non-copying type. Holds a shared_ptr to the resource to ensure it

@@ -9,13 +9,13 @@
 class Encoder;
 
 class CrossIndexSampleIterator
-    : public iterator_facade<CrossIndexSampleIterator, Sample> {
+    : public iterator_facade<CrossIndexSampleIterator, SampleInfo> {
 public:
     CrossIndexSampleIterator() = default;
     CrossIndexSampleIterator(std::list<SeriesSampleIterator> subiterators);
 
     void increment();
-    const Sample& dereference() const {
+    const SampleInfo& dereference() const {
         return *subiterators.front();
     }
 
