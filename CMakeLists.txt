@@ -50,6 +50,7 @@ find_package(gsl-lite REQUIRED)
 
 add_library(plib
         src/pdu/pdu.cc
+        src/pdu/compute/compute.cc
         src/pdu/display/bitwidth_histogram.cc
         src/pdu/io/decoder.cc
         src/pdu/io/encoder.cc
