@@ -93,6 +93,29 @@ If none match, a `KeyError` is raised.
 
 All types of filter demonstrated above with `.filter(...)` may be used in this manner also.
 
+
+#### Calculations
+
+Simple operations `(+ - / *)` may be applied to `Series` objects, computing the result lazily.
+
+```
+a = data["foobar"]
+b = data["bazqux"]
+c = data["spam"]
+expression = (a + b) * (c / 100)
+for timestamp, value in expression:
+    ...
+```
+
+Note: the resulting iterable will contain a sample at each timestamp seen in _any_ of the constituent series. Even if all series are scraped with the same interval, if they are offset from each other this can lead to a lot of values. To avoid this, the expression can be resampled at a given interval:
+
+```
+for timestamp, value in expression.resample(10000): # 10s in ms
+    ...
+```
+
+This will lead to one sample _exactly_ every 10000 milliseconds. No interpolation is performed - if a given series did not have a sample at a chosen instant, the most recent value will be used.
+
 #### Histograms
 
 `PrometheusData(...).histograms` allows iterating all histograms represented by the time series in a data directory.

@@ -6,6 +6,7 @@
 #include "pypdu_version.h"
 
 #include <pdu/histogram/histogram_iterator.h>
+#include <pdu/compute/compute.h>
 #include <pdu/pdu.h>
 
 #include <pybind11/functional.h>
@@ -127,6 +128,33 @@ private:
     mutable std::optional<std::vector<Sample>> loadedSamples;
 };
 
+template <class T, class... Args>
+void enable_arithmetic_mutating(T& class_, Args&&... right) {
+    (class_.def(py::self += right)
+             .def(py::self -= right)
+             .def(py::self *= right)
+             .def(py::self /= right),
+     ...);
+}
+
+template <class T, class U, class V>
+void enable_arithmetic_non_mutating(T& class_, U left, V right) {
+    class_.def(left + right)
+            .def(left - right)
+            .def(left * right)
+            .def(left / right);
+}
+
+template <class T, class... Args>
+void enable_arithmetic(T& class_, Args&&... args) {
+    class_.def(-py::self);
+    class_.def(+py::self);
+    enable_arithmetic_non_mutating(class_, py::self, py::self);
+
+    (enable_arithmetic_non_mutating(class_, py::self, args), ...);
+    (enable_arithmetic_non_mutating(class_, args, py::self), ...);
+}
+
 PYBIND11_MODULE(pypdu, m) {
     PYBIND11_NUMPY_DTYPE(Sample, timestamp, value);
 
@@ -234,7 +262,7 @@ PYBIND11_MODULE(pypdu, m) {
                     },
                     py::keep_alive<0, 1>());
 
-    py::class_<CrossIndexSeries>(m, "Series")
+    auto seriesClass = py::class_<CrossIndexSeries>(m, "Series")
             .def_property_readonly(
                     "name",
                     [](const CrossIndexSeries& cis) {
@@ -285,6 +313,50 @@ PYBIND11_MODULE(pypdu, m) {
                      throw py::index_error();
                  })
             .def("__len__", []() { return 3; });
+
+    enable_arithmetic(seriesClass, float());
+
+    auto expressionClass =
+            py::class_<Expression>(m, "Expression")
+                    .def(py::init<CrossIndexSeries>())
+                    .def(py::init<double>())
+                    .def(
+                            "__iter__",
+                            [](const Expression& expr) {
+                                return py::make_iterator<
+                                        py::return_value_policy::copy,
+                                        ExpressionIterator,
+                                        EndSentinel,
+                                        Sample>(expr.begin(), EndSentinel());
+                            },
+                            py::keep_alive<0, 1>())
+                    .def(
+                            "resample",
+                            [](const Expression& expr, int interval) {
+                                if (interval <= 0) {
+                                    throw std::runtime_error(
+                                            "resample requires a positive "
+                                            "number of "
+                                            "milliseconds as the interval");
+                                }
+                                return expr.resample(
+                                        std::chrono::milliseconds(interval));
+                            },
+                            "Resample an expression with the given interval "
+                            "(milliseconds) from the first sample. Does not "
+                            "interpolate.");
+
+    enable_arithmetic(expressionClass, float(), CrossIndexSeries{});
+    enable_arithmetic_mutating(expressionClass, py::self);
+    enable_arithmetic_mutating(expressionClass, float());
+
+    py::class_<ResamplingIterator>(m, "ResampledExpression")
+            .def("__iter__", [](const ResamplingIterator& itr) {
+                return py::make_iterator<py::return_value_policy::copy,
+                                         ResamplingIterator,
+                                         EndSentinel,
+                                         Sample>(itr, EndSentinel());
+            });
 
     py::class_<SeriesIterator>(m, "SeriesIterator")
             .def(
