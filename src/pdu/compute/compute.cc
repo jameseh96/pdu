@@ -193,23 +193,40 @@ Expression operator*(Expression a, const Expression& b) {
     return a;
 }
 
+double lerp(double start, double end, double ratio) {
+    return end*ratio + start * (1 - ratio);
+}
+
+Sample lerpSamples(const Sample& start, const Sample& end, int64_t timestamp) {
+    double fraction = (double(timestamp) - start.timestamp) /
+                      (double(end.timestamp) - start.timestamp);
+    Sample res;
+    res.timestamp = timestamp;
+    res.value = lerp(start.value, end.value, fraction);
+    return res;
+}
+
 ResamplingIterator::ResamplingIterator(ExpressionIterator iterator,
                                        std::chrono::milliseconds interval)
     : itr(std::move(iterator)), interval(interval.count()) {
     if (itr != end(itr)) {
         nextTimestamp = itr->timestamp + this->interval;
-        newSample = *itr;
+        prevSample = *itr;
+        nextSample = *itr;
+        computedSample = *itr;
     }
 }
 
 void ResamplingIterator::increment() {
-    while (itr != end(itr) && itr->timestamp < nextTimestamp) {
-        newSample = *itr;
+    while (nextTimestamp > nextSample.timestamp) {
         ++itr;
+        if (itr == end(itr)) {
+            return;
+        }
+        prevSample = nextSample;
+        nextSample = *itr;
     }
-    if (itr == end(itr)) {
-        return;
-    }
-    newSample.timestamp = nextTimestamp;
-    nextTimestamp += interval;
+
+    computedSample = lerpSamples(prevSample, nextSample, nextTimestamp);
+    nextTimestamp = itr->timestamp + this->interval;
 }

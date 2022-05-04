@@ -55,7 +55,7 @@ public:
 
     void increment();
     const Sample& dereference() const {
-        return newSample;
+        return computedSample;
     }
 
     bool is_end() const {
@@ -64,7 +64,9 @@ public:
 
 private:
     ExpressionIterator itr;
-    Sample newSample;
+    Sample prevSample;
+    Sample nextSample;
+    Sample computedSample;
     uint64_t interval;
     int64_t nextTimestamp = std::numeric_limits<int64_t>::max();
 };
