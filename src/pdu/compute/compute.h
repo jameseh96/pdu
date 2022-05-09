@@ -76,6 +76,48 @@ private:
  * or more actual Prometheus time series.
  *
  * Used to support basic maths (+ - / *) operations on time series.
+ *
+ * Expressions which can be evaluated at one instant in time are stored
+ * as a flat series of instructions, operating on an std::stack.
+ *
+ * e.g., The expression:
+ *
+ *   (A * B) - (-C + D/2)
+ *
+ *  Expressed as a tree:
+ *
+ *   Subtract                 (A * B) - (-C + D/2)
+ *        Multiply            (A * B)
+ *            Series A
+ *            Series B
+ *        Add                 (-C + D/2)
+ *            Unary_Minus     -C
+ *                Series C
+ *            Divide          D/2
+ *                Series D
+ *                Constant 2
+ *
+ * Is re-represented as a flat series of instructions:
+ *
+ *   * Push Series A
+ *   * Push Series B
+ *   * Multiply
+ *   * Push Series C
+ *   * Unary_Minus
+ *   * Push Series D
+ *   * Push Constant 2
+ *   * Divide
+ *   * Add
+ *   * Subtract
+ *
+ * Operations pop one or two arguments from the std::stack, and push back the
+ * result.
+ *
+ * Compared to a naive recursive evaluation of the tree, this avoids the risk
+ * of stack exhaustion from deep expressions e.g., sum of N series
+ *
+ *  (A + (B + (C + ... )))
+ *
  */
 class Expression {
 public:
