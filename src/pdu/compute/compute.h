@@ -12,11 +12,15 @@ enum class Operation : uint8_t { Unary_Minus, Add, Subtract, Divide, Multiply };
 
 inline void execute(Operation op, std::stack<double>& stack);
 
+class RateExpression;
+class IRateIterator;
+
+using ExpressionVariant =
+        boost::variant<Operation, CrossIndexSeries, RateExpression, double>;
+
 class ExpressionIterator : public iterator_facade<ExpressionIterator, Sample> {
 public:
-    ExpressionIterator(
-            std::vector<boost::variant<Operation, CrossIndexSeries, double>>
-                    ops);
+    ExpressionIterator(std::vector<ExpressionVariant> ops);
 
     void increment();
     const Sample& dereference() const {
@@ -28,24 +32,67 @@ public:
     }
 
 private:
-    using SeriesRef = uint32_t;
+    struct SeriesRef {
+        uint64_t value;
+        operator uint64_t() {
+            return value;
+        }
+    };
+    struct RateExprRef {
+        uint64_t value;
+        operator uint64_t() {
+            return value;
+        }
+    };
 
     void add(Operation op);
     void add(const CrossIndexSeries& cis);
+    void add(const RateExpression& subexpr);
     void add(double constant);
 
     void evaluate();
 
     void evaluate_single(Operation op);
     void evaluate_single(SeriesRef op);
+    void evaluate_single(RateExprRef op);
     void evaluate_single(double op);
-    std::vector<boost::variant<Operation, SeriesRef, double>> operations;
-    std::vector<CrossIndexSampleIterator> iterators;
-    std::vector<double> previousValues;
+    std::vector<boost::variant<Operation, SeriesRef, RateExprRef, double>>
+            operations;
+
+    template <class IterType>
+    struct IteratorValues {
+        std::vector<IterType> iterators;
+        std::vector<double> latestValues;
+    };
+    IteratorValues<CrossIndexSampleIterator> series;
+    IteratorValues<IRateIterator> rateExpressions;
+
     std::stack<double> stack;
     Sample currentResult;
     int64_t lastTimestamp = 0;
     bool finished = false;
+};
+
+/**
+ * Calculate per-second instant rate of increase (approximately PromQL irate)
+ */
+class IRateIterator : public iterator_facade<IRateIterator, Sample> {
+public:
+    IRateIterator(ExpressionIterator itr);
+
+    void increment();
+    const Sample& dereference() const {
+        return currentResult;
+    }
+
+    bool is_end() const {
+        return itr == end(itr);
+    }
+
+private:
+    ExpressionIterator itr;
+    Sample prevSample;
+    Sample currentResult;
 };
 
 class ResamplingIterator : public iterator_facade<ResamplingIterator, Sample> {
@@ -123,6 +170,8 @@ class Expression {
 public:
     Expression(CrossIndexSeries cis);
 
+    Expression(RateExpression rateExpression);
+
     Expression(double constantValue);
 
     ResamplingIterator resample(std::chrono::milliseconds interval) const;
@@ -144,7 +193,74 @@ public:
 
     void copy_operations_from(const Expression& other);
 
-    std::vector<boost::variant<Operation, CrossIndexSeries, double>> operations;
+    std::vector<
+            ExpressionVariant>
+            operations;
+};
+
+/**
+ * Encapsulates a sub-expression to which a `rate` operation should be applied.
+ *
+ * A rate expression cannot be evaluated based on samples at a single instant in
+ * time; the preceding value(s) must be known.
+ *
+ * Rather than complicating Expression with the ability to retain earlier
+ * samples, keep rate expressions as a sub object.
+ *
+ * This _does_ lead to recursion, but it is rare (and likely not meaningful) to
+ * nest rate expressions too deeply e.g.,
+ *
+ *   rate(position) -> velocity
+ *   rate(velocity) -> acceleration
+ *   ...            -> jerk
+ *   ...            -> snap
+ *   ...            -> crackle
+ *   ...            -> pop
+ *   ...            -> ???
+ *
+ *  as such, evaluating the sub expression recursively is considered acceptable
+ *
+ *   A + rate(B+C)
+ *
+ *    ->
+ *
+ * -- Top level---
+ *   Add
+ *       A
+ *       Rate (B+C)
+ *
+ * -- Sub Expression ---
+ *
+ *  Add
+ *      B
+ *      C
+ *
+ *  ->
+ *
+ * -- Top level---
+ *   * Push Series A
+ *   * Evaluate rate(SubExpr)
+ *   * Add
+ *
+ * -- Sub Expression ---
+ *   * Push Series B
+ *   * Push Series C
+ *   * Add
+ *
+ * So for the _first_ sample of the top level expression, the sub expression
+ * will have been evaluated twice to determine the rate, then once more for each
+ * subsequent sample.
+ *
+ *  rate(SE)_t0 -> SE_t1 - SE_t0
+ *  rate(SE)_t0 -> SE_t1 - SE_t0
+ *
+ */
+class RateExpression {
+public:
+    RateExpression(Expression expr) : expr(std::move(expr)) {
+    }
+
+    Expression expr;
 };
 
 Expression operator-(const Expression&);
@@ -154,3 +270,5 @@ Expression operator-(Expression, const Expression&);
 Expression operator+(Expression, const Expression&);
 Expression operator/(Expression, const Expression&);
 Expression operator*(Expression, const Expression&);
+
+Expression irate(const Expression& expr);

@@ -116,6 +116,26 @@ for timestamp, value in expression.resample(10000): # 10s in ms
 
 This will lead to one sample _exactly_ every 10000 milliseconds. No interpolation is performed - if a given series did not have a sample at a chosen instant, the most recent value will be used.
 
+
+###### IRate
+
+
+```
+pypdu.irate(expr)
+```
+
+Results in a `Expression` which computes the instantaneous rate of change based on the current and previous sample - roughly equivalent to Prometheus `irate`.
+
+e.g.,
+
+```
+a = data["foobar"]
+b = data["bazqux"]
+rate = pypdu.irate(a+b/100)
+for timestamp, rate_value in rate:
+    ....
+```
+
 #### Histograms
 
 `PrometheusData(...).histograms` allows iterating all histograms represented by the time series in a data directory.
