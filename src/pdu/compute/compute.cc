@@ -217,6 +217,36 @@ void Expression::copy_operations_from(const Expression& other) {
             operations.end(), other.operations.begin(), other.operations.end());
 }
 
+Expression Expression::sum(std::vector<Expression> expressions) {
+    if (expressions.empty()) {
+        return Expression(0.0);
+    }
+    Expression result;
+
+    // to avoid constant reallocation of the operations vector, scan and
+    // count operations
+    size_t opCount = 0;
+    for (const auto& expr : expressions) {
+        opCount += expr.operations.size();
+    }
+    // sum is currently implemented as N sequential Add operations
+    // so increase the opCount for those ops
+    opCount += expressions.size() - 1;
+
+    result.operations.reserve(opCount);
+
+    for (const auto& expr : expressions) {
+        result.copy_operations_from(expr);
+    }
+
+    // now add all the Add operations
+    for (int i = 0; i < expressions.size() - 1; ++i) {
+        result.operations.emplace_back(Operation::Add);
+    }
+
+    return result;
+}
+
 Expression operator-(const Expression& expr) {
     return expr.unary_minus();
 }

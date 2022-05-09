@@ -1,5 +1,7 @@
 #include "pypdu_expression.h"
 
+#include <pybind11/stl.h>
+
 void init_expression(py::module m) {
     auto expressionClass =
             py::class_<Expression>(m, "Expression")
@@ -35,6 +37,8 @@ void init_expression(py::module m) {
     enable_arithmetic_mutating(expressionClass, py::self);
     enable_arithmetic_mutating(expressionClass, float());
 
+    py::implicitly_convertible<CrossIndexSeries, Expression>();
+
     py::class_<ResamplingIterator>(m, "ResampledExpression")
             .def("__iter__", [](const ResamplingIterator& itr) {
                 return py::make_iterator<py::return_value_policy::copy,
@@ -47,9 +51,8 @@ void init_expression(py::module m) {
           &irate,
           "Compute instantaneous rate of an expression (see Prometheus irate)");
 
-    m.def(
-            "irate",
-            [](const CrossIndexSeries& cis) { return irate(cis); },
-            "Compute instantaneous rate of an expression (see Prometheus "
-            "irate)");
+    m.def("sum",
+          &Expression::sum,
+          "Compute the sum of a list of series (equivalent to standard `sum`, "
+          "but potentially faster)");
 }

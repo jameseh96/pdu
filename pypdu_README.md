@@ -136,6 +136,23 @@ for timestamp, rate_value in rate:
     ....
 ```
 
+###### Sum
+
+As `Expression` supports addition, the standard Python method `sum` can be used to add multiple series together.
+
+However, if working with a very large number of series, `pypdu.sum` may more efficiently construct the `Expression` result (computation of the summed `Samples` is identical, however).
+
+e.g.,
+
+```
+series_list = list(data)
+py_sum_expr = sum(series_list)
+pdu_sum_expr = pypdu.sum(series_list) # may be faster if len(series_list) is large
+
+# but the resulting samples are identical
+assert(list(pdu_sum_expr) == list(py_sum_expr))
+```
+
 #### Histograms
 
 `PrometheusData(...).histograms` allows iterating all histograms represented by the time series in a data directory.

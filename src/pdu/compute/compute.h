@@ -193,6 +193,10 @@ public:
 
     void copy_operations_from(const Expression& other);
 
+    static Expression sum(std::vector<Expression> expressions);
+
+private:
+    Expression() = default;
     std::vector<
             ExpressionVariant>
             operations;
