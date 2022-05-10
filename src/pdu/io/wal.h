@@ -58,7 +58,7 @@ public:
         needsDecompressing = false;
     }
 
-private:
+protected:
     void loadFile(const boost::filesystem::path& file, bool isLast = false);
     void loadFragment(Decoder& dec, bool isLastFile);
     void loadRecord(Decoder dec);

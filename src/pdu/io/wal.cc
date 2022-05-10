@@ -196,6 +196,10 @@ void WalLoader::loadFragment(Decoder& dec, bool isLastFile) {
                                std::to_string(int(type)));
     }
 
+    if (record.empty() && !rawBuffer.empty()) {
+        throw std::logic_error("WAL: incomplete record found");
+    }
+
     if (record.empty()) {
         throw std::logic_error("WAL: empty record found");
     }
