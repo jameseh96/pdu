@@ -14,6 +14,7 @@ conan_cmake_configure(REQUIRES
         nlohmann_json/3.9.1
         snappy/1.1.9
         gsl-lite/0.38.1
+        gtest/1.11.0
         GENERATORS cmake_find_package)
 
 conan_cmake_autodetect(settings)
@@ -41,67 +42,5 @@ conan_cmake_install(PATH_OR_REFERENCE .
 
 list(PREPEND CMAKE_MODULE_PATH "${CMAKE_BINARY_DIR}")
 
-find_package(Boost REQUIRED)
-find_package(fmt REQUIRED)
-find_package(nlohmann_json REQUIRED)
-find_package(Snappy REQUIRED)
-find_package(gsl-lite REQUIRED)
-
-
-add_library(plib
-        src/pdu/pdu.cc
-        src/pdu/compute/compute.cc
-        src/pdu/display/bitwidth_histogram.cc
-        src/pdu/io/decoder.cc
-        src/pdu/io/encoder.cc
-        src/pdu/io/index.cc
-        src/pdu/io/chunk_file_cache.cc
-        src/pdu/io/chunk_reference.cc
-        src/pdu/io/chunk_view.cc
-        src/pdu/io/bit_decoder.cc
-        src/pdu/io/head_chunks.cc
-        src/pdu/io/mapped_file.cc
-        src/pdu/io/index_iterator.cc
-        src/pdu/io/resource.cc
-        src/pdu/io/posting_offset_iterator.cc
-        src/pdu/io/series_sample_iterator.cc
-        src/pdu/io/wal.cc
-        src/pdu/histogram/histogram.cc
-        src/pdu/histogram/histogram_iterator.cc
-        src/pdu/histogram/histogram_time_span.cc
-        src/pdu/query/filtered_index_iterator.cc
-        src/pdu/query/series_filter.cc
-        src/pdu/query/sample_visitor.cc
-        src/pdu/query/series_iterator.cc
-        src/pdu/query/cross_index_sample_iterator.cc
-        src/pdu/serialisation/deserialised_cross_index_series.cc
-        src/pdu/serialisation/serialisation.cc
-        src/pdu/util/host.cc)
-
-set_property(TARGET plib PROPERTY CXX_VISIBILITY_PRESET hidden)
-
-target_include_directories(plib PUBLIC src/)
-target_link_libraries(plib PUBLIC
-        Boost::boost
-        Boost::program_options
-        Boost::filesystem
-        Boost::iostreams
-        fmt::fmt
-        nlohmann_json::nlohmann_json
-        Snappy::snappy
-        gsl::gsl-lite)
-
-set_property(TARGET plib PROPERTY POSITION_INDEPENDENT_CODE ON)
-
-add_executable(pdu
-        src/pdu_main.cpp
-        )
-
-add_executable(pdump
-        src/pdump_main.cpp
-        )
-
-target_link_libraries(pdu PUBLIC plib)
-target_link_libraries(pdump PUBLIC plib)
-
-add_subdirectory(./src/pypdu)
+add_subdirectory(src)
+add_subdirectory(test)

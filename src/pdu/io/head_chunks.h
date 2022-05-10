@@ -30,7 +30,9 @@ public:
 
     std::shared_ptr<ChunkFileCache> getCache() const override;
 
-private:
+protected:
+    // allow tests to default construct and manually load data
+    HeadChunks() = default;
     void loadChunkFile(Decoder& dec, size_t fileId);
 
     std::shared_ptr<ChunkFileCache> cache;

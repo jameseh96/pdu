@@ -8,4 +8,9 @@ namespace pdu {
 class EOFError : public std::runtime_error {
     using std::runtime_error::runtime_error;
 };
+
+class unknown_encoding_error : public std::runtime_error {
+    using std::runtime_error::runtime_error;
+};
+
 } // namespace pdu
