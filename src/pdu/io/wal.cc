@@ -142,9 +142,11 @@ void WalLoader::loadFragment(Decoder& dec, bool isLastFile) {
 
         if (type & Compressed) {
             needsDecompressing = true;
+            // zero the compressed bit
+            type &= ~Compressed;
         }
 
-        if (type & RecordFull) {
+        if (type == RecordFull) {
             if (!rawBuffer.empty()) {
                 throw std::logic_error(
                         "WAL: Complete fragment seen in middle of partial "
@@ -155,7 +157,7 @@ void WalLoader::loadFragment(Decoder& dec, bool isLastFile) {
             break;
         }
 
-        if (type & RecordStart) {
+        if (type == RecordStart) {
             if (!rawBuffer.empty()) {
                 throw std::logic_error(
                         "WAL: Start fragment seen in middle of partial "
@@ -167,7 +169,7 @@ void WalLoader::loadFragment(Decoder& dec, bool isLastFile) {
             continue;
         }
 
-        if (type & RecordMid) {
+        if (type == RecordMid) {
             if (rawBuffer.empty()) {
                 throw std::logic_error(
                         "WAL: middle fragment seen before start");
@@ -178,7 +180,7 @@ void WalLoader::loadFragment(Decoder& dec, bool isLastFile) {
             continue;
         }
 
-        if (type & RecordEnd) {
+        if (type == RecordEnd) {
             if (rawBuffer.empty()) {
                 throw std::logic_error("WAL: end fragment seen before start");
             }
@@ -190,6 +192,8 @@ void WalLoader::loadFragment(Decoder& dec, bool isLastFile) {
                     rawBuffer.size());
             break;
         }
+        throw std::logic_error("WAL: unknown fragment type: " +
+                               std::to_string(int(type)));
     }
 
     if (record.empty()) {
