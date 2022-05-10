@@ -12,13 +12,38 @@ HeadChunks::HeadChunks(const boost::filesystem::path& dataDir) {
 
     cache = std::make_shared<ChunkFileCache>(headChunksDir);
 
+
+    std::vector<std::string> chunkFileNames;
+
     for (const auto& chunkFile : fs::directory_iterator(headChunksDir)) {
-        const auto& filename = chunkFile.path().filename().string();
-        auto fileId = std::stoull(filename);
+        chunkFileNames.emplace_back(chunkFile.path().filename().string());
+    }
+
+    std::sort(chunkFileNames.begin(), chunkFileNames.end());
+
+    for (int i = 0; i < chunkFileNames.size(); ++i) {
+        const auto& filename = chunkFileNames[i];
+        uint64_t fileId;
+        try {
+            fileId = std::stoull(filename);
+        } catch (const std::exception&) {
+            throw std::runtime_error("Head chunk has unexpected filename: " +
+                                     filename);
+        }
         auto fileResource = cache->get(fileId);
         auto dec = fileResource->get();
 
-        loadChunkFile(dec, fileId);
+        try {
+            loadChunkFile(dec, fileId);
+        } catch (const std::runtime_error& e) {
+            // the last chunk file may be partially constructed
+            // all others are expected to be fully valid
+            // TODO: CRCs should be checked
+            if (i != chunkFileNames.size() - 1) {
+                throw;
+            }
+
+        }
     }
 
     // WAL
