@@ -55,4 +55,10 @@ void init_expression(py::module m) {
           &Expression::sum,
           "Compute the sum of a list of series (equivalent to standard `sum`, "
           "but potentially faster)");
+
+    m.def("resample",
+          &resample,
+          "Resample a series at the given interval. Where the new sample does "
+          "not align with an existing sample, the value will be linearly "
+          "interpolated");
 }

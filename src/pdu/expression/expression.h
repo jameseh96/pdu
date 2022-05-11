@@ -7,16 +7,23 @@
 #include <gsl/gsl-lite.hpp>
 
 #include <stack>
+#include <tuple>
 
 enum class Operation : uint8_t { Unary_Minus, Add, Subtract, Divide, Multiply };
 
 inline void execute(Operation op, std::stack<double>& stack);
 
-class RateExpression;
 class IRateIterator;
+class ResamplingIterator;
 
-using ExpressionVariant =
-        boost::variant<Operation, CrossIndexSeries, RateExpression, double>;
+class RateExpression;
+class ResampleExpression;
+
+using ExpressionVariant = boost::variant<Operation,
+                                         CrossIndexSeries,
+                                         RateExpression,
+                                         ResampleExpression,
+                                         double>;
 
 class ExpressionIterator : public iterator_facade<ExpressionIterator, Sample> {
 public:
@@ -32,15 +39,15 @@ public:
     }
 
 private:
-    struct SeriesRef {
-        uint64_t value;
-        operator uint64_t() {
-            return value;
-        }
-    };
-    struct RateExprRef {
-        uint64_t value;
-        operator uint64_t() {
+    // Simple reference type stored in variant, "pointing to"
+    // an iterator in a vector for the given expression. Keeps the variant type
+    // small.
+    // Using a ptr would be simpler, but would need fixing up if the expression
+    // iterator is copied.
+    template <class ExprType>
+    struct Ref {
+        size_t value;
+        operator size_t() {
             return value;
         }
     };
@@ -48,15 +55,21 @@ private:
     void add(Operation op);
     void add(const CrossIndexSeries& cis);
     void add(const RateExpression& subexpr);
+    void add(const ResampleExpression& subexpr);
     void add(double constant);
 
     void evaluate();
 
     void evaluate_single(Operation op);
-    void evaluate_single(SeriesRef op);
-    void evaluate_single(RateExprRef op);
+    void evaluate_single(Ref<CrossIndexSampleIterator> op);
+    void evaluate_single(Ref<IRateIterator> op);
+    void evaluate_single(Ref<ResamplingIterator> op);
     void evaluate_single(double op);
-    std::vector<boost::variant<Operation, SeriesRef, RateExprRef, double>>
+    std::vector<boost::variant<Operation,
+                               Ref<CrossIndexSampleIterator>,
+                               Ref<IRateIterator>,
+                               Ref<ResamplingIterator>,
+                               double>>
             operations;
 
     template <class IterType>
@@ -66,6 +79,7 @@ private:
     };
     IteratorValues<CrossIndexSampleIterator> series;
     IteratorValues<IRateIterator> rateExpressions;
+    IteratorValues<ResamplingIterator> resamplingExpressions;
 
     std::stack<double> stack;
     Sample currentResult;
@@ -171,10 +185,11 @@ public:
     Expression(CrossIndexSeries cis);
 
     Expression(RateExpression rateExpression);
+    Expression(ResampleExpression resampleExpression);
 
     Expression(double constantValue);
 
-    ResamplingIterator resample(std::chrono::milliseconds interval) const;
+    Expression resample(std::chrono::milliseconds interval) const;
 
     auto begin() const {
         return ExpressionIterator(operations);
@@ -267,6 +282,26 @@ public:
     Expression expr;
 };
 
+/**
+ * Encapsulates a sub-expression which should be resampled at a fixed interval.
+ *
+ * Where the new sample would fall between two existing samples, linear
+ * interpolation is applied.
+ *
+ * Separating this from Expression comes with similar benefits and caveats to
+ * RateExpression.
+ *
+ */
+class ResampleExpression {
+public:
+    ResampleExpression(Expression expr, std::chrono::milliseconds interval)
+        : expr(std::move(expr)), interval(interval) {
+    }
+
+    Expression expr;
+    std::chrono::milliseconds interval;
+};
+
 Expression operator-(const Expression&);
 Expression operator+(const Expression&);
 
@@ -276,3 +311,4 @@ Expression operator/(Expression, const Expression&);
 Expression operator*(Expression, const Expression&);
 
 Expression irate(const Expression& expr);
+Expression resample(const Expression& expr, std::chrono::milliseconds interval);

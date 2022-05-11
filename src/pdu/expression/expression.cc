@@ -55,6 +55,8 @@ ExpressionIterator::ExpressionIterator(
     }
     series.latestValues.resize(series.iterators.size());
     rateExpressions.latestValues.resize(rateExpressions.iterators.size());
+    resamplingExpressions.latestValues.resize(
+            resamplingExpressions.iterators.size());
     increment();
 }
 
@@ -93,7 +95,8 @@ void ExpressionIterator::increment() {
                 }
             },
             series,
-            rateExpressions);
+            rateExpressions,
+            resamplingExpressions);
 
     if (newTimestamp == std::numeric_limits<int64_t>::max()) {
         finished = true;
@@ -108,12 +111,21 @@ void ExpressionIterator::add(Operation op) {
 }
 void ExpressionIterator::add(const CrossIndexSeries& cis) {
     series.iterators.push_back(cis.sampleIterator);
-    operations.emplace_back(SeriesRef{series.iterators.size() - 1});
+    operations.emplace_back(
+            Ref<CrossIndexSampleIterator>{series.iterators.size() - 1});
 }
 
 void ExpressionIterator::add(const RateExpression& subexpr) {
     rateExpressions.iterators.emplace_back(subexpr.expr.begin());
-    operations.emplace_back(RateExprRef{rateExpressions.iterators.size() - 1});
+    operations.emplace_back(
+            Ref<IRateIterator>{rateExpressions.iterators.size() - 1});
+}
+
+void ExpressionIterator::add(const ResampleExpression& subexpr) {
+    resamplingExpressions.iterators.emplace_back(
+            ResamplingIterator(subexpr.expr.begin(), subexpr.interval));
+    operations.emplace_back(Ref<ResamplingIterator>{
+            resamplingExpressions.iterators.size() - 1});
 }
 
 void ExpressionIterator::add(double constant) {
@@ -134,13 +146,18 @@ void ExpressionIterator::evaluate() {
 void ExpressionIterator::evaluate_single(Operation op) {
     execute(op, stack);
 }
-void ExpressionIterator::evaluate_single(SeriesRef op) {
+void ExpressionIterator::evaluate_single(Ref<CrossIndexSampleIterator> op) {
     stack.push(series.latestValues[op]);
 }
 
-void ExpressionIterator::evaluate_single(RateExprRef op) {
+void ExpressionIterator::evaluate_single(Ref<IRateIterator> op) {
     stack.push(rateExpressions.latestValues[op]);
 }
+
+void ExpressionIterator::evaluate_single(Ref<ResamplingIterator> op) {
+    stack.push(resamplingExpressions.latestValues[op]);
+}
+
 void ExpressionIterator::evaluate_single(double op) {
     stack.push(op);
 }
@@ -175,13 +192,16 @@ Expression::Expression(RateExpression rateExpression) {
     operations.emplace_back(std::move(rateExpression));
 }
 
+Expression::Expression(ResampleExpression resampleExpression) {
+    operations.emplace_back(std::move(resampleExpression));
+}
+
 Expression::Expression(double constantValue) {
     operations.emplace_back(constantValue);
 }
 
-ResamplingIterator Expression::resample(
-        std::chrono::milliseconds interval) const {
-    return {begin(), interval};
+Expression Expression::resample(std::chrono::milliseconds interval) const {
+    return ResampleExpression(*this, interval);
 }
 
 Expression Expression::unary_minus() const {
@@ -273,6 +293,11 @@ Expression operator*(Expression a, const Expression& b) {
 
 Expression irate(const Expression& expr) {
     return RateExpression(expr);
+}
+
+Expression resample(const Expression& expr,
+                    std::chrono::milliseconds interval) {
+    return expr.resample(interval);
 }
 
 double lerp(double start, double end, double ratio) {
