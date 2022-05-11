@@ -2,7 +2,7 @@
 
 #include "pypdu.h"
 
-#include <pdu/compute/compute.h>
+#include <pdu/expression/expression.h>
 #include <pdu/pdu.h>
 
 #include <pybind11/operators.h>

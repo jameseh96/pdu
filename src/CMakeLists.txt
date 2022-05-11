@@ -7,7 +7,7 @@ find_package(gsl-lite REQUIRED)
 
 add_library(plib
         pdu/pdu.cc
-        pdu/compute/compute.cc
+        pdu/expression/expression.cc
         pdu/display/bitwidth_histogram.cc
         pdu/io/decoder.cc
         pdu/io/encoder.cc
