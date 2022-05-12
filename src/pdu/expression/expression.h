@@ -8,6 +8,7 @@
 
 #include <stack>
 #include <tuple>
+#include <type_traits>
 
 enum class Operation : uint8_t { Unary_Minus, Add, Subtract, Divide, Multiply };
 
@@ -52,6 +53,33 @@ private:
         }
     };
 
+    template <class IterType>
+    using IteratorValues = std::vector<std::pair<IterType, double>>;
+
+    struct SubIteratorStore {
+        template <class IterType>
+        auto& get(Ref<IterType> ref) {
+            return get<IterType>()[size_t(ref)];
+        }
+        template <class IterType>
+        auto& get(size_t index) {
+            return get<IterType>()[index];
+        }
+        template <class IterType>
+        auto& get() {
+            if constexpr (std::is_same_v<IterType, CrossIndexSampleIterator>) {
+                return series;
+            } else if constexpr (std::is_same_v<IterType, IRateIterator>) {
+                return rate;
+            } else if constexpr (std::is_same_v<IterType, ResamplingIterator>) {
+                return resample;
+            }
+        }
+        IteratorValues<CrossIndexSampleIterator> series;
+        IteratorValues<IRateIterator> rate;
+        IteratorValues<ResamplingIterator> resample;
+    } subiterators;
+
     void add(Operation op);
     void add(const CrossIndexSeries& cis);
     void add(const RateExpression& subexpr);
@@ -61,9 +89,12 @@ private:
     void evaluate();
 
     void evaluate_single(Operation op);
-    void evaluate_single(Ref<CrossIndexSampleIterator> op);
-    void evaluate_single(Ref<IRateIterator> op);
-    void evaluate_single(Ref<ResamplingIterator> op);
+
+    template <class IterType>
+    void evaluate_single(Ref<IterType> op) {
+        stack.push(subiterators.get(op).second);
+    }
+
     void evaluate_single(double op);
     std::vector<boost::variant<Operation,
                                Ref<CrossIndexSampleIterator>,
@@ -71,15 +102,6 @@ private:
                                Ref<ResamplingIterator>,
                                double>>
             operations;
-
-    template <class IterType>
-    struct IteratorValues {
-        std::vector<IterType> iterators;
-        std::vector<double> latestValues;
-    };
-    IteratorValues<CrossIndexSampleIterator> series;
-    IteratorValues<IRateIterator> rateExpressions;
-    IteratorValues<ResamplingIterator> resamplingExpressions;
 
     std::stack<double> stack;
     Sample currentResult;
@@ -212,9 +234,7 @@ public:
 
 private:
     Expression() = default;
-    std::vector<
-            ExpressionVariant>
-            operations;
+    std::vector<ExpressionVariant> operations;
 };
 
 /**

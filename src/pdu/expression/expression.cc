@@ -53,10 +53,6 @@ ExpressionIterator::ExpressionIterator(
         boost::apply_visitor([this](const auto& value) { add(value); },
                              variant);
     }
-    series.latestValues.resize(series.iterators.size());
-    rateExpressions.latestValues.resize(rateExpressions.iterators.size());
-    resamplingExpressions.latestValues.resize(
-            resamplingExpressions.iterators.size());
     increment();
 }
 
@@ -70,8 +66,8 @@ void ExpressionIterator::increment() {
     int64_t newTimestamp = std::numeric_limits<int64_t>::max();
     apply_to_each(
             [&](auto& iterValues) {
-                for (int i = 0; i < iterValues.iterators.size(); i++) {
-                    auto& iter = iterValues.iterators[i];
+                for (int i = 0; i < iterValues.size(); i++) {
+                    auto& [iter, value] = iterValues[i];
                     if (iter == end(iter)) {
                         continue;
                     }
@@ -91,12 +87,12 @@ void ExpressionIterator::increment() {
                     newTimestamp = std::min(newTimestamp, iter->timestamp);
                     // track the latest value. Once a time series runs out of
                     // samples we want keep using the last seen value
-                    iterValues.latestValues[i] = iter->value;
+                    value = iter->value;
                 }
             },
-            series,
-            rateExpressions,
-            resamplingExpressions);
+            subiterators.series,
+            subiterators.rate,
+            subiterators.resample);
 
     if (newTimestamp == std::numeric_limits<int64_t>::max()) {
         finished = true;
@@ -110,22 +106,22 @@ void ExpressionIterator::add(Operation op) {
     operations.emplace_back(op);
 }
 void ExpressionIterator::add(const CrossIndexSeries& cis) {
-    series.iterators.push_back(cis.sampleIterator);
-    operations.emplace_back(
-            Ref<CrossIndexSampleIterator>{series.iterators.size() - 1});
+    auto& store = subiterators.get<CrossIndexSampleIterator>();
+    store.emplace_back(cis.sampleIterator, 0.0);
+    operations.emplace_back(Ref<CrossIndexSampleIterator>{store.size() - 1});
 }
 
 void ExpressionIterator::add(const RateExpression& subexpr) {
-    rateExpressions.iterators.emplace_back(subexpr.expr.begin());
-    operations.emplace_back(
-            Ref<IRateIterator>{rateExpressions.iterators.size() - 1});
+    auto& store = subiterators.get<IRateIterator>();
+    store.emplace_back(subexpr.expr.begin(), 0.0);
+    operations.emplace_back(Ref<IRateIterator>{store.size() - 1});
 }
 
 void ExpressionIterator::add(const ResampleExpression& subexpr) {
-    resamplingExpressions.iterators.emplace_back(
-            ResamplingIterator(subexpr.expr.begin(), subexpr.interval));
-    operations.emplace_back(Ref<ResamplingIterator>{
-            resamplingExpressions.iterators.size() - 1});
+    auto& store = subiterators.get<ResamplingIterator>();
+    store.emplace_back(
+            ResamplingIterator(subexpr.expr.begin(), subexpr.interval), 0.0);
+    operations.emplace_back(Ref<ResamplingIterator>{store.size() - 1});
 }
 
 void ExpressionIterator::add(double constant) {
@@ -145,17 +141,6 @@ void ExpressionIterator::evaluate() {
 
 void ExpressionIterator::evaluate_single(Operation op) {
     execute(op, stack);
-}
-void ExpressionIterator::evaluate_single(Ref<CrossIndexSampleIterator> op) {
-    stack.push(series.latestValues[op]);
-}
-
-void ExpressionIterator::evaluate_single(Ref<IRateIterator> op) {
-    stack.push(rateExpressions.latestValues[op]);
-}
-
-void ExpressionIterator::evaluate_single(Ref<ResamplingIterator> op) {
-    stack.push(resamplingExpressions.latestValues[op]);
 }
 
 void ExpressionIterator::evaluate_single(double op) {
