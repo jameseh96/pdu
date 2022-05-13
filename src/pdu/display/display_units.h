@@ -4,13 +4,13 @@
 #include <tuple>
 
 namespace format {
-inline constexpr size_t KB = 1024;
-inline constexpr size_t MB = KB * 1024;
-inline constexpr size_t GB = MB * 1024;
-inline constexpr size_t TB = GB * 1024;
-inline constexpr size_t PB = TB * 1024;
+inline constexpr uint64_t KB = 1024;
+inline constexpr uint64_t MB = KB * 1024;
+inline constexpr uint64_t GB = MB * 1024;
+inline constexpr uint64_t TB = GB * 1024;
+inline constexpr uint64_t PB = TB * 1024;
 
-inline std::pair<size_t, std::string> humanReadableBytes(size_t bytes) {
+inline std::pair<uint64_t, std::string> humanReadableBytes(uint64_t bytes) {
     if (bytes < KB) {
         return {bytes, "  B"};
     }

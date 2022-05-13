@@ -25,7 +25,7 @@ inline constexpr uint32_t DummyFileIdBase = 0xFF000000;
 struct ChunkReference {
     uint64_t minTime;
     uint64_t maxTime;
-    size_t fileReference;
+    uint64_t fileReference;
     ChunkType type = ChunkType::Block;
 
     ChunkReference& operator+=(const ChunkReference& other);
@@ -34,8 +34,8 @@ struct ChunkReference {
     uint32_t getOffset() const;
 };
 
-size_t makeFileReference(size_t fileId, size_t offset);
+size_t makeFileReference(uint64_t fileId, uint64_t offset);
 
 class Decoder;
 std::pair<size_t, ChunkReference> readHeadChunkMeta(Decoder& dec,
-                                                    size_t fileId);
+                                                    uint64_t fileId);

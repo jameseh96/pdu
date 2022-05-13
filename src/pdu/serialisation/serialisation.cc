@@ -202,8 +202,8 @@ std::shared_ptr<Resource> deserialise_labels(StreamDecoder& d, Series& series) {
     std::string labelStorage;
 
     struct StringRef {
-        size_t offset;
-        size_t length;
+        uint64_t offset;
+        uint64_t length;
 
         std::string_view getFrom(std::string_view data) const {
             return data.substr(offset, length);

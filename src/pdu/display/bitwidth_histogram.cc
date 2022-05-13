@@ -35,8 +35,8 @@ BitWidthHistogram& BitWidthHistogram::operator+=(
 }
 
 void BitWidthHistogram::print(bool percent, bool human) const {
-    size_t totalCount = 0;
-    size_t totalSize = 0;
+    uint64_t totalCount = 0;
+    uint64_t totalSize = 0;
     int index = 0;
     for (auto count : values) {
         totalCount += count;

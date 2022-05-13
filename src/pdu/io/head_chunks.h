@@ -33,7 +33,7 @@ public:
 protected:
     // allow tests to default construct and manually load data
     HeadChunks() = default;
-    void loadChunkFile(Decoder& dec, size_t fileId);
+    void loadChunkFile(Decoder& dec, uint64_t fileId);
 
     std::shared_ptr<ChunkFileCache> cache;
 

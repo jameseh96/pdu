@@ -111,8 +111,8 @@ struct AccumulatedData {
     BitWidthHistogram minTimestamps;
     BitWidthHistogram timestamps;
     BitWidthHistogram values;
-    size_t diskUsage = 0;
-    size_t sampleCount = 0;
+    uint64_t diskUsage = 0;
+    uint64_t sampleCount = 0;
 
     double avgSampleSize() const {
         return double(diskUsage) / sampleCount;

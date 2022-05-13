@@ -86,7 +86,7 @@ std::shared_ptr<ChunkFileCache> HeadChunks::getCache() const {
     return cache;
 }
 
-void HeadChunks::loadChunkFile(Decoder& dec, size_t fileId) {
+void HeadChunks::loadChunkFile(Decoder& dec, uint64_t fileId) {
     auto magic = dec.read_int<uint32_t>();
 
     if (magic != HeadChunkFileMagic) {

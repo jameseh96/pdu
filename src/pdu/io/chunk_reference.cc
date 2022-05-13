@@ -20,12 +20,12 @@ uint32_t ChunkReference::getOffset() const {
     return fileReference & 0xFFFFFFFF;
 }
 
-size_t makeFileReference(size_t fileId, size_t offset) {
+size_t makeFileReference(uint64_t fileId, uint64_t offset) {
     return ((fileId - 1) << 32) | offset;
 }
 
 std::pair<size_t, ChunkReference> readHeadChunkMeta(Decoder& dec,
-                                                    size_t fileId) {
+                                                    uint64_t fileId) {
     ChunkReference ref;
     ref.type = ChunkType::Head;
 
