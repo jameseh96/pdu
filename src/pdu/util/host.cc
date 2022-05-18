@@ -21,7 +21,7 @@ template <>
 uint64_t to_host(uint64_t v) {
     return ntohll(v);
 }
-#elif (defined __linux__)
+#else
 #include <endian.h>
 
 template <>
@@ -61,7 +61,7 @@ template <>
 uint64_t from_host(uint64_t v) {
     return htonll(v);
 }
-#elif (defined __linux__)
+#else
 #include <endian.h>
 
 template <>
