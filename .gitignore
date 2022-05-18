@@ -1,9 +1,7 @@
 .idea/
 cmake-build-debug/
 build/
-build-debug/
-build-release/
-build-asan/
+build-*/
 dist/
 pypdu.egg-info/
 wheelhouse/
