@@ -47,9 +47,15 @@ void init_expression(py::module m) {
                                          Sample>(itr, EndSentinel());
             });
 
+    using namespace pybind11::literals;
     m.def("irate",
           &irate,
-          "Compute instantaneous rate of an expression (see Prometheus irate)");
+          "expression"_a,
+          "monotonic"_a = false,
+          "Compute instantaneous rate of an expression (see Prometheus irate). "
+          "Mimics Prometheus rate handling of counter reset if monotonic=True "
+          "(to avoids a large negative rate by calculating rate as if previous "
+          "sample was zero)");
 
     m.def("sum",
           &Expression::sum,

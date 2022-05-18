@@ -113,7 +113,8 @@ void ExpressionIterator::add(const CrossIndexSeries& cis) {
 
 void ExpressionIterator::add(const RateExpression& subexpr) {
     auto& store = subiterators.get<IRateIterator>();
-    store.emplace_back(subexpr.expr.begin(), 0.0);
+    store.emplace_back(IRateIterator(subexpr.expr.begin(), subexpr.monotonic),
+                       0.0);
     operations.emplace_back(Ref<IRateIterator>{store.size() - 1});
 }
 
@@ -147,7 +148,8 @@ void ExpressionIterator::evaluate_single(double op) {
     stack.push(op);
 }
 
-IRateIterator::IRateIterator(ExpressionIterator iterator) : itr(iterator) {
+IRateIterator::IRateIterator(ExpressionIterator iterator, bool monotonic)
+    : itr(iterator), monotonic(monotonic) {
     if (itr != end(itr)) {
         increment();
     }
@@ -160,9 +162,18 @@ void IRateIterator::increment() {
         currentResult.timestamp = itr->timestamp;
         auto vdelta = itr->value - prevSample.value;
         // get the time delta in seconds, for a per-second rate
-        auto tdelta = (itr->timestamp - prevSample.timestamp)/1000;
+        auto tdelta = (itr->timestamp - prevSample.timestamp) / 1000;
         if (!tdelta) {
             currentResult.value = std::numeric_limits<double>::infinity();
+        } else if (monotonic && (vdelta < 0)) {
+            // copy prometheus's handling of counter reset.
+            // assumes the counter has reset to zero at some point during
+            // the sample interval. As an exact rate is hard to give in that
+            // situation, treat the previous sample as "zero", and give
+            // the delta from that.
+            // This may underestimate the real rate by dividing by a larger
+            // tdelta than the actual time that has passed since counter reset.
+            currentResult.value = itr->value / tdelta;
         } else {
             currentResult.value = vdelta / tdelta;
         }
@@ -276,8 +287,8 @@ Expression operator*(Expression a, const Expression& b) {
     return a;
 }
 
-Expression irate(const Expression& expr) {
-    return RateExpression(expr);
+Expression irate(const Expression& expr, bool monotonic) {
+    return RateExpression(expr, monotonic);
 }
 
 Expression resample(const Expression& expr,

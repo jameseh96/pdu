@@ -114,7 +114,18 @@ private:
  */
 class IRateIterator : public iterator_facade<IRateIterator, Sample> {
 public:
-    IRateIterator(ExpressionIterator itr);
+    /**
+     * Construct an iterator computing the instantaneous rate of change
+     * in an underlying expression.
+     *
+     * if @p monotonic, discard any samples which would expose a negative
+     * rate of change. Useful when computing the rate of a counter - a negative
+     * rate usually indicates the counter has reset. A very large negative
+     * rate in that situation is usually not useful.
+     * @param expr
+     * @param monotonic should the itr drop any negative values
+     */
+    IRateIterator(ExpressionIterator itr, bool monotonic = false);
 
     void increment();
     const Sample& dereference() const {
@@ -129,6 +140,7 @@ private:
     ExpressionIterator itr;
     Sample prevSample;
     Sample currentResult;
+    bool monotonic;
 };
 
 class ResamplingIterator : public iterator_facade<ResamplingIterator, Sample> {
@@ -296,10 +308,21 @@ private:
  */
 class RateExpression {
 public:
-    RateExpression(Expression expr) : expr(std::move(expr)) {
+    /**
+     * Create an expression representing the instantaneous rate of change
+     * in an underlying expression.
+     *
+     * When used on counters, it is useful to exclude any negative rate of
+     * change - this usually indicates a counter has reset.
+     * @param expr
+     * @param monotonic should the rate expression drop any negative values?
+     */
+    RateExpression(Expression expr, bool monotonic = false)
+        : expr(std::move(expr)), monotonic(monotonic) {
     }
 
     Expression expr;
+    bool monotonic;
 };
 
 /**
@@ -330,5 +353,5 @@ Expression operator+(Expression, const Expression&);
 Expression operator/(Expression, const Expression&);
 Expression operator*(Expression, const Expression&);
 
-Expression irate(const Expression& expr);
+Expression irate(const Expression& expr, bool monotonic = false);
 Expression resample(const Expression& expr, std::chrono::milliseconds interval);
