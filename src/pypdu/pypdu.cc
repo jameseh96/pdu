@@ -207,6 +207,26 @@ PYBIND11_MODULE(pypdu, m) {
     py::bind_vector<std::vector<Sample>>(
             m, "SampleVector", py::buffer_protocol());
 
+    // note - this is intentionally inconsistent naming to better reflect
+    // the fact that in normal usage __iter__ will be called on this type
+    // to get a python iterator, despite this being a C++ iterator already.
+    py::class_<CrossIndexSampleIterator>(m, "CrossIndexSampleIterable")
+            .def(
+                    "__len__",
+                    [](const CrossIndexSampleIterator& cisi) {
+                        return cisi.getNumSamples();
+                    },
+                    py::return_value_policy::copy)
+            .def(
+                    "__iter__",
+                    [](const CrossIndexSampleIterator& cisi) {
+                        return py::make_iterator<py::return_value_policy::copy,
+                                                 CrossIndexSampleIterator,
+                                                 EndSentinel,
+                                                 SampleInfo>(cisi, end(cisi));
+                    },
+                    py::keep_alive<0, 1>());
+
     py::class_<SeriesSamples>(m, "SeriesSamples")
             .def(
                     "__iter__",
