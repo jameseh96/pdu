@@ -24,8 +24,8 @@ size_t makeFileReference(uint64_t fileId, uint64_t offset) {
     return ((fileId - 1) << 32) | offset;
 }
 
-std::pair<size_t, ChunkReference> readHeadChunkMeta(Decoder& dec,
-                                                    uint64_t fileId) {
+std::optional<std::pair<size_t, ChunkReference>> readHeadChunkMeta(
+        Decoder& dec, uint64_t fileId) {
     ChunkReference ref;
     ref.type = ChunkType::Head;
 
@@ -38,6 +38,11 @@ std::pair<size_t, ChunkReference> readHeadChunkMeta(Decoder& dec,
 
     auto encoding = dec.read_int<uint8_t>();
     if (encoding != 1) {
+        if (encoding == 0 && ref.minTime == 0 && ref.maxTime == 0) {
+            // assume there are no more chunks in this file, which is
+            // an expected scenario
+            return {};
+        }
         throw pdu::unknown_encoding_error(
                 "Head chunk meta has unknown encoding: " +
                 std::to_string(encoding));
@@ -49,5 +54,5 @@ std::pair<size_t, ChunkReference> readHeadChunkMeta(Decoder& dec,
     // chunk meta header.
     dec.seek(dataLen + 4, std::ios_base::cur);
 
-    return {seriesRef, std::move(ref)};
+    return {{seriesRef, std::move(ref)}};
 }

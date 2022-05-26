@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <limits>
+#include <optional>
 #include <utility>
 
 class Encoder;
@@ -37,5 +38,5 @@ struct ChunkReference {
 size_t makeFileReference(uint64_t fileId, uint64_t offset);
 
 class Decoder;
-std::pair<size_t, ChunkReference> readHeadChunkMeta(Decoder& dec,
-                                                    uint64_t fileId);
+std::optional<std::pair<size_t, ChunkReference>> readHeadChunkMeta(
+        Decoder& dec, uint64_t fileId);

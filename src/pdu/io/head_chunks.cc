@@ -112,7 +112,12 @@ void HeadChunks::loadChunkFile(Decoder& dec, uint64_t fileId) {
     dec.read_int<uint8_t>();
 
     while (dec.remaining() > HeadChunkMetaMinLen) {
-        auto [seriesRef, chunkRef] = readHeadChunkMeta(dec, fileId);
+        auto res = readHeadChunkMeta(dec, fileId);
+        if (!res) {
+            // found zeroes, assume rest of the file is empty
+            break;
+        }
+        auto [seriesRef, chunkRef] = *res;
         seriesMap[seriesRef].chunks.push_back(std::move(chunkRef));
     }
 }
