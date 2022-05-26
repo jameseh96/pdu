@@ -47,6 +47,10 @@ struct Series {
         return chunks.end();
     }
 
+    bool empty() const {
+        return chunks.empty();
+    }
+
     void load(Decoder& dec, const SymbolTable& symbols);
 };
 

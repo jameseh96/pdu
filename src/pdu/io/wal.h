@@ -37,6 +37,10 @@ public:
 
     std::pair<std::shared_ptr<Resource>, ChunkReference> makeResource() const;
 
+    bool empty() const {
+        return data.empty();
+    }
+
     // private:
     std::vector<uint8_t> data;
     uint64_t minTime;

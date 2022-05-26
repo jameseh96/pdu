@@ -55,6 +55,11 @@ HeadChunks::HeadChunks(const boost::filesystem::path& dataDir) {
 
     int counter = 0;
     for (const auto& [ref, memchunk] : walChunks) {
+        if (memchunk.empty()) {
+            // if no samples were loaded from a given wal chunk,
+            // ignore it.
+            continue;
+        }
         auto [resource, chunkref] = memchunk.makeResource();
 
         auto fileId = DummyFileIdBase + counter;

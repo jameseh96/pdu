@@ -1,8 +1,12 @@
 #include "cross_index_sample_iterator.h"
 
 CrossIndexSampleIterator::CrossIndexSampleIterator(
-        std::list<SeriesSampleIterator> subiterators)
-    : subiterators(subiterators) {
+        std::list<SeriesSampleIterator> subiters)
+    : subiterators(subiters) {
+    while (!subiterators.empty() &&
+           subiterators.front() == end(subiterators.front())) {
+        subiterators.pop_front();
+    }
 }
 
 void CrossIndexSampleIterator::increment() {
