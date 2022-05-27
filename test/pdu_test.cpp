@@ -47,13 +47,10 @@ TEST_F(HeadChunkTest, PartialHeadChunk) {
     Decoder dec(testChunk.data(), testChunk.size());
 
     FakeHeadChunks chunks;
-    try {
-        chunks.loadChunkFile(dec, 0);
-        FAIL();
-    } catch (const pdu::unknown_encoding_error& e) {
-    } catch (...) {
-        FAIL() << "Wrong exception thrown";
-    }
+    // Finding "zeroes until the end of the file" instead of a valid head
+    // chunk is seemingly an intended scenario, for a head chunk which
+    // just isn't filled yet.
+    EXPECT_NO_THROW(chunks.loadChunkFile(dec, 0));
 }
 
 class FakeWalLoader : public WalLoader {
