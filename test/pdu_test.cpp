@@ -172,3 +172,31 @@ TEST_F(WALTest, MisorderedFragmentThrows) {
         FAIL() << "Wrong exception thrown";
     }
 }
+
+TEST_F(WALTest, ZeroSizeRecordStartAllowed) {
+    // Test to ensure middle-of-record fragments are correctly
+    // identified
+
+    // clang-format off
+    auto testChunk =
+            make_buffer({
+                    int(RecordStart),
+                    0x0, 0x0, // len
+                    0x0, 0x0, 0x0, 0x0, // crc
+                    int(RecordEnd),
+                    0x0, 0x1, // len
+                    0x0, 0x0, 0x0, 0x0, // crc
+                    0x3, // value
+    });
+    // clang-format on
+    Decoder dec(testChunk.data(), testChunk.size());
+
+    std::map<size_t, Series> series;
+    std::set<std::string, std::less<>> symbols;
+    std::map<size_t, InMemWalChunk> walChunks;
+
+    FakeWalLoader walLoader(series, symbols, walChunks);
+
+    EXPECT_NO_THROW(
+            walLoader.loadFragment(dec, false /* not last file in wal */));
+}
