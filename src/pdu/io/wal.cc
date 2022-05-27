@@ -158,7 +158,7 @@ void WalLoader::loadFragment(Decoder& dec, bool isLastFile) {
         }
 
         if (type == RecordStart) {
-            if (!rawBuffer.empty()) {
+            if (inPartialFragment) {
                 throw std::logic_error(
                         "WAL: Start fragment seen in middle of partial "
                         "fragments");
@@ -166,11 +166,12 @@ void WalLoader::loadFragment(Decoder& dec, bool isLastFile) {
             // is a partial record, read it into buffer
             auto view = dec.read_view(len);
             rawBuffer.insert(rawBuffer.end(), view.begin(), view.end());
+            inPartialFragment = true;
             continue;
         }
 
         if (type == RecordMid) {
-            if (rawBuffer.empty()) {
+            if (!inPartialFragment) {
                 throw std::logic_error(
                         "WAL: middle fragment seen before start");
             }
@@ -181,7 +182,7 @@ void WalLoader::loadFragment(Decoder& dec, bool isLastFile) {
         }
 
         if (type == RecordEnd) {
-            if (rawBuffer.empty()) {
+            if (!inPartialFragment) {
                 throw std::logic_error("WAL: end fragment seen before start");
             }
             // is the end a partial record, read it into buffer and process it.
@@ -190,13 +191,14 @@ void WalLoader::loadFragment(Decoder& dec, bool isLastFile) {
             record = std::string_view(
                     reinterpret_cast<const char*>(rawBuffer.data()),
                     rawBuffer.size());
+            inPartialFragment = false;
             break;
         }
         throw std::logic_error("WAL: unknown fragment type: " +
                                std::to_string(int(type)));
     }
 
-    if (record.empty() && !rawBuffer.empty()) {
+    if (inPartialFragment || (record.empty() && !rawBuffer.empty())) {
         throw std::logic_error("WAL: incomplete record found");
     }
 

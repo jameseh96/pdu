@@ -59,6 +59,7 @@ public:
     void clear() {
         rawBuffer.clear();
         decompressedBuffer.clear();
+        inPartialFragment = false;
         needsDecompressing = false;
     }
 
@@ -84,5 +85,6 @@ protected:
 
     std::vector<uint8_t> rawBuffer;
     std::vector<uint8_t> decompressedBuffer;
+    bool inPartialFragment = false;
     bool needsDecompressing = false;
 };
