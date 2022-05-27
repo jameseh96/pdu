@@ -284,8 +284,8 @@ void InMemWalChunk::addSample(int64_t ts, double value) {
     auto pos = data.size();
     data.resize(pos + sizeof(int64_t) + sizeof(double));
 
-    *reinterpret_cast<int64_t*>(data.data() + pos) = ts;
-    *reinterpret_cast<double*>(data.data() + pos + sizeof(int64_t)) = value;
+    std::memcpy(&data[pos], &ts, sizeof(ts));
+    std::memcpy(&data[pos + sizeof(ts)], &value, sizeof(value));
 }
 
 std::pair<std::shared_ptr<Resource>, ChunkReference>
