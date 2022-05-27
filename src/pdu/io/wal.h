@@ -41,10 +41,10 @@ public:
         return data.empty();
     }
 
-    // private:
+private:
     std::vector<uint8_t> data;
-    uint64_t minTime;
-    uint64_t maxTime;
+    uint64_t minTime = 0;
+    uint64_t maxTime = 0;
 };
 
 class WalLoader {
