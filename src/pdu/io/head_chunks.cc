@@ -56,9 +56,11 @@ HeadChunks::HeadChunks(const boost::filesystem::path& dataDir) {
     int counter = 0;
     for (const auto& [ref, memchunk] : walChunks) {
         if (memchunk.empty()) {
-            // if no samples were loaded from a given wal chunk,
-            // ignore it.
-            continue;
+            // if no samples were loaded from the wal for this series ref
+            // why is it in the map??
+            throw std::logic_error(
+                    "WAL has chunk but no data for series ref: " +
+                    std::to_string(ref));
         }
         auto [resource, chunkref] = memchunk.makeResource();
 
