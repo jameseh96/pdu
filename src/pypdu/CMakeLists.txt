@@ -8,6 +8,7 @@ pybind11_add_module(pypdu
         pypdu.cc
         pypdu_histogram.cc
         pypdu_serialisation.cc
+        pypdu_numpy_check.cc
         pypdu_version.cc
         pypdu_exceptions.cc
         pypdu_expression.cc)

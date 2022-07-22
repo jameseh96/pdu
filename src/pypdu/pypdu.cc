@@ -3,6 +3,7 @@
 #include "pypdu_exceptions.h"
 #include "pypdu_expression.h"
 #include "pypdu_histogram.h"
+#include "pypdu_numpy_check.h"
 #include "pypdu_serialisation.h"
 #include "pypdu_version.h"
 
@@ -129,8 +130,6 @@ private:
 };
 
 PYBIND11_MODULE(pypdu, m) {
-    PYBIND11_NUMPY_DTYPE(Sample, timestamp, value);
-
     m.doc() = "Python bindings to pdu, for reading Prometheus on-disk data";
 
     init_version(m);
@@ -204,9 +203,6 @@ PYBIND11_MODULE(pypdu, m) {
 
     py::class_<SampleInfo, Sample>(m, "SampleInfo");
 
-    py::bind_vector<std::vector<Sample>>(
-            m, "SampleVector", py::buffer_protocol());
-
     // note - this is intentionally inconsistent naming to better reflect
     // the fact that in normal usage __iter__ will be called on this type
     // to get a python iterator, despite this being a C++ iterator already.
@@ -227,34 +223,31 @@ PYBIND11_MODULE(pypdu, m) {
                     },
                     py::keep_alive<0, 1>());
 
-    py::class_<SeriesSamples>(m, "SeriesSamples")
-            .def(
-                    "__iter__",
-                    [](const SeriesSamples& ss) {
-                        return py::make_iterator<py::return_value_policy::copy,
-                                                 CrossIndexSampleIterator,
-                                                 EndSentinel,
-                                                 SampleInfo>(ss.getIterator(),
-                                                         EndSentinel());
-                    },
-                    py::keep_alive<0, 1>())
-            .def(
-                    "__len__",
-                    [](const SeriesSamples& ss) {
-                        return ss.getIterator().getNumSamples();
-                    },
-                    py::return_value_policy::copy)
-            .def(
-                    "as_list",
-                    [](const SeriesSamples& ss) { return ss.getSamples(); },
-                    py::keep_alive<0, 1>())
-            .def(
-                    "as_array",
-                    [](const SeriesSamples& ss) {
-                        const auto& samples = ss.getSamples();
-                        return py::array_t(samples.size(), samples.data());
-                    },
-                    py::keep_alive<0, 1>());
+    auto seriesSamplesClass =
+            py::class_<SeriesSamples>(m, "SeriesSamples")
+                    .def(
+                            "__iter__",
+                            [](const SeriesSamples& ss) {
+                                return py::make_iterator<
+                                        py::return_value_policy::copy,
+                                        CrossIndexSampleIterator,
+                                        EndSentinel,
+                                        SampleInfo>(ss.getIterator(),
+                                                    EndSentinel());
+                            },
+                            py::keep_alive<0, 1>())
+                    .def(
+                            "__len__",
+                            [](const SeriesSamples& ss) {
+                                return ss.getIterator().getNumSamples();
+                            },
+                            py::return_value_policy::copy)
+                    .def(
+                            "as_list",
+                            [](const SeriesSamples& ss) {
+                                return ss.getSamples();
+                            },
+                            py::keep_alive<0, 1>());
 
     auto seriesClass = py::class_<CrossIndexSeries>(m, "Series")
             .def_property_readonly(
@@ -392,4 +385,25 @@ PYBIND11_MODULE(pypdu, m) {
     py::keep_alive<0, 1>());
 
     def_serial(m);
+
+    if (numpy_available(m)) {
+        PYBIND11_NUMPY_DTYPE(Sample, timestamp, value);
+
+        py::bind_vector<std::vector<Sample>>(
+                m, "SampleVector", py::buffer_protocol());
+
+        seriesSamplesClass.def(
+                "as_array",
+                [](const SeriesSamples& ss) {
+                    const auto& samples = ss.getSamples();
+                    return py::array_t(samples.size(), samples.data());
+                },
+                py::keep_alive<0, 1>());
+    } else {
+        seriesSamplesClass.def("as_array", [](const SeriesSamples& ss) {
+            throw std::runtime_error(
+                    "Accessing samples as a numpy array requires numpy "
+                    "to be installed");
+        });
+    }
 }

@@ -146,8 +146,8 @@ setup(
     ext_modules=[CMakeExtension("pypdu")],
     cmdclass={"build_ext": CMakeBuild},
     zip_safe=False,
-    extras_require={},
-    install_requires=[
-        'numpy',
-    ],
+    extras_require={
+        "numpy": ["numpy"]
+    },
+    install_requires=[],
 )

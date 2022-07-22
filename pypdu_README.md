@@ -8,6 +8,13 @@ This module provides basic read-only access to the data contained in Prometheus 
 pip install pypdu
 ```
 
+`pypdu` can optionally expose samples in a numpy array if `numpy` is installed.
+If you need this, you can either ensure `numpy` is installed, or have it pulled in by `pypdu` as a dependency with:
+
+```
+pip install pypdu[numpy]
+```
+
 Example usage:
 
 ```
@@ -36,6 +43,28 @@ for name, labels, samples in data:
     print(len(samples))
     for timestamp, value in samples:
         print(f"{timestamp} : {value}")
+```
+
+#### numpy
+
+If numpy is installed, samples can additionally be accessed as a numpy array. This may avoid copying the samples around if your code expects numpy arrays. E.g.,
+
+```
+for name, labels, samples in data:
+    arr = samples.as_array()
+    print(arr.dtype)
+    print(arr[0])
+```
+prints:
+```
+dtype([('timestamp', '<i8'), ('value', '<f8')])
+(1653556688725, 0.)
+```
+
+If numpy is _not_ available at runtime, this will raise an exception:
+
+```
+RuntimeError: Accessing samples as a numpy array requires numpy to be installed
 ```
 
 #### Filtering time series
