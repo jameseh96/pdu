@@ -147,8 +147,8 @@ jobs:
     runs-on: macos-11
     env:
         CONAN_MACOS_ARM64: "ON"
-        MACOSX_DEPLOYMENT_TARGET: "10.16"
-        _PYTHON_HOST_PLATFORM: "macosx-10.16-arm64"
+        MACOSX_DEPLOYMENT_TARGET: "11"
+        _PYTHON_HOST_PLATFORM: "macosx-11.0-arm64"
         ARCHFLAGS: "-arch arm64"
     steps:
       - uses: actions/checkout@master
