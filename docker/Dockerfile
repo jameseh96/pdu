@@ -7,7 +7,7 @@ FROM quay.io/pypa/manylinux2014_x86_64
 
 RUN yum install -y python3 python27-python-pip glibc-headers python2-devel python3-devel
 RUN /usr/bin/python3 -m ensurepip --upgrade
-RUN PYTHONPATH=$PYTHONPATH:/opt/rh/python27/root/usr/lib/python2.7/site-packages /usr/bin/python2.7 -m pip install --upgrade 'setuptools<45.0.0' wheel
+RUN PYTHONPATH=$PYTHONPATH:/opt/rh/python27/root/usr/lib/python2.7/site-packages /usr/bin/python2.7 -m pip install --upgrade 'setuptools<45.0.0' 'wheel<0.38'
 RUN  /usr/bin/python3 -m pip install --upgrade conan wheel
 RUN mv /usr/local/bin/conan /usr/local/bin/conan_
 COPY conan_workaround /usr/local/bin/conan
