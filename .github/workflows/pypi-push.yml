@@ -58,7 +58,7 @@ jobs:
             path: wheelhouse/*.whl
   build-mac-3_X:
     name: Build mac wheels (Python3.X)
-    runs-on: macos-10.15
+    runs-on: macos-11
     env:
         CIBW_BUILD: '{cp,pp}3*x86_64'
     steps:
@@ -115,7 +115,7 @@ jobs:
             path: wheelhouse/*.whl
   build-mac-2_7:
     name: Build mac wheel (Python2.7)
-    runs-on: macos-10.15
+    runs-on: macos-11
     env:
         MACOSX_DEPLOYMENT_TARGET: "10.9"
     steps:
