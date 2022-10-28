@@ -290,7 +290,7 @@ PYBIND11_MODULE(pypdu, m) {
                      case 1:
                          return py::cast(cis.series->labels);
                      case 2:
-                         auto ret = py::cast(cis.sampleIterator);
+                         auto ret = py::cast(SeriesSamples(cis.sampleIterator));
                          // manually set up keep alive here, as it is not
                          // possible to do so for the name and labels, so it
                          // cannot be set as a policy for the method.
