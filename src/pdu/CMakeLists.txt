@@ -21,6 +21,7 @@ add_library(plib
         io/index_iterator.cc
         io/resource.cc
         io/posting_offset_iterator.cc
+        io/sample.cc
         io/series_sample_iterator.cc
         io/wal.cc
         histogram/histogram.cc

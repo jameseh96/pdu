@@ -5,14 +5,6 @@
 
 #include <cmath>
 
-bool operator==(const Sample& a, const Sample& b) {
-    return a.timestamp == b.timestamp && a.value == b.value;
-}
-
-bool operator!=(const Sample& a, const Sample& b) {
-    return !(a == b);
-}
-
 SampleIterator::SampleIterator(Decoder& dec, size_t sampleCount, bool rawChunk)
     : sampleCount(sampleCount), dec(&dec), bits(dec), rawChunk(rawChunk) {
     advance();
