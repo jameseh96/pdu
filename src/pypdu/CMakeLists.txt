@@ -6,8 +6,10 @@ set(CMAKE_CXX_STANDARD 17)
 add_subdirectory(../../third_party/pybind11 ${CMAKE_CURRENT_BINARY_DIR}/pybind11)
 pybind11_add_module(pypdu
         pypdu.cc
+        pypdu_conversion_helpers.cc
         pypdu_histogram.cc
         pypdu_serialisation.cc
+        pypdu_series_samples.cc
         pypdu_numpy_check.cc
         pypdu_version.cc
         pypdu_exceptions.cc
