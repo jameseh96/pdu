@@ -4,6 +4,7 @@
 #include "pypdu_exceptions.h"
 #include "pypdu_expression.h"
 #include "pypdu_histogram.h"
+#include "pypdu_json.h"
 #include "pypdu_numpy_check.h"
 #include "pypdu_serialisation.h"
 #include "pypdu_series_samples.h"
@@ -119,6 +120,7 @@ PYBIND11_MODULE(pypdu, m) {
     init_histogram(m);
     init_exceptions(m);
     init_expression(m);
+    init_json(m);
 
     m.def("load",
           py::overload_cast<const std::string&>(&pdu::load),

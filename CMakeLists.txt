@@ -12,6 +12,7 @@ conan_cmake_configure(REQUIRES
         fmt/6.1.2
         boost/1.74.0
         nlohmann_json/3.9.1
+        rapidjson/cci.20220822
         snappy/1.1.9
         gsl-lite/0.38.1
         gtest/1.11.0
