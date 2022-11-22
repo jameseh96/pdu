@@ -1,6 +1,6 @@
 #pragma once
 
-#include "pdu/query/cross_index_sample_iterator.h"
+#include "pdu/filter/cross_index_sample_iterator.h"
 
 #include <optional>
 #include <vector>

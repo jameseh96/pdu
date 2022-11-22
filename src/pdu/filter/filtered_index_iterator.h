@@ -1,10 +1,10 @@
 #pragma once
 
-#include "../io/chunk_file_cache.h"
-#include "../io/index.h"
-#include "../io/series_sample_iterator.h"
-#include "../query/series_filter.h"
-#include "../util/iterator_facade.h"
+#include "pdu/block/chunk_file_cache.h"
+#include "pdu/block/index.h"
+#include "pdu/block/series_sample_iterator.h"
+#include "pdu/filter/series_filter.h"
+#include "pdu/util/iterator_facade.h"
 
 #include <memory>
 #include <set>

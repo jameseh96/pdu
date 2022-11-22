@@ -1,6 +1,6 @@
 #include "pypdu_series_samples.h"
 
-#include "pdu/io/sample.h"
+#include "pdu/block/sample.h"
 
 // Holder for a sample iterator. May be iterated in python, or eagerly loaded
 // or even dumped as raw chunks (not yet implemented)

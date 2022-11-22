@@ -1,10 +1,10 @@
 #pragma once
 
-#include "../io/index.h"
+#include "pdu/block/index.h"
 
-#include "../io/series_sample_iterator.h"
 #include "cross_index_sample_iterator.h"
 #include "filtered_index_iterator.h"
+#include "pdu/block/series_sample_iterator.h"
 #include "series_iterator.h"
 #include <list>
 #include <vector>

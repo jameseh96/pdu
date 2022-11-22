@@ -2,8 +2,8 @@
 
 #include "chunk_file_cache.h"
 #include "chunk_reference.h"
-#include "decoder.h"
 #include "index.h"
+#include "pdu/encode/decoder.h"
 #include "resource.h"
 #include "series_source.h"
 #include "wal.h"

@@ -3,7 +3,7 @@
 #include "pypdu_expression.h"
 #include "pypdu_series_samples.h"
 
-#include "pdu/io/sample.h"
+#include "pdu/block/sample.h"
 
 #include <fmt/format.h>
 #include <rapidjson/stringbuffer.h>

@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 
+#include <pdu/block/head_chunks.h>
+#include <pdu/block/wal.h>
+#include <pdu/encode/decoder.h>
 #include <pdu/exceptions.h>
-#include <pdu/io/decoder.h>
-#include <pdu/io/head_chunks.h>
-#include <pdu/io/wal.h>
 
 class FakeHeadChunks : public HeadChunks {
 public:

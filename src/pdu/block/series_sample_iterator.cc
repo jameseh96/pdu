@@ -1,6 +1,6 @@
 #include "series_sample_iterator.h"
 
-#include "../io/chunk_file_cache.h"
+#include "pdu/block/chunk_file_cache.h"
 
 SeriesSampleIterator::SeriesSampleIterator(
         std::shared_ptr<const Series> seriesPtr,

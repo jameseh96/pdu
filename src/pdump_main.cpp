@@ -1,7 +1,7 @@
 #include "pdu/pdu.h"
 
-#include "pdu/io.h"
-#include "pdu/query.h"
+#include "pdu/block.h"
+#include "pdu/filter.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>

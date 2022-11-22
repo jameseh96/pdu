@@ -1,6 +1,6 @@
 #include "pypdu_conversion_helpers.h"
 
-#include "pdu/io/sample.h"
+#include "pdu/block/sample.h"
 
 #include <numeric>
 

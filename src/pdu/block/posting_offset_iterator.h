@@ -1,7 +1,7 @@
 #pragma once
 
-#include "decoder.h"
-#include "../util/iterator_facade.h"
+#include "pdu/encode/decoder.h"
+#include "pdu/util/iterator_facade.h"
 
 struct PostingOffset {
     std::string_view labelKey;

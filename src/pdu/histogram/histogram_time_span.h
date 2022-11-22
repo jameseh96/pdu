@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../query/series_iterator.h"
 #include "histogram.h"
+#include "pdu/filter/series_iterator.h"
 
 #include <gsl/gsl-lite.hpp>
 #include <memory>

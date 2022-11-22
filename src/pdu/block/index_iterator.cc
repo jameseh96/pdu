@@ -1,7 +1,7 @@
 #include "index_iterator.h"
 
-#include <boost/filesystem.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/filesystem.hpp>
 
 IndexIterator::IndexIterator(const boost::filesystem::path& path)
     : path(path), dirIter(this->path) {

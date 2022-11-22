@@ -7,7 +7,7 @@
 #include <string_view>
 #include <utility>
 
-#include "../util/host.h"
+#include "pdu/util/host.h"
 
 template <class Derived>
 class DecoderBase {

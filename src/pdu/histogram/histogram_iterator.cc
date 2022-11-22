@@ -1,6 +1,6 @@
 #include "histogram_iterator.h"
 
-#include "../io/index.h"
+#include "pdu/block/index.h"
 
 #include <boost/lexical_cast.hpp>
 

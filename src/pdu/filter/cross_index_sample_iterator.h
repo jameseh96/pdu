@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../io/series_sample_iterator.h"
-#include "../serialisation/serialisation_impl_fwd.h"
-#include "../util/iterator_facade.h"
+#include "pdu/block/series_sample_iterator.h"
+#include "pdu/serialisation/serialisation_impl_fwd.h"
+#include "pdu/util/iterator_facade.h"
 
 #include <list>
 

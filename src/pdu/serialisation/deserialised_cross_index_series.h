@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../query/series_iterator.h"
+#include "pdu/filter/series_iterator.h"
 
 #include <list>
 #include <memory>

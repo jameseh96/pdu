@@ -1,6 +1,6 @@
 #pragma once
 
-#include "decoder.h"
+#include "pdu/encode/decoder.h"
 
 namespace boost::filesystem {
 class path;

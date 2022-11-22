@@ -1,7 +1,7 @@
 #include "head_chunks.h"
 
-#include "../query/series_filter.h"
 #include "mapped_file.h"
+#include "pdu/filter/series_filter.h"
 
 HeadChunks::HeadChunks(const boost::filesystem::path& dataDir) {
     auto headChunksDir = dataDir / "chunks_head";
@@ -11,7 +11,6 @@ HeadChunks::HeadChunks(const boost::filesystem::path& dataDir) {
     }
 
     cache = std::make_shared<ChunkFileCache>(headChunksDir);
-
 
     std::vector<std::string> chunkFileNames;
 
@@ -42,7 +41,6 @@ HeadChunks::HeadChunks(const boost::filesystem::path& dataDir) {
             if (i != chunkFileNames.size() - 1) {
                 throw;
             }
-
         }
     }
 

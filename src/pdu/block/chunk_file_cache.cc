@@ -24,7 +24,8 @@ std::shared_ptr<Resource> ChunkFileCache::get(uint32_t segmentId) {
     return itr->second;
 }
 
-void ChunkFileCache::store(uint32_t segmentId, std::shared_ptr<Resource> resource) {
+void ChunkFileCache::store(uint32_t segmentId,
+                           std::shared_ptr<Resource> resource) {
     if (cache.find(segmentId) != cache.end()) {
         throw std::runtime_error("ChunkFileCache: resource already exists: " +
                                  std::to_string(segmentId));

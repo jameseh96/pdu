@@ -1,9 +1,9 @@
 #pragma once
 
-#include "../io/chunk_view.h"
-#include "../io/index.h"
-#include "../serialisation/serialisation_impl_fwd.h"
-#include "../util/iterator_facade.h"
+#include "pdu/block/chunk_view.h"
+#include "pdu/block/index.h"
+#include "pdu/serialisation/serialisation_impl_fwd.h"
+#include "pdu/util/iterator_facade.h"
 
 #include <memory>
 

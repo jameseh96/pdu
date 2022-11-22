@@ -1,6 +1,6 @@
 #include "sample_visitor.h"
 
-#include "../pdu.h"
+#include "pdu/pdu.h"
 #include "series_iterator.h"
 
 SeriesVisitor::~SeriesVisitor() = default;

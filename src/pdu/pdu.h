@@ -1,7 +1,7 @@
 #pragma once
 
 #include "histogram/histogram_iterator.h"
-#include "query/series_iterator.h"
+#include "pdu/filter/series_iterator.h"
 
 #include <boost/filesystem.hpp>
 

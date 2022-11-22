@@ -1,8 +1,9 @@
 #include "pypdu_serialisation.h"
 
-#include "pdu/io.h"
+#include "pdu/block.h"
+#include "pdu/encode.h"
+#include "pdu/filter.h"
 #include "pdu/pdu.h"
-#include "pdu/query.h"
 #include "pdu/serialisation/serialisation.h"
 
 #include <boost/iostreams/device/file_descriptor.hpp>

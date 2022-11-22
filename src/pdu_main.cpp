@@ -1,6 +1,6 @@
+#include "pdu/block.h"
 #include "pdu/display.h"
-#include "pdu/io.h"
-#include "pdu/query.h"
+#include "pdu/filter.h"
 
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>

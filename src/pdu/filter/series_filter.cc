@@ -33,7 +33,7 @@ std::set<size_t> SeriesFilter::operator()(const Index& index) const {
     // ensure that all filtered-on labels will have an empty set of references
     // to start with. This ensures filters which match _nothing_ will lead
     // to a set intersection with an empty set -> no matching refs.
-    for (const auto& matcher: matchers) {
+    for (const auto& matcher : matchers) {
         refs[matcher.first] = {};
     }
 

@@ -64,7 +64,6 @@ inline bool operator<(const Series& a, const Series& b) {
     return compare(a, b) < 0;
 }
 
-
 inline bool operator>(const Series& a, const Series& b) {
     return compare(a, b) > 0;
 }

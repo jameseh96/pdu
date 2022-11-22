@@ -9,29 +9,29 @@ add_library(plib
         pdu.cc
         expression/expression.cc
         display/bitwidth_histogram.cc
-        io/decoder.cc
-        io/encoder.cc
-        io/index.cc
-        io/chunk_file_cache.cc
-        io/chunk_reference.cc
-        io/chunk_view.cc
-        io/bit_decoder.cc
-        io/head_chunks.cc
-        io/mapped_file.cc
-        io/index_iterator.cc
-        io/resource.cc
-        io/posting_offset_iterator.cc
-        io/sample.cc
-        io/series_sample_iterator.cc
-        io/wal.cc
+        encode/bit_decoder.cc
+        encode/decoder.cc
+        encode/encoder.cc
+        block/index.cc
+        block/chunk_file_cache.cc
+        block/chunk_reference.cc
+        block/chunk_view.cc
+        block/head_chunks.cc
+        block/mapped_file.cc
+        block/index_iterator.cc
+        block/resource.cc
+        block/posting_offset_iterator.cc
+        block/sample.cc
+        block/series_sample_iterator.cc
+        block/wal.cc
         histogram/histogram.cc
         histogram/histogram_iterator.cc
         histogram/histogram_time_span.cc
-        query/filtered_index_iterator.cc
-        query/series_filter.cc
-        query/sample_visitor.cc
-        query/series_iterator.cc
-        query/cross_index_sample_iterator.cc
+        filter/filtered_index_iterator.cc
+        filter/series_filter.cc
+        filter/sample_visitor.cc
+        filter/series_iterator.cc
+        filter/cross_index_sample_iterator.cc
         serialisation/deserialised_cross_index_series.cc
         serialisation/serialisation.cc
         util/host.cc)

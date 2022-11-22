@@ -1,10 +1,10 @@
 #include "serialisation.h"
 
-#include "../io.h"
-#include "../query.h"
+#include "pdu/block.h"
+#include "pdu/filter.h"
 #include "pdu/pdu.h"
 
-#include "../io/encoder.h"
+#include "pdu/encode/encoder.h"
 
 #include <boost/io/ios_state.hpp>
 #include <fmt/format.h>

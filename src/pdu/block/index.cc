@@ -1,9 +1,9 @@
 #include "index.h"
 
-#include "../query/series_filter.h"
 #include "chunk_file_cache.h"
-#include "decoder.h"
 #include "mapped_file.h"
+#include "pdu/encode/decoder.h"
+#include "pdu/filter/series_filter.h"
 
 #include <boost/filesystem.hpp>
 #include <nlohmann/json.hpp>
@@ -205,7 +205,8 @@ void Index::load(std::shared_ptr<Resource> res) {
     postings.load(dec);
 }
 
-std::set<SeriesSource::SeriesRef> Index::getFilteredSeriesRefs(const SeriesFilter& filter) const {
+std::set<SeriesSource::SeriesRef> Index::getFilteredSeriesRefs(
+        const SeriesFilter& filter) const {
     return filter(*this);
 }
 

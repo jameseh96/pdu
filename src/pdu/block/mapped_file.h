@@ -1,6 +1,6 @@
 #pragma once
 
-#include "decoder.h"
+#include "pdu/encode/decoder.h"
 #include "resource.h"
 
 #include <boost/interprocess/file_mapping.hpp>

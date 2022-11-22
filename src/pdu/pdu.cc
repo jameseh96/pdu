@@ -1,9 +1,9 @@
 #include "pdu.h"
 
-#include "io/head_chunks.h"
-#include "io/index_iterator.h"
-#include "query/filtered_index_iterator.h"
-#include "query/series_filter.h"
+#include "pdu/block/head_chunks.h"
+#include "pdu/block/index_iterator.h"
+#include "pdu/filter/filtered_index_iterator.h"
+#include "pdu/filter/series_filter.h"
 
 #include <algorithm>
 
