@@ -8,7 +8,6 @@ find_package(gsl-lite REQUIRED)
 add_library(plib
         pdu.cc
         expression/expression.cc
-        display/bitwidth_histogram.cc
         encode/bit_decoder.cc
         encode/decoder.cc
         encode/encoder.cc

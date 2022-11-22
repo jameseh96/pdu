@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
     auto data = pdu::load(params.statsDir);
 
     SeriesFilter filter;
-    //filter.addFilter("__name__", "sysproc_page_faults_raw");
+    // filter.addFilter("__name__", "sysproc_page_faults_raw");
 
     SampleDumpVisitor foo;
     foo.visit(data.filtered(filter));

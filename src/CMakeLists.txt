@@ -1,15 +1,18 @@
 add_subdirectory(pdu)
 
 add_executable(pdu
-        pdu_main.cpp
+        exec/pdu_main.cpp
+        exec/display/bitwidth_histogram.cc
         )
 
 add_executable(pdump
-        pdump_main.cpp
+        exec/pdump_main.cpp
         )
 
 target_link_libraries(pdu PUBLIC plib)
 target_link_libraries(pdump PUBLIC plib)
+
+target_include_directories(pdu PUBLIC exec)
 
 set_target_properties(pdu pdump
         PROPERTIES
