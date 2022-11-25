@@ -21,8 +21,11 @@ private:
 
 class BitDecoder {
 public:
-    BitDecoder() = default;
-    BitDecoder(Decoder& dec);
+    struct State {
+        uint8_t buffer = 0;
+        uint8_t remainingBits = 0;
+    };
+    BitDecoder(Decoder& dec, State& state);
 
     uint64_t readBits(size_t count);
 
@@ -37,7 +40,6 @@ protected:
 
     uint8_t getBitsFromBuffer(size_t bitCount);
 
-    Decoder* dec;
-    uint8_t buffer;
-    uint8_t remainingBits = 0;
+    Decoder& dec;
+    State& state;
 };

@@ -24,11 +24,10 @@ struct SampleIterator : public iterator_facade<SampleIterator, SampleInfo> {
     }
 
 private:
-    double readValue();
-
+    double readValue(BitDecoder& bits);
     /// return new TS, and raw DOD
-    std::pair<int64_t, int64_t> readTS();
-    int64_t readTSDod();
+    std::pair<int64_t, int64_t> readTS(BitDecoder& bits);
+    int64_t readTSDod(BitDecoder& bits);
 
     struct {
         int64_t ts = 0;
@@ -40,7 +39,7 @@ private:
     ssize_t currentIndex = -1;
     size_t sampleCount;
     Decoder* dec;
-    BitDecoder bits;
+    BitDecoder::State bitState;
 
     bool rawChunk = false;
 

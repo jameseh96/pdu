@@ -7,7 +7,8 @@ BitCounter::~BitCounter() {
     dest = uint16_t(bits.tell() - initial);
 }
 
-BitDecoder::BitDecoder(Decoder& dec) : dec(&dec) {
+BitDecoder::BitDecoder(Decoder& dec, BitDecoder::State& state)
+    : dec(dec), state(state) {
 }
 
 uint64_t BitDecoder::readBits(size_t count) {
@@ -21,16 +22,16 @@ uint64_t BitDecoder::readBits(size_t count) {
     auto bitsRead = count;
     size_t result = 0;
     while (count > 0) {
-        if (remainingBits == 0) {
-            dec->read_int_to(buffer);
-            remainingBits = 8;
+        if (state.remainingBits == 0) {
+            dec.read_int_to(state.buffer);
+            state.remainingBits = 8;
         }
-        auto bitsToRead = std::min(count, size_t(remainingBits));
+        auto bitsToRead = std::min(count, size_t(state.remainingBits));
 
         result <<= bitsToRead;
         result |= getBitsFromBuffer(bitsToRead);
         count -= bitsToRead;
-        remainingBits -= bitsToRead;
+        state.remainingBits -= bitsToRead;
     };
 
     return result;
@@ -41,7 +42,7 @@ bool BitDecoder::readBit() {
 }
 
 size_t BitDecoder::tell() const {
-    return size_t(dec->tell()) * 8 - remainingBits;
+    return size_t(dec.tell()) * 8 - state.remainingBits;
 }
 
 BitCounter BitDecoder::counter(uint16_t& dest) const {
@@ -54,8 +55,8 @@ uint8_t BitDecoder::getMask(size_t bitCount) {
 
 uint8_t BitDecoder::getBitsFromBuffer(size_t bitCount) {
     auto mask = getMask(bitCount);
-    mask <<= (remainingBits - bitCount);
-    auto value = buffer & mask;
-    value >>= (remainingBits - bitCount);
+    mask <<= (state.remainingBits - bitCount);
+    auto value = state.buffer & mask;
+    value >>= (state.remainingBits - bitCount);
     return value;
 }

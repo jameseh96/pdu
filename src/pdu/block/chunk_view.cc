@@ -6,7 +6,7 @@
 #include <cmath>
 
 SampleIterator::SampleIterator(Decoder& dec, size_t sampleCount, bool rawChunk)
-    : sampleCount(sampleCount), dec(&dec), bits(dec), rawChunk(rawChunk) {
+    : sampleCount(sampleCount), dec(&dec), rawChunk(rawChunk) {
     advance();
 }
 
@@ -72,6 +72,7 @@ void SampleIterator::increment() {
                 dec->read_view(sizeof(double)).data());
         return;
     }
+    BitDecoder bits(*dec, bitState);
     if (currentIndex == 0) {
         {
             auto bc = bits.counter(s.meta.timestampBitWidth);
@@ -92,30 +93,30 @@ void SampleIterator::increment() {
 
         {
             auto bc = bits.counter(s.meta.valueBitWidth);
-            s.value = readValue();
+            s.value = readValue(bits);
         }
     } else {
         int64_t dod = 0;
         {
             auto bc = bits.counter(s.meta.timestampBitWidth);
-            std::tie(s.timestamp, dod) = readTS();
+            std::tie(s.timestamp, dod) = readTS(bits);
         }
         s.meta.minTimestampBitWidth = minBits(dod);
         {
             auto bc = bits.counter(s.meta.valueBitWidth);
-            s.value = readValue();
+            s.value = readValue(bits);
         }
     }
 }
 
-std::pair<int64_t, int64_t> SampleIterator::readTS() {
-    auto dod = readTSDod();
+std::pair<int64_t, int64_t> SampleIterator::readTS(BitDecoder& bits) {
+    auto dod = readTSDod(bits);
     prev.tsDelta += dod;
     prev.ts += prev.tsDelta;
     return {prev.ts, dod};
 }
 
-int64_t SampleIterator::readTSDod() {
+int64_t SampleIterator::readTSDod(BitDecoder& bits) {
     uint8_t tsPrefix = 0;
     for (int i = 0; i < 4; ++i) {
         tsPrefix <<= 1;
@@ -157,7 +158,7 @@ int64_t SampleIterator::readTSDod() {
     return tsBits;
 }
 
-double SampleIterator::readValue() {
+double SampleIterator::readValue(BitDecoder& bits) {
     if (!bits.readBit()) {
         // delta is zero
         return prev.value;
