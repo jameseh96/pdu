@@ -194,10 +194,10 @@ double SampleIterator::readValue() {
 }
 
 ChunkView::ChunkView(ChunkFileCache& cfc, const ChunkReference& chunkRef)
-    : baseOffset(chunkRef.getOffset()),
+    : chunkOffset(chunkRef.getOffset()),
       res(cfc.get(chunkRef.getSegmentFileId())),
       dec(res->getDecoder()) {
-    dec.seek(baseOffset);
+    dec.seek(chunkOffset);
 
     if (chunkRef.type == ChunkType::Raw) {
         rawChunk = true;

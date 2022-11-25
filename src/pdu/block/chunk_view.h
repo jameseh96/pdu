@@ -66,7 +66,7 @@ public:
 private:
     friend void pdu::detail::serialise_impl(Encoder& e, const ChunkView& cv);
     // offset into the resource to the chunk start
-    size_t baseOffset;
+    size_t chunkOffset;
     std::shared_ptr<Resource> res;
     Decoder dec;
     bool rawChunk = false;
