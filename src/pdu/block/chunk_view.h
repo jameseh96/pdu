@@ -58,6 +58,10 @@ public:
         return {dec, sampleCount, rawChunk};
     }
 
+    operator bool() const {
+        return bool(res);
+    }
+
     size_t dataLen;
     size_t dataOffset;
 
