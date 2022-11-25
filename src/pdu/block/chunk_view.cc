@@ -5,8 +5,8 @@
 
 #include <cmath>
 
-SampleIterator::SampleIterator(Decoder& dec, size_t sampleCount, bool rawChunk)
-    : sampleCount(sampleCount), dec(&dec), rawChunk(rawChunk) {
+SampleIterator::SampleIterator(Decoder dec, size_t sampleCount, bool rawChunk)
+    : sampleCount(sampleCount), dec(std::move(dec)), rawChunk(rawChunk) {
     advance();
 }
 
@@ -67,18 +67,18 @@ void SampleIterator::increment() {
     }
     if (rawChunk) {
         s.timestamp = *reinterpret_cast<const int64_t*>(
-                dec->read_view(sizeof(int64_t)).data());
+                dec.read_view(sizeof(int64_t)).data());
         s.value = *reinterpret_cast<const double*>(
-                dec->read_view(sizeof(double)).data());
+                dec.read_view(sizeof(double)).data());
         return;
     }
-    BitDecoder bits(*dec, bitState);
+    BitDecoder bits(dec, bitState);
     if (currentIndex == 0) {
         {
             auto bc = bits.counter(s.meta.timestampBitWidth);
-            prev.ts = s.timestamp = dec->read_varint();
+            prev.ts = s.timestamp = dec.read_varint();
         }
-        auto val = dec->read_int<uint64_t>();
+        auto val = dec.read_int<uint64_t>();
         prev.value = s.value = reinterpret_cast<double&>(val);
 
         s.meta.valueBitWidth = 64;
@@ -87,7 +87,7 @@ void SampleIterator::increment() {
         auto startIdx = bits.tell();
         {
             auto bc = bits.counter(s.meta.timestampBitWidth);
-            prev.tsDelta = dec->read_varuint();
+            prev.tsDelta = dec.read_varuint();
         }
         prev.ts = s.timestamp = prev.ts + prev.tsDelta;
 
@@ -196,8 +196,8 @@ double SampleIterator::readValue(BitDecoder& bits) {
 
 ChunkView::ChunkView(ChunkFileCache& cfc, const ChunkReference& chunkRef)
     : chunkOffset(chunkRef.getOffset()),
-      res(cfc.get(chunkRef.getSegmentFileId())),
-      dec(res->getDecoder()) {
+      res(cfc.get(chunkRef.getSegmentFileId())) {
+    auto dec = res->getDecoder();
     dec.seek(chunkOffset);
 
     if (chunkRef.type == ChunkType::Raw) {
@@ -229,4 +229,8 @@ ChunkView::ChunkView(ChunkFileCache& cfc, const ChunkReference& chunkRef)
     }
     sampleCount = dec.read_int<uint16_t>();
     dataOffset = dec.tell();
+}
+
+SampleIterator ChunkView::samples() const {
+    return {res->getDecoder().seek(dataOffset), sampleCount, rawChunk};
 }

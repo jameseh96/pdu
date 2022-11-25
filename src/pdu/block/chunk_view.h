@@ -12,7 +12,7 @@ class Encoder;
 
 struct SampleIterator : public iterator_facade<SampleIterator, SampleInfo> {
     SampleIterator() = default;
-    SampleIterator(Decoder& dec, size_t sampleCount, bool rawChunk = false);
+    SampleIterator(Decoder dec, size_t sampleCount, bool rawChunk = false);
 
     void increment();
     const SampleInfo& dereference() const {
@@ -38,7 +38,7 @@ private:
     } prev;
     ssize_t currentIndex = -1;
     size_t sampleCount;
-    Decoder* dec;
+    Decoder dec;
     BitDecoder::State bitState;
 
     bool rawChunk = false;
@@ -53,9 +53,7 @@ public:
     ChunkView() = default;
     ChunkView(ChunkFileCache& cfc, const ChunkReference& chunkRef);
 
-    SampleIterator samples() {
-        return {dec, sampleCount, rawChunk};
-    }
+    SampleIterator samples() const;
 
     operator bool() const {
         return bool(res);
@@ -71,6 +69,5 @@ private:
     // offset into the resource to the chunk start
     size_t chunkOffset;
     std::shared_ptr<Resource> res;
-    Decoder dec;
     bool rawChunk = false;
 };

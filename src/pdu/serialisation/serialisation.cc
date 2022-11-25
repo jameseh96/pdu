@@ -25,12 +25,8 @@ void serialise_impl(Encoder& e, const ChunkView& cv) {
     auto end = cv.dataOffset + cv.dataLen;
     size_t length = end - cv.chunkOffset;
 
-    // copy the decoder
-    auto dc = cv.dec;
-    // seek back to the base of the chunk
-    dc.seek(cv.chunkOffset);
-
-    auto data = dc.read_view(length);
+    // get a view to the full chunk
+    auto data = cv.res->getView().substr(cv.chunkOffset, length);
 
     // write length + data
     e.write_varuint(data.size());
