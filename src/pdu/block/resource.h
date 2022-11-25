@@ -11,9 +11,9 @@ class path;
 // An Index holds a provided Resource for it's lifetime.
 struct Resource {
     Decoder operator*() const {
-        return get();
+        return getDecoder();
     }
-    virtual Decoder get() const = 0;
+    virtual Decoder getDecoder() const = 0;
 
     virtual std::string_view getView() const = 0;
 
@@ -28,7 +28,7 @@ struct MemResource : public Resource {
     MemResource(std::string_view data) : data(data) {
     }
 
-    Decoder get() const override {
+    Decoder getDecoder() const override {
         return {data};
     }
 
@@ -52,7 +52,7 @@ struct OwningMemResource : public Resource {
     OwningMemResource(std::string data) : data(std::move(data)) {
     }
 
-    Decoder get() const override {
+    Decoder getDecoder() const override {
         return {data};
     }
 

@@ -24,7 +24,7 @@ struct MappedFileResource : public Resource {
     MappedFileResource() = default;
     MappedFileResource(int fd);
 
-    Decoder get() const override {
+    Decoder getDecoder() const override {
         return {data};
     }
     std::string_view getView() const override {

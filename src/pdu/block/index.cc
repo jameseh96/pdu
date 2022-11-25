@@ -178,7 +178,7 @@ void Index::load(std::shared_ptr<Resource> res) {
         metaF.close();
     }
 
-    Decoder dec(resource->get());
+    Decoder dec(resource->getDecoder());
     dec.seek(-(8 * 6 + 4), std::ios::end);
 
     toc.load(dec);

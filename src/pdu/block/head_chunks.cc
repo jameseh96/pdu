@@ -30,7 +30,7 @@ HeadChunks::HeadChunks(const boost::filesystem::path& dataDir) {
                                      filename);
         }
         auto fileResource = cache->get(fileId);
-        auto dec = fileResource->get();
+        auto dec = fileResource->getDecoder();
 
         try {
             loadChunkFile(dec, fileId);

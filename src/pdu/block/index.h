@@ -158,7 +158,7 @@ struct Index : public SeriesSource {
     void load(std::shared_ptr<Resource> resource);
 
     std::set<size_t> getSeriesRefs(const PostingOffset& offset) const {
-        Posting p(resource->get().seek(offset.offset));
+        Posting p(resource->getDecoder().seek(offset.offset));
         return p.seriesReferences;
     }
 

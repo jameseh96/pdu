@@ -196,7 +196,7 @@ double SampleIterator::readValue() {
 ChunkView::ChunkView(ChunkFileCache& cfc, const ChunkReference& chunkRef)
     : baseOffset(chunkRef.getOffset()),
       res(cfc.get(chunkRef.getSegmentFileId())),
-      dec(res->get()) {
+      dec(res->getDecoder()) {
     dec.seek(baseOffset);
 
     if (chunkRef.type == ChunkType::Raw) {
