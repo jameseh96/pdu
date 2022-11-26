@@ -5,9 +5,9 @@
 #include "pdu/serialisation/serialisation_impl_fwd.h"
 #include "pdu/util/iterator_facade.h"
 
+#include "chunk_reference.h"
 #include "sample.h"
 
-class ChunkReference;
 class Encoder;
 
 struct SampleIterator : public iterator_facade<SampleIterator, SampleInfo> {
@@ -52,6 +52,9 @@ class ChunkView {
 public:
     ChunkView() = default;
     ChunkView(ChunkFileCache& cfc, const ChunkReference& chunkRef);
+    ChunkView(std::shared_ptr<Resource> res,
+              size_t offset = 0,
+              ChunkType type = ChunkType::Block);
 
     SampleIterator samples() const;
 

@@ -195,18 +195,32 @@ double SampleIterator::readValue(BitDecoder& bits) {
 }
 
 ChunkView::ChunkView(ChunkFileCache& cfc, const ChunkReference& chunkRef)
-    : chunkOffset(chunkRef.getOffset()),
-      res(cfc.get(chunkRef.getSegmentFileId())) {
+    : ChunkView(cfc.get(chunkRef.getSegmentFileId()),
+                chunkRef.getOffset(),
+                chunkRef.type) {
+}
+
+ChunkView::ChunkView(std::shared_ptr<Resource> res,
+                     size_t offset,
+                     ChunkType type)
+    : chunkOffset(offset), res(res) {
     auto dec = res->getDecoder();
     dec.seek(chunkOffset);
 
-    if (chunkRef.type == ChunkType::Raw) {
+    // non-prometheus compatible chunk of raw values (built from WAL samples
+    // for simple in-memory storage)
+    if (type == ChunkType::Raw) {
         rawChunk = true;
         dataOffset = 0;
         dataLen = dec.remaining();
         sampleCount = dataLen / (sizeof(int64_t) + sizeof(double));
         return;
-    } else if (chunkRef.type == ChunkType::Head) {
+    }
+
+    // Head chunk, has slightly different header format. As these chunks
+    // don't have a matching index, a little extra information is stored
+    // in the header.
+    if (type == ChunkType::Head) {
         dec.read_int<uint64_t>(); // seriesRef
         dec.read_int<uint64_t>(); // minTime
         dec.read_int<uint64_t>(); // maxTime
