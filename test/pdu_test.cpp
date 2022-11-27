@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <pdu/block/chunk_view.h>
+#include <pdu/block/chunk_writer.h>
 #include <pdu/block/head_chunks.h>
 #include <pdu/block/wal.h>
 #include <pdu/encode/decoder.h>
@@ -231,4 +232,90 @@ TEST_F(EncoderTest, SS) {
     BitDecoder::State state;
     BitDecoder b(d, state);
     EXPECT_EQ(canary, b.readBits(12));
+}
+
+class XORChunkTest : public ::testing::Test {
+public:
+};
+
+TEST_F(XORChunkTest, RoundTripSyntheticSamples) {
+    std::stringstream ss;
+    ss.exceptions(std::ios_base::badbit | std::ios_base::failbit |
+                  std::ios_base::eofbit);
+
+    std::vector<Sample> expectedSamples;
+
+    {
+        ChunkWriter w(ss);
+
+        int64_t ts = 0;
+        double value = 0;
+        auto addSample = [&](int64_t msDelta, double vDelta) {
+            ts += msDelta;
+            value += vDelta;
+            expectedSamples.push_back({ts, value});
+            w.append({ts, value});
+        };
+
+        // start with relatively routine samples, 10s apart
+        addSample(10000, 1);
+        addSample(10000, 1);
+        // no ts change here. Shouldn't happen, but can be encoded
+        // so should be handled correctly.
+        addSample(0, 1);
+
+        // now exercise different bitwidths of timestamp delta-of-deltas
+        // both positive _and_ negative (dropping the timestamp _delta_
+        // back to 0 each time means the delta-of-deltas will be negative
+        // with the same magnitide as the previous sample)
+        addSample(1, 1);
+        addSample(0, 1);
+        addSample(1ull << 14, 1);
+        addSample(0, 1);
+        addSample(1ull << 17, 1);
+        addSample(0, 1);
+        addSample(1ull << 20, 1);
+        addSample(0, 1);
+
+        for (int i = 0; i < 10; i++) {
+            addSample(10000, 11111);
+        }
+
+        for (int i = 0; i < 20; i++) {
+            // larger changes in ts and value
+            addSample(55555, 453250000 * i);
+        }
+
+        // now cover a range of timestamp deltas
+        for (int i = 0; i < 1000; i++) {
+            addSample(i * 10, 123);
+        }
+        // and decreasing, with decreasing values too
+        for (int i = 1000; i > 0; i--) {
+            addSample(i * 10, -123);
+        }
+    }
+
+    auto chunk = ss.str();
+
+    ChunkView view(std::make_shared<MemResource>(std::string_view(chunk)),
+                   0,
+                   ChunkType::XORData);
+
+    std::vector<Sample> decodedSamples;
+    decodedSamples.reserve(view.numSamples());
+    for (const auto& sample : view.samples()) {
+        decodedSamples.push_back(sample);
+    }
+
+    EXPECT_EQ(expectedSamples.size(), decodedSamples.size())
+            << "Wrong number of samples";
+    for (int i = 0; i < decodedSamples.size(); i++) {
+        ASSERT_EQ(expectedSamples[i], decodedSamples[i])
+                << "Failed at sample " << i << " "
+                << expectedSamples[i].timestamp << " "
+                << expectedSamples[i].value << " "
+                << decodedSamples[i].timestamp << " "
+                << decodedSamples[i].value;
+    }
 }

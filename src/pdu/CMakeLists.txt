@@ -16,6 +16,7 @@ add_library(plib
         block/chunk_file_cache.cc
         block/chunk_reference.cc
         block/chunk_view.cc
+        block/chunk_writer.cc
         block/head_chunks.cc
         block/mapped_file.cc
         block/index_iterator.cc
