@@ -9,6 +9,7 @@ add_library(plib
         pdu.cc
         expression/expression.cc
         encode/bit_decoder.cc
+        encode/bit_encoder.cc
         encode/decoder.cc
         encode/encoder.cc
         block/index.cc

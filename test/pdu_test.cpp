@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <pdu/block/chunk_view.h>
 #include <pdu/block/head_chunks.h>
 #include <pdu/block/wal.h>
 #include <pdu/encode/decoder.h>
@@ -211,4 +212,23 @@ TEST_F(WALTest, ZeroSizeRecordStartAllowed) {
 
     EXPECT_NO_THROW(
             walLoader.loadFragment(dec, false /* not last file in wal */));
+}
+
+class EncoderTest : public ::testing::Test {
+public:
+};
+
+TEST_F(EncoderTest, SS) {
+    uint64_t canary = 0b110111011101;
+    std::stringstream ss;
+    {
+        Encoder e(ss);
+        BitEncoder b(e);
+        b.writeBits(canary, 12);
+    }
+    auto s = ss.str();
+    Decoder d(s);
+    BitDecoder::State state;
+    BitDecoder b(d, state);
+    EXPECT_EQ(canary, b.readBits(12));
 }
