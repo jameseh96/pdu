@@ -58,6 +58,10 @@ public:
 
     SampleIterator samples() const;
 
+    size_t numSamples() const {
+        return sampleCount;
+    }
+
     operator bool() const {
         return bool(res);
     }
