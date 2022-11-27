@@ -17,7 +17,12 @@ enum class ChunkType {
      * way of integrating in-memory data with that of disk, but it's not worth
      * the CPU time re-writing an XOR chunk as it would be on disk.
      */
-    Raw
+    Raw,
+    /*
+     * _Just_ the sample count and Prometheus XOR encoded data, no encoding
+     * header/uvarint length
+     */
+    XORData
 };
 
 // Magic ID base used to point to an in-memory WAL chunk.

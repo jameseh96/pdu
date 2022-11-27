@@ -236,7 +236,7 @@ ChunkView::ChunkView(std::shared_ptr<Resource> res,
         }
 
         dataLen = dec.read_varuint();
-    } else {
+    } else if (type == ChunkType::Block) {
         dataLen = dec.read_varuint();
 
         auto encoding = dec.read_int<uint8_t>();
