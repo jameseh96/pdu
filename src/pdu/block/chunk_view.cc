@@ -149,11 +149,15 @@ int64_t SampleIterator::readTSDod(BitDecoder& bits) {
         throw std::logic_error("Invalid tsPrefix: " + std::to_string(tsPrefix));
     }
 
-    size_t tsBits = bits.readBits(tsBitCount);
+    uint64_t tsBits = bits.readBits(tsBitCount);
 
-    // handle negative valuer
-    if (tsBits > (1 << (tsBitCount - 1))) {
-        return tsBits - (1 << tsBitCount);
+    if (tsBitCount == 64) {
+        return tsBits;
+    }
+    // handle negative values with less than 64 bits (highest bit is sign
+    // bit) see Prometheus xor.go `Next()`
+    if (tsBits > (uint64_t(1) << (tsBitCount - 1))) {
+        return tsBits - (uint64_t(1) << tsBitCount);
     }
     return tsBits;
 }
