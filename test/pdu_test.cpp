@@ -5,6 +5,21 @@
 #include <pdu/encode/decoder.h>
 #include <pdu/exceptions.h>
 
+#include <boost/filesystem.hpp>
+// note, included here to work around a boost issue with env.hpp, fixed in 1.80
+#include <boost/process/detail/traits/wchar_t.hpp>
+#include <boost/process/env.hpp>
+
+#include <sstream>
+
+auto datadir() {
+    static boost::filesystem::path dir = [] {
+        auto val = boost::this_process::environment()["DATADIR"].to_string();
+        return val.empty() ? std::string(".") : val;
+    }();
+    return dir;
+}
+
 class FakeHeadChunks : public HeadChunks {
 public:
     using HeadChunks::HeadChunks;
