@@ -18,8 +18,6 @@ uint64_t BitDecoder::readBits(size_t count) {
                 std::to_string(count));
     }
 
-    // track the count before it is modified
-    auto bitsRead = count;
     size_t result = 0;
     while (count > 0) {
         if (state.remainingBits == 0) {
