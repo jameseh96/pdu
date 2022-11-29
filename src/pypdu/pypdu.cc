@@ -20,6 +20,7 @@
 #include <pybind11/stl_bind.h>
 
 #include <optional>
+#include <typeindex>
 
 // Wrapper for a filter returned by a C++ method (e.g., pdu::filter::regex)
 // to avoid overheads of calling through pybind. This distinguishes the
@@ -111,10 +112,22 @@ PYBIND11_MODULE(pypdu, m) {
 
     if (numpy_available(m)) {
         PYBIND11_NUMPY_DTYPE(Sample, timestamp, value);
+        // the above dtype decl will attempt to import numpy.core.multiarray
+        // but registering the type is required for pybind to use buffer
+        // protocol.
+    } else {
+        // if numpy is not available, fall back to a hacky manual registration
+        // just to bypass this. memoryview(series.samples.as_vector())
+        // returns a view with 16 byte elements which could be unpacked with
+        //  struct.unpack("qd", element)
+        auto tindex = std::type_index(typeid(Sample));
+        py::detail::get_numpy_internals().registered_dtypes[tindex];
 
-        py::bind_vector<std::vector<Sample>>(
-                m, "SampleVector", py::buffer_protocol());
+        // an alternative would be to bind without buffer protocol in
+        // this case, but that's inconvenient.
     }
+    py::bind_vector<std::vector<Sample>>(
+            m, "SampleVector", py::buffer_protocol());
 
     init_version(m);
     init_histogram(m);
