@@ -76,9 +76,9 @@ void dispatch(Writer<StringBuffer>& writer, const py::handle& obj) {
             dispatch(writer, v);
         }
         writer.EndObject();
-    } else if (py::isinstance<py::list>(obj)) {
+    } else if (py::isinstance<py::iterable>(obj)) {
         writer.StartArray();
-        for (const auto& v : obj.cast<py::list>()) {
+        for (const auto& v : obj.cast<py::iterable>()) {
             dispatch(writer, v);
         }
         writer.EndArray();
