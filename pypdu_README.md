@@ -45,6 +45,35 @@ for name, labels, samples in data:
         print(f"{timestamp} : {value}")
 ```
 
+
+#### Conversion methods
+
+Manipulating large time series as lists-of-lists is likely to perform poorly in Python.
+pypdu can expose samples as a thin python wrapper around an underlying C++ type.
+
+This wrapper exposes "list like" operations:
+```
+>>> series = data["foobar"]
+>>> vector = series.samples.as_vector()
+>>> vector[0]
+{timestamp=1664592572000, value=0.000000}
+>>> vector[0].timestamp
+1664592572000
+```
+
+pypdu also provides a convenience `to_list()`, with the same interface returning pure python types.
+
+These conversions can also apply some common manipulations to the time series:
+
+* Scaling the timestamps to seconds
+```
+series.samples.as_vector(timestamp_units=pypdu.Seconds)
+```
+* Filtering NaN values out of the time series
+```
+series.samples.as_vector(filter_nan_values=True)
+```
+
 #### numpy
 
 If numpy is installed, samples can additionally be accessed as a numpy array. This may avoid copying the samples around if your code expects numpy arrays. E.g.,
@@ -60,6 +89,8 @@ prints:
 dtype([('timestamp', '<i8'), ('value', '<f8')])
 (1653556688725, 0.)
 ```
+
+`as_array()` also accepts `timestamp_units` and `filter_nan_values` as above.
 
 If numpy is _not_ available at runtime, this will raise an exception:
 
@@ -360,6 +391,54 @@ pypdu.dump(sys.stdout, series)
 
 series = pypdu.load(sys.stdin)
 ```
+
+#### pypdu.json
+
+For performance, pypdu provides a json encoder capable of efficiently dumping pypdu types.
+It can also dump typical python types (everything supported by the builtin `json`), but is not a drop in replacement in terms of arguments.
+
+```
+data = pypdu.load(...)
+series = data["foobar"]
+pypdu.json.dumps(series)
+```
+
+will produce:
+
+```
+{
+    "metric": {
+        "__name__": "some_metric_name",
+        "label_foo": "label_foo_value",
+    },
+    "values": [
+        [
+            1664592572000,
+            0.0
+        ],
+        [
+            1664592582000,
+            0.0
+        ],
+        [
+            1664592592000,
+            0.0
+        ],
+```
+
+`dumps` also supports samples, sample vectors, and expressions:
+
+```
+>>> pypdu.json.dumps(series.samples)
+"[[1664592572000, 0.0], [1664592582000, 0.0],...]"
+>>> pypdu.json.dumps(series.samples.as_vector(timestamp_units=pypdu.Seconds))
+"[[1664592572, 0.0], [1664592582, 0.0],...]"
+>>> pypdu.json.dumps((series + 1) * 2)
+"[[1664592572000, 2.0], [1664592582000, 2.0],...]"
+>>> pypdu.json.dumps(((series + 1) * 2).as_vector(timestamp_units=pypdu.Seconds))
+"[[1664592572, 2.0], [1664592582, 2.0],...]"
+```
+
 
 
 #### Runtime version checking
