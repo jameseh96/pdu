@@ -14,6 +14,7 @@ add_library(plib
         encode/encoder.cc
         block/index.cc
         block/chunk_file_cache.cc
+        block/chunk_iterator.cc
         block/chunk_reference.cc
         block/chunk_view.cc
         block/chunk_writer.cc

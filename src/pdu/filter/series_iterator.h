@@ -2,6 +2,7 @@
 
 #include "cross_index_sample_iterator.h"
 #include "filtered_index_iterator.h"
+#include "pdu/block/chunk_iterator.h"
 #include "pdu/util/iterator_facade.h"
 
 #include <list>
@@ -28,6 +29,8 @@ struct CrossIndexSeries {
     }
 
     CrossIndexSampleIterator getSamples() const;
+
+    ChunkIterator getChunks() const;
 
     bool valid() const {
         return !seriesCollection.empty();

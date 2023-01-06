@@ -12,6 +12,10 @@ CrossIndexSampleIterator CrossIndexSeries::getSamples() const {
     return {std::move(sampleIterators)};
 }
 
+ChunkIterator CrossIndexSeries::getChunks() const {
+    return ChunkIterator({seriesCollection.begin(), seriesCollection.end()});
+}
+
 SeriesIterator::SeriesIterator(
         std::vector<FilteredSeriesSourceIterator> indexes)
     : indexes(std::move(indexes)) {
