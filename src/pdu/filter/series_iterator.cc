@@ -2,6 +2,16 @@
 
 #include <utility>
 
+CrossIndexSampleIterator CrossIndexSeries::getSamples() const {
+    std::list<SeriesSampleIterator> sampleIterators;
+
+    for (const auto& [source, series] : seriesCollection) {
+        sampleIterators.emplace_back(series, source->getCachePtr());
+    }
+
+    return {std::move(sampleIterators)};
+}
+
 SeriesIterator::SeriesIterator(
         std::vector<FilteredSeriesSourceIterator> indexes)
     : indexes(std::move(indexes)) {

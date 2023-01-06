@@ -27,15 +27,7 @@ struct CrossIndexSeries {
         return getSeries().labels;
     }
 
-    CrossIndexSampleIterator getSamples() const {
-        std::list<SeriesSampleIterator> sampleIterators;
-
-        for (const auto& [source, series] : seriesCollection) {
-            sampleIterators.emplace_back(series, source->getCachePtr());
-        }
-
-        return {std::move(sampleIterators)};
-    }
+    CrossIndexSampleIterator getSamples() const;
 
     bool valid() const {
         return !seriesCollection.empty();
