@@ -2,14 +2,29 @@
 
 #include <boost/filesystem.hpp>
 
+SeriesHandle::SeriesHandle(std::shared_ptr<SeriesSource> source,
+                           std::shared_ptr<const Series> series)
+    : source(std::move(source)), series(std::move(series)){};
+
+const Series& SeriesHandle::getSeries() const {
+    return *series;
+}
+
+std::shared_ptr<const Series> SeriesHandle::getSeriesPtr() const {
+    return series;
+}
+
+SeriesSampleIterator SeriesHandle::getSamples() const {
+    return {series, source->getCache()};
+}
+
+void SeriesHandle::getChunks() const {
+    // todo
+}
+
 FilteredSeriesSourceIterator::FilteredSeriesSourceIterator(
         const std::shared_ptr<SeriesSource>& source, const SeriesFilter& filter)
     : source(source) {
-    // Once a chunk file reference is encountered in the index, the
-    // appropriate chunk file will be mmapped and inserted into the cache
-    // as they are likely to be used again.
-    cache = source->getCache();
-
     filteredSeriesRefs = source->getFilteredSeriesRefs(filter);
     refItr = filteredSeriesRefs.begin();
 
@@ -19,7 +34,6 @@ FilteredSeriesSourceIterator::FilteredSeriesSourceIterator(
 FilteredSeriesSourceIterator::FilteredSeriesSourceIterator(
         const FilteredSeriesSourceIterator& other) {
     source = other.source;
-    cache = other.cache;
     filteredSeriesRefs = other.filteredSeriesRefs;
     refItr = filteredSeriesRefs.begin();
     std::advance(refItr,
@@ -35,6 +49,6 @@ void FilteredSeriesSourceIterator::increment() {
 void FilteredSeriesSourceIterator::update() {
     if (refItr != filteredSeriesRefs.end()) {
         auto seriesPtr = getCurrentSeries();
-        handle = {seriesPtr.get(), SeriesSampleIterator(seriesPtr, cache)};
+        handle = {source, seriesPtr};
     }
 }

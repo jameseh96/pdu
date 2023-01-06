@@ -107,7 +107,7 @@ void ExpressionIterator::add(Operation op) {
 }
 void ExpressionIterator::add(const CrossIndexSeries& cis) {
     auto& store = subiterators.get<CrossIndexSampleIterator>();
-    store.emplace_back(cis.sampleIterator, 0.0);
+    store.emplace_back(cis.getSamples(), 0.0);
     operations.emplace_back(Ref<CrossIndexSampleIterator>{store.size() - 1});
 }
 

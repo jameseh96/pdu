@@ -9,9 +9,24 @@
 #include <memory>
 #include <set>
 
-struct SeriesHandle {
-    const Series* series;
-    SeriesSampleIterator sampleItr;
+class SeriesHandle {
+public:
+    SeriesHandle() = default;
+
+    SeriesHandle(std::shared_ptr<SeriesSource> source,
+                 std::shared_ptr<const Series> series);
+
+    const Series& getSeries() const;
+
+    std::shared_ptr<const Series> getSeriesPtr() const;
+
+    SeriesSampleIterator getSamples() const;
+
+    void getChunks() const;
+
+private:
+    std::shared_ptr<SeriesSource> source;
+    std::shared_ptr<const Series> series;
 };
 
 class FilteredSeriesSourceIterator
@@ -30,6 +45,10 @@ public:
 
     bool is_end() const {
         return refItr == filteredSeriesRefs.end();
+    }
+
+    std::shared_ptr<SeriesSource> getSource() const {
+        return source;
     }
 
 private:
@@ -52,7 +71,6 @@ private:
     }
 
     std::shared_ptr<SeriesSource> source;
-    std::shared_ptr<ChunkFileCache> cache;
     std::set<size_t> filteredSeriesRefs;
     std::set<size_t>::const_iterator refItr;
     SeriesHandle handle;

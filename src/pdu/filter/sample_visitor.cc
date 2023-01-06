@@ -17,9 +17,10 @@ void SeriesVisitor::visit(const std::vector<std::shared_ptr<Index>>& indexes) {
 
 void SeriesVisitor::visit(std::vector<FilteredSeriesSourceIterator>& indexes) {
     for (const auto& fi : indexes) {
-        for (const auto& [series, samples] : fi) {
-            visit(*series);
-            for (const auto& sample : samples) {
+        for (const auto& cis : fi) {
+            const auto& series = cis.getSeries();
+            visit(series);
+            for (const auto& sample : cis.getSamples()) {
                 visit(sample);
             }
         }
@@ -37,8 +38,8 @@ void OrderedSeriesVisitor::visit(const PrometheusData& pd) {
 void OrderedSeriesVisitor::visit(const SeriesIterator& itr) {
     for (const auto& series : itr) {
         // same series across multiple indexes
-        visit(*series.series);
-        for (const auto& sample : series.sampleIterator) {
+        visit(series.getSeries());
+        for (const auto& sample : series.getSamples()) {
             visit(sample);
         }
     }

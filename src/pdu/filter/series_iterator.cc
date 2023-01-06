@@ -19,9 +19,9 @@ void SeriesIterator::increment() {
             indexesWithSeries.push_back(&fi);
             continue;
         }
-        auto& currSeries = *(*indexesWithSeries.front())->series;
+        const auto& currSeries = (*indexesWithSeries.front())->getSeries();
 
-        auto res = compare(*fi->series, currSeries);
+        auto res = compare(fi->getSeries(), currSeries);
         if (res > 0) {
             continue;
         }
@@ -36,13 +36,15 @@ void SeriesIterator::increment() {
         return;
     }
 
-    const auto* series = (*indexesWithSeries.front())->series;
-    std::list<SeriesSampleIterator> sampleIterators;
+    std::vector<std::pair<std::shared_ptr<SeriesSource>,
+                          std::shared_ptr<const Series>>>
+            seriesCollection;
 
     for (auto* index : indexesWithSeries) {
-        sampleIterators.push_back((*index)->sampleItr);
+        seriesCollection.emplace_back(index->getSource(),
+                                      (**index).getSeriesPtr());
         ++(*index);
     }
 
-    value = {series, std::move(sampleIterators)};
+    value = {std::move(seriesCollection)};
 }

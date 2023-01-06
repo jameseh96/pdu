@@ -32,14 +32,14 @@ void series_to_json(Writer<StringBuffer>& writer, const CrossIndexSeries& cis) {
 
     writer.Key("metric");
     writer.StartObject();
-    for (const auto& [k, v] : cis.series->labels) {
+    for (const auto& [k, v] : cis.getLabels()) {
         writer.Key(k.data(), k.size());
         writer.String(v.data(), v.size());
     }
     writer.EndObject();
 
     writer.Key("values");
-    samples_to_json(writer, cis.sampleIterator);
+    samples_to_json(writer, cis.getSamples());
 
     writer.EndObject();
 }

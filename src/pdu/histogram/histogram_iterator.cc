@@ -45,7 +45,7 @@ Labels canonicalise(Labels labels) {
 
 std::optional<HistogramTimeSpan> HistogramAccumulator::addSeries(
         const CrossIndexSeries& series) {
-    const auto& labels = series.series->labels;
+    const auto& labels = series.getSeries().labels;
 
     auto canonLabels = canonicalise(labels);
 
@@ -76,9 +76,9 @@ std::optional<HistogramTimeSpan> HistogramAccumulator::addSeries(
                   histBuckets.end(),
                   [](const auto& a, const auto& b) {
                       return boost::lexical_cast<double>(
-                                     a.series->labels.at("le")) <
+                                     a.getSeries().labels.at("le")) <
                              boost::lexical_cast<double>(
-                                     b.series->labels.at("le"));
+                                     b.getSeries().labels.at("le"));
                   });
         return {HistogramTimeSpan(canonLabels, std::move(histBuckets), series)};
     }

@@ -14,7 +14,7 @@ HistogramTimeSpan::HistogramTimeSpan(
 
     // collect up bucket boundaries
     for (auto& cis : buckets) {
-        const auto& labels = cis.series->labels;
+        const auto& labels = cis.getSeries().labels;
         if (auto itr = labels.find("le"); itr != labels.end()) {
             try {
                 auto bound = boost::lexical_cast<double>(itr->second);
@@ -27,18 +27,20 @@ HistogramTimeSpan::HistogramTimeSpan(
         }
     }
 
-    auto numSamples = sum.sampleIterator.getNumSamples();
-    histograms.reserve(numSamples);
-
-    std::vector<CrossIndexSampleIterator*> allIterators;
+    std::vector<CrossIndexSampleIterator> allIterators;
 
     for (auto& bucket : buckets) {
-        allIterators.push_back(&bucket.sampleIterator);
+        allIterators.push_back(bucket.getSamples());
     }
-    allIterators.push_back(&sum.sampleIterator);
+    allIterators.push_back(sum.getSamples());
+
+    auto& sumSampleItr = allIterators.back();
+
+    auto numSamples = sumSampleItr.getNumSamples();
+    histograms.reserve(numSamples);
 
     auto ensureIteratorsTimeAligned = [&]() -> bool {
-        if (*allIterators.front() == end(*allIterators.front())) {
+        if (allIterators.front() == end(allIterators.front())) {
             // a series doesn't have enough samples. It doesn't matter
             // if the other series do, we can't make a full histogram
             return false;
@@ -48,13 +50,12 @@ HistogramTimeSpan::HistogramTimeSpan(
         // Pick the timestamp of the first iterator, then try to advance the
         // other iterators to the same TS.
         // If any iterators are _beyond_ this TS, update the TS and start again.
-        int64_t timestamp = (*allIterators.front())->timestamp;
+        int64_t timestamp = allIterators.front()->timestamp;
 
         bool consistent;
         do {
             consistent = true;
-            for (auto* itrPtr : allIterators) {
-                auto& itr = *itrPtr;
+            for (auto& itr : allIterators) {
                 // if any iterator is "behind", skip it forward.
                 // This discards some samples, but without a complete set of
                 // values at that timestamp it wasn't useful anyway
@@ -83,7 +84,7 @@ HistogramTimeSpan::HistogramTimeSpan(
         return true;
     };
 
-    while (sum.sampleIterator != end(sum.sampleIterator)) {
+    while (sumSampleItr != end(sumSampleItr)) {
         if (!ensureIteratorsTimeAligned()) {
             // some iterator has run out, we've built all the histograms we can
             return;
@@ -92,15 +93,17 @@ HistogramTimeSpan::HistogramTimeSpan(
         std::vector<double> values;
         values.reserve(buckets.size());
 
-        for (auto& bucket : buckets) {
-            auto& itr = bucket.sampleIterator;
+        for (auto& itr : allIterators) {
+            if (&itr == &sumSampleItr) {
+                continue;
+            }
             values.push_back(itr->value);
             ++itr;
         }
 
-        auto timestamp = sum.sampleIterator->timestamp;
-        auto sumValue = sum.sampleIterator->value;
-        ++sum.sampleIterator;
+        auto timestamp = sumSampleItr->timestamp;
+        auto sumValue = sumSampleItr->value;
+        ++sumSampleItr;
 
         histograms.emplace_back(timestamp, values, bucketBoundaries, sumValue);
     }

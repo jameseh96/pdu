@@ -61,7 +61,7 @@ void serialise_impl(Encoder& e, const CrossIndexSampleIterator& cisi) {
  * reconstruct the series.
  */
 void serialise_impl(Encoder& e, const CrossIndexSeries& cis) {
-    const auto& labels = cis.series->labels;
+    const auto& labels = cis.getSeries().labels;
     e.write_varuint(labels.size());
     for (const auto& [key, value] : labels) {
         e.write_varuint(key.size());
@@ -69,7 +69,7 @@ void serialise_impl(Encoder& e, const CrossIndexSeries& cis) {
         e.write_varuint(value.size());
         e.write(value);
     }
-    serialise_impl(e, cis.sampleIterator);
+    serialise_impl(e, cis.getSamples());
 }
 
 void serialise_impl(Encoder& e,
@@ -254,7 +254,6 @@ DeserialisedSeries deserialise_series(Dec& d) {
     // set up the CrossIndexSeries, pointing at the newly
     // created Series
     cis.ownedSeries = series;
-    cis.series = series.get();
 
     auto labelStorage = deserialise_labels(d, *series);
     if (labelStorage) {
@@ -273,11 +272,32 @@ DeserialisedSeries deserialise_series(Dec& d) {
     }
 
     // we don't have multiple indexes to deal with matching up
-    // series for - just the one SeriesSampleIterator pointing at
+    // series for - just the one SeriesSource holding a cache of
     // chunks residing in memory
-    SeriesSampleIterator ssi{series, cfc};
+    class DeserialisedSource : public SeriesSource {
+    public:
+        DeserialisedSource(std::shared_ptr<ChunkFileCache> cache)
+            : cache(cache) {
+        }
+        std::set<SeriesRef> getFilteredSeriesRefs(
+                const SeriesFilter& filter) const override {
+            throw std::runtime_error(
+                    "DeserialisedSource::getFilteredSeriesRefs not "
+                    "implemented");
+        }
 
-    cis.sampleIterator = {{std::move(ssi)}};
+        const Series& getSeries(SeriesRef ref) const override {
+            throw std::runtime_error(
+                    "DeserialisedSource::getSeries not implemented");
+        }
+
+        std::shared_ptr<ChunkFileCache> getCache() const override {
+            return cache;
+        }
+        std::shared_ptr<ChunkFileCache> cache;
+    };
+    cis.seriesCollection.emplace_back(std::make_shared<DeserialisedSource>(cfc),
+                                      series);
 
     return cis;
 }

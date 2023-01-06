@@ -243,57 +243,64 @@ PYBIND11_MODULE(pypdu, m) {
 
     def_conversions(m, seriesSamplesClass);
 
-    auto seriesClass = py::class_<CrossIndexSeries>(m, "Series")
-            .def_property_readonly(
-                    "name",
-                    [](const CrossIndexSeries& cis) {
-                        if (!cis.series) {
-                            throw std::runtime_error(
-                                    "Can't get name, series is invalid");
-                        }
-                        return cis.series->labels.at("__name__");
-                    },
-                    py::keep_alive<0, 1>())
-            .def_property_readonly(
-                    "labels",
-                    [](const CrossIndexSeries& cis) {
-                        if (!cis.series) {
-                            throw std::runtime_error(
-                                    "Can't get labels, series is invalid");
-                        }
-                        return cis.series->labels;
-                    },
-                    py::keep_alive<0, 1>())
-            .def_property_readonly("samples",
-                                   [](const CrossIndexSeries& cis) {
-                                       return SeriesSamples(cis.sampleIterator);
-                                   })
+    auto seriesClass =
+            py::class_<CrossIndexSeries>(m, "Series")
+                    .def_property_readonly(
+                            "name",
+                            [](const CrossIndexSeries& cis) {
+                                if (!cis) {
+                                    throw std::runtime_error(
+                                            "Can't get name, series is "
+                                            "invalid");
+                                }
+                                return cis.getLabels().at("__name__");
+                            },
+                            py::keep_alive<0, 1>())
+                    .def_property_readonly(
+                            "labels",
+                            [](const CrossIndexSeries& cis) {
+                                if (!cis) {
+                                    throw std::runtime_error(
+                                            "Can't get labels, series is "
+                                            "invalid");
+                                }
+                                return cis.getLabels();
+                            },
+                            py::keep_alive<0, 1>())
+                    .def_property_readonly(
+                            "samples",
+                            [](const CrossIndexSeries& cis) {
+                                return SeriesSamples(cis.getSamples());
+                            })
 
-            // support unpacking in the form of
-            // for series, samples in data:
-            //     ...
-            .def("__getitem__",
-                 [](const CrossIndexSeries& cis, size_t i) {
-                     if (!cis.series) {
-                         throw std::runtime_error(
-                                 "Can't unpack, series is invalid");
-                     }
-                     switch (i) {
-                     case 0:
-                         return py::cast(cis.series->labels.at("__name__"));
-                     case 1:
-                         return py::cast(cis.series->labels);
-                     case 2:
-                         auto ret = py::cast(SeriesSamples(cis.sampleIterator));
-                         // manually set up keep alive here, as it is not
-                         // possible to do so for the name and labels, so it
-                         // cannot be set as a policy for the method.
-                         keep_alive_impl(ret, py::cast(cis));
-                         return ret;
-                     }
-                     throw py::index_error();
-                 })
-            .def("__len__", []() { return 3; });
+                    // support unpacking in the form of
+                    // for series, samples in data:
+                    //     ...
+                    .def("__getitem__",
+                         [](const CrossIndexSeries& cis, size_t i) {
+                             if (!cis) {
+                                 throw std::runtime_error(
+                                         "Can't unpack, series is invalid");
+                             }
+                             switch (i) {
+                             case 0:
+                                 return py::cast(
+                                         cis.getLabels().at("__name__"));
+                             case 1:
+                                 return py::cast(cis.getLabels());
+                             case 2:
+                                 auto ret = py::cast(
+                                         SeriesSamples(cis.getSamples()));
+                                 // manually set up keep alive here, as it is
+                                 // not possible to do so for the name and
+                                 // labels, so it cannot be set as a policy for
+                                 // the method.
+                                 keep_alive_impl(ret, py::cast(cis));
+                                 return ret;
+                             }
+                             throw py::index_error();
+                         })
+                    .def("__len__", []() { return 3; });
 
     enable_arithmetic(seriesClass, float());
 
