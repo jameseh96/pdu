@@ -16,5 +16,9 @@ public:
 
     virtual const Series& getSeries(SeriesRef ref) const = 0;
 
-    virtual std::shared_ptr<ChunkFileCache> getCache() const = 0;
+    virtual const std::shared_ptr<ChunkFileCache>& getCachePtr() const = 0;
+
+    ChunkFileCache& getCache() const {
+        return *getCachePtr();
+    }
 };

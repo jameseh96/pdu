@@ -214,7 +214,7 @@ const Series& Index::getSeries(SeriesRef ref) const {
     return series.at(ref);
 }
 
-std::shared_ptr<ChunkFileCache> Index::getCache() const {
+const std::shared_ptr<ChunkFileCache>& Index::getCachePtr() const {
     return cache;
 }
 

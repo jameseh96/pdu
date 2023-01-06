@@ -15,7 +15,7 @@ std::shared_ptr<const Series> SeriesHandle::getSeriesPtr() const {
 }
 
 SeriesSampleIterator SeriesHandle::getSamples() const {
-    return {series, source->getCache()};
+    return {series, source->getCachePtr()};
 }
 
 void SeriesHandle::getChunks() const {

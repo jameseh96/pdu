@@ -31,7 +31,7 @@ struct CrossIndexSeries {
         std::list<SeriesSampleIterator> sampleIterators;
 
         for (const auto& [source, series] : seriesCollection) {
-            sampleIterators.emplace_back(series, source->getCache());
+            sampleIterators.emplace_back(series, source->getCachePtr());
         }
 
         return {std::move(sampleIterators)};

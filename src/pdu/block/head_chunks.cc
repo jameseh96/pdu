@@ -87,7 +87,7 @@ const Series& HeadChunks::getSeries(SeriesRef ref) const {
     return seriesMap.at(ref);
 }
 
-std::shared_ptr<ChunkFileCache> HeadChunks::getCache() const {
+const std::shared_ptr<ChunkFileCache>& HeadChunks::getCachePtr() const {
     return cache;
 }
 

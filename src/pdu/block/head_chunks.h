@@ -28,7 +28,7 @@ public:
 
     const Series& getSeries(SeriesRef ref) const override;
 
-    std::shared_ptr<ChunkFileCache> getCache() const override;
+    const std::shared_ptr<ChunkFileCache>& getCachePtr() const override;
 
 protected:
     // allow tests to default construct and manually load data

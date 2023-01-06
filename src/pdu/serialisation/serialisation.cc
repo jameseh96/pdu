@@ -291,7 +291,7 @@ DeserialisedSeries deserialise_series(Dec& d) {
                     "DeserialisedSource::getSeries not implemented");
         }
 
-        std::shared_ptr<ChunkFileCache> getCache() const override {
+        const std::shared_ptr<ChunkFileCache>& getCachePtr() const override {
             return cache;
         }
         std::shared_ptr<ChunkFileCache> cache;
