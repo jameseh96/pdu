@@ -102,12 +102,13 @@ void Series::load(Decoder& dec, const SymbolTable& symbols) {
     }
 
     for (int i = 1; i < chunkCount; ++i) {
+        auto& prev = chunks.back();
         ChunkReference chunk;
-        chunk.minTime = dec.read_varint(); /// IS SIGNED
-        chunk.maxTime = dec.read_varuint();
-        chunk.fileReference = dec.read_varint(); /// IS SIGNED
+        chunk.minTime = dec.read_varuint() + prev.maxTime;
+        chunk.maxTime = dec.read_varuint() + chunk.minTime;
+        chunk.fileReference =
+                dec.read_varint() + prev.fileReference; /// IS SIGNED
 
-        chunk += chunks.back();
         chunks.push_back(std::move(chunk));
     }
 

@@ -34,8 +34,6 @@ struct ChunkReference {
     uint64_t fileReference;
     ChunkType type = ChunkType::Block;
 
-    ChunkReference& operator+=(const ChunkReference& other);
-
     uint32_t getSegmentFileId() const;
     uint32_t getOffset() const;
 };

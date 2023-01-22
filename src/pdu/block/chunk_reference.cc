@@ -6,13 +6,6 @@
 
 #include <utility>
 
-ChunkReference& ChunkReference::operator+=(const ChunkReference& other) {
-    minTime += other.minTime;
-    maxTime += other.maxTime;
-    fileReference += other.fileReference;
-    return *this;
-}
-
 uint32_t ChunkReference::getSegmentFileId() const {
     return uint32_t(fileReference >> 32) + 1;
 }
