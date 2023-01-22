@@ -66,6 +66,14 @@ public:
         return bool(res);
     }
 
+    bool isXOR() const {
+        return !rawChunk;
+    }
+
+    std::string_view data() const;
+
+    std::string_view xor_data() const;
+
     size_t dataLen;
     size_t dataOffset;
 

@@ -247,8 +247,27 @@ ChunkView::ChunkView(std::shared_ptr<Resource> res,
     }
     sampleCount = dec.read_int<uint16_t>();
     dataOffset = dec.tell();
+
+    if (type == ChunkType::XORData) {
+        dataLen = dec.remaining();
+    }
 }
 
 SampleIterator ChunkView::samples() const {
     return {res->getDecoder().seek(dataOffset), sampleCount, rawChunk};
+}
+
+std::string_view ChunkView::data() const {
+    return res->getView().substr(dataOffset, dataLen);
+}
+
+std::string_view ChunkView::xor_data() const {
+    // xor data is always preceded by uint16_t sample count, and can't
+    // easily be consumed without it (may end mid-byte)
+    if (rawChunk || dataOffset < 2) {
+        throw std ::runtime_error(
+                "Attempted to expose sample count and data on "
+                "unsuitable chunk");
+    }
+    return res->getView().substr(dataOffset - 2, dataLen + 2);
 }
