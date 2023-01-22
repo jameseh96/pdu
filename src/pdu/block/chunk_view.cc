@@ -215,7 +215,7 @@ ChunkView::ChunkView(std::shared_ptr<Resource> res,
     // for simple in-memory storage)
     if (type == ChunkType::Raw) {
         rawChunk = true;
-        dataOffset = 0;
+        dataOffset = offset;
         dataLen = dec.remaining();
         sampleCount = dataLen / (sizeof(int64_t) + sizeof(double));
         return;
