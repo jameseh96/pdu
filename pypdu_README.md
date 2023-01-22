@@ -440,6 +440,33 @@ will produce:
 ```
 
 
+#### XOR Chunks
+
+For specific use cases, access to the raw [XOR encoded](https://github.com/prometheus/prometheus/blob/release-2.26/tsdb/chunkenc/xor.go) ([chunk documentation](https://github.com/prometheus/prometheus/blob/release-2.26/tsdb/docs/format/chunks.md)) chunk data may be required.
+
+
+To find the chunk objects for a given series:
+```
+>>> data = pypdu.load("some_stats_dir")
+>>> series = data["foobar_series_name"]
+>>> series.chunks
+[<pypdu.Chunk object at 0x11c29c270>, <pypdu.Chunk object at 0x11c29dbb0>, ...]
+```
+
+To access the XOR encoded sample data:
+
+```
+>>> chunk = series.chunks[0]
+# without copying
+>>> memoryview(chunk)
+<memory at 0x11c227880>
+# with a copy into a python bytes object
+>>> chunk.as_bytes()
+b'\x00y\xc8\xe0\x8e\...'
+```
+
+Most users will not need to do this as `samples` can be read from a `pypdu.Series()`, with the chunks handled transparently.
+
 
 #### Runtime version checking
 

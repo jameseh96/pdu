@@ -10,6 +10,7 @@
 #include "pypdu_series_samples.h"
 #include "pypdu_version.h"
 
+#include <pdu/block/chunk_builder.h>
 #include <pdu/histogram/histogram_iterator.h>
 #include <pdu/pdu.h>
 
@@ -100,6 +101,40 @@ auto getFirstMatching(const PrometheusData& pd, const SeriesFilter& f) {
 template <class T>
 auto getFirstMatching(const PrometheusData& pd, const T& val) {
     return getFirstMatching(pd, makeFilter(val));
+}
+
+/**
+ * Type bundling a chunk view with a min/max time.
+ * Chunks don't hold the min/max time, the ref in the index does.
+ * This is a convenience type for python to expose the times without
+ * passing refs around.
+ */
+struct PyChunk {
+    ChunkView view;
+    uint64_t minTime = 0;
+    uint64_t maxTime = std::numeric_limits<int64_t>::max();
+};
+
+void makeXORPyChunks(const ChunkView& cv,
+                     uint64_t minTime,
+                     uint64_t maxTime,
+                     std::vector<PyChunk>& out) {
+    if (cv.isXOR()) {
+        out.push_back({cv, minTime, maxTime});
+        return;
+    }
+    ChunkBuilder builder;
+    for (const auto& sample : cv.samples()) {
+        builder.append(sample);
+    }
+    for (const auto& chunk : builder.finalise()) {
+        // if one non-xor chunk became multiple xor chunks,
+        // the min/max time will be inaccurate for each
+        // chunk, but that's not too important for now.
+        // If necessary, ChunkBuilder::append could indicate if a new
+        // chunk has been started so minTime could be changed.
+        out.push_back({chunk, minTime, maxTime});
+    }
 }
 
 PYBIND11_MODULE(pypdu, m) {
@@ -243,6 +278,188 @@ PYBIND11_MODULE(pypdu, m) {
 
     def_conversions(m, seriesSamplesClass);
 
+    py::class_<PyChunk>(m, "Chunk", py::buffer_protocol())
+            .def_buffer([](const PyChunk& pc) -> py::buffer_info {
+                auto data = pc.view.data();
+                // expose as buffer of raw bytes
+                return py::buffer_info(
+                        const_cast<char*>(data.data()), /* Pointer to buffer */
+                        1, /* Size of one scalar */
+                        py::format_descriptor<
+                                uint8_t>::format(), /* Python struct-style
+                                                       format descriptor */
+                        1, /* Number of dimensions */
+                        {data.size()}, /* Buffer dimensions */
+                        {1});
+            })
+            .def_static(
+                    "from_xor_bytes",
+                    [](py::buffer buffer) {
+                        auto info = buffer.request();
+
+                        if (!PyBuffer_IsContiguous(info.view(), 'C')) {
+                            throw std::runtime_error(
+                                    "Chunk.from_xor_bytes only accepts "
+                                    "contiguous "
+                                    "row-major (C "
+                                    "style) buffers");
+                        }
+                        if (info.ndim != 1) {
+                            throw std::runtime_error(
+                                    "Chunk.from_xor_bytes only accepts one "
+                                    "dimensional "
+                                    "buffers");
+                        }
+                        if (info.format !=
+                            py::format_descriptor<uint8_t>::format()) {
+                            throw std::runtime_error(
+                                    "Chunk.from_xor_bytes only accepts one "
+                                    "dimensional "
+                                    "buffers "
+                                    "of bytes");
+                        }
+
+                        if (info.itemsize != 1) {
+                            throw std::runtime_error(
+                                    "Chunk.from_xor_bytes only accepts one "
+                                    "dimensional "
+                                    "buffers "
+                                    "of bytes");
+                        }
+
+                        if (info.size < 0) {
+                            throw std::runtime_error(
+                                    "Chunk.from_xor_bytes received invalid "
+                                    "buffer");
+                        }
+                        if (info.size == 0) {
+                            throw std::runtime_error(
+                                    "Chunk.from_xor_bytes received empty "
+                                    "buffer");
+                        }
+
+                        // todo: may be worth computing the min
+                        //       and max time on demand. Not all usages will
+                        //       require this, so it does not seem worth
+                        //       parsing the samples unconditionally to find
+                        //       the min and max ahead of time.
+                        return PyChunk{ChunkView(
+                                std::make_shared<MemResource>(std::string_view(
+                                        reinterpret_cast<char*>(info.ptr),
+                                        size_t(info.size))),
+                                0,
+                                ChunkType::XORData)};
+                    },
+                    py::keep_alive<0, 1>(),
+                    "Create a Chunk from XOR encoded data")
+            .def_static(
+                    "from_samples",
+                    [](py::buffer buffer) {
+                        auto info = buffer.request();
+
+                        if (!PyBuffer_IsContiguous(info.view(), 'C')) {
+                            throw std::runtime_error(
+                                    "Chunk.from_samples only accepts "
+                                    "contiguous "
+                                    "row-major (C "
+                                    "style) buffers");
+                        }
+                        std::string commonMessage =
+                                "Chunk.from_samples only accepts one "
+                                "dimensional buffers of bytes "
+                                "(dtype='uint8') or Samples "
+                                "(dtype=[('timestamp', '<i8'), ('value', "
+                                "'<f8')])";
+                        if (info.ndim != 1) {
+                            throw std::runtime_error(commonMessage);
+                        }
+
+                        // info.format _should_ be checked here, but it is
+                        // not practical to exact string match with
+                        // py::format_descriptor<...>::format()
+                        // for complex types
+                        // (q vs l depending on platform, pybind specifies
+                        // ^ for unaligned), and field names are included
+                        // but not important (requiring the timestamp field
+                        // be named "timestamp" is unnecessarily restrictive
+                        // given the data itself just needs to be int64_t
+
+                        if (info.itemsize != 1 &&
+                            info.itemsize !=
+                                    (sizeof(int64_t) + sizeof(double))) {
+                            throw std::runtime_error(
+                                    commonMessage + ", not elements of size: " +
+                                    std::to_string(info.itemsize));
+                        }
+
+                        if (info.size < 0) {
+                            throw std::runtime_error(
+                                    "Chunk.from_samples received invalid "
+                                    "buffer (size < 0)");
+                        }
+
+                        std::vector<PyChunk> chunks;
+                        auto cv = ChunkView(
+                                std::make_shared<MemResource>(std::string_view(
+                                        reinterpret_cast<char*>(info.ptr),
+                                        size_t(info.size * info.itemsize))),
+                                0,
+                                ChunkType::Raw);
+
+                        makeXORPyChunks(cv, 0, 0, chunks);
+                        return chunks;
+                    },
+                    "Create a Chunk from raw samples (e.g., from an array)")
+            .def_property(
+                    "min_time",
+                    [](const PyChunk& pc) { return int64_t(pc.minTime); },
+                    [](PyChunk& pc, int64_t value) { pc.minTime = value; })
+            .def_property(
+                    "max_time",
+                    [](const PyChunk& pc) { return int64_t(pc.maxTime); },
+                    [](PyChunk& pc, int64_t value) { pc.maxTime = value; })
+            .def(
+                    "samples",
+                    [](const PyChunk& pc) {
+                        std::vector<Sample> samples;
+                        samples.reserve(pc.view.numSamples());
+                        for (const auto& sample : pc.view.samples()) {
+                            samples.push_back(sample);
+                        }
+                        return samples;
+                    },
+                    "Return a vector of samples contained in this chunk")
+            .def(
+                    "_first_sample",
+                    [](const PyChunk& pc) {
+                        auto itr = pc.view.samples();
+                        if (itr == end(itr)) {
+                            throw std::runtime_error(
+                                    "Chunk::_first_sample called on empty or "
+                                    "invalid chunk");
+                        }
+                        return *itr;
+                    },
+                    "Return the first sample from this chunk (used for "
+                    "validation of min/max time)")
+            .def(
+                    "as_bytes",
+                    [](const PyChunk& pc) {
+                        auto data = pc.view.xor_data();
+                        return py::bytes(data.data(), data.size());
+                    },
+                    "Returns a copy of the raw XOR encoded chunk data as a "
+                    "bytes object")
+            .def(
+                    "view",
+                    [](const py::object& pv) {
+                        // takes a py::object to allow pybind to construct
+                        // a memory view based on the above buffer_info
+                        return py::memoryview(pv);
+                    },
+                    "Returns a memoryview over the raw XOR encoded chunk data, "
+                    "without copying");
+
     auto seriesClass =
             py::class_<CrossIndexSeries>(m, "Series")
                     .def_property_readonly(
@@ -272,6 +489,18 @@ PYBIND11_MODULE(pypdu, m) {
                             [](const CrossIndexSeries& cis) {
                                 return SeriesSamples(cis.getSamples());
                             })
+                    .def_property_readonly("chunks",
+                                           [](const CrossIndexSeries& cis) {
+                                               std::vector<PyChunk> chunks;
+                                               for (const auto& [ref, chunk] :
+                                                    cis.getChunks()) {
+                                                   makeXORPyChunks(chunk,
+                                                                   ref.minTime,
+                                                                   ref.maxTime,
+                                                                   chunks);
+                                               }
+                                               return chunks;
+                                           })
 
                     // support unpacking in the form of
                     // for series, samples in data:
