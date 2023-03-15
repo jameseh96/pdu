@@ -28,6 +28,8 @@ jobs:
         CIBW_BUILD: '{cp,pp}3*x86_64'
         CIBW_MANYLINUX_X86_64_IMAGE: "jamesharrisoncb/manylinux2014_x86_64_conan"
         CIBW_MANYLINUX_PYPY_X86_64_IMAGE: "jamesharrisoncb/manylinux2014_x86_64_conan"
+        CIBW_MUSLLINUX_X86_64_IMAGE: "jamesharrisoncb/manylinux2014_x86_64_conan"
+        CIBW_MUSLLINUX_PYPY_X86_64_IMAGE: "jamesharrisoncb/manylinux2014_x86_64_conan"
     steps:
       - uses: actions/checkout@master
         with:
@@ -38,31 +40,12 @@ jobs:
         with:
             name: manylinux-3_X
             path: wheelhouse/*.whl
-
-  build-manylinux-2_7:
-    name: Build manylinux wheel (Python2.7)
-    runs-on: ubuntu-latest
-    container: jamesharrisoncb/manylinux2014_x86_64_conan
-    steps:
-      - uses: actions/checkout@master
-        with:
-          submodules: recursive
-      - name: Create default conan profile
-        run: conan profile new default --detect
-      - name: Build wheel
-        run: PYTHONPATH=$PYTHONPATH:/opt/rh/python27/root/usr/lib/python2.7/site-packages /usr/bin/python2.7 ./setup.py bdist_wheel
-      - name: Auditwheel
-        run: |
-           auditwheel repair --plat manylinux2014_x86_64 dist/*.whl
-      - uses: actions/upload-artifact@v2
-        with:
-            name: manylinux-2_7
-            path: wheelhouse/*.whl
   build-mac-3_X:
     name: Build mac wheels (Python3.X)
     runs-on: macos-11
     env:
         CIBW_BUILD: '{cp,pp}3*x86_64'
+        CIBW_BEFORE_BUILD: 'python3 -m pip install conan==1.*'
     steps:
       - uses: actions/checkout@master
         with:
@@ -77,6 +60,10 @@ jobs:
           cmake-version: '3.17.x'
       - name: Install Python packages
         run: pip3 install conan==1.* setuptools wheel
+      - name: Check Conan
+        run: which conan
+      - name: Check Conan version
+        run: conan --version
       - name: Create default conan profile
         run: conan profile new default --detect
       - name: Add conancenter remote
@@ -119,79 +106,11 @@ jobs:
         with:
             name: mac-3_X-arm
             path: wheelhouse/*.whl
-  build-mac-2_7:
-    name: Build mac wheel (Python2.7)
-    runs-on: macos-11
-    env:
-        MACOSX_DEPLOYMENT_TARGET: "10.9"
-    steps:
-      - uses: actions/checkout@master
-        with:
-          submodules: recursive
-      - name: Set up Python 3 for Conan
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.7
-      - name: Setup cmake
-        uses: jwlawson/actions-setup-cmake@v1.9
-        with:
-          cmake-version: '3.17.x'
-      - name: Install Python packages
-        run: python2 -m pip install setuptools wheel
-      - name: Install conan
-        run: python3 -m pip install conan==1.*
-      - name: Create default conan profile
-        run: conan profile new default --detect
-      - name: Add conancenter remote
-        run: conan remote add -f conancenter https://center.conan.io
-      - name: Build wheel
-        run: python2 ./setup.py bdist_wheel
-      - uses: actions/upload-artifact@v2
-        with:
-            name: mac-2_7
-            path: dist/*.whl
-  build-mac-2_7-arm:
-    name: Build mac wheel (Python2.7 + Arm)
-    runs-on: macos-11
-    env:
-        CONAN_MACOS_ARM64: "ON"
-        MACOSX_DEPLOYMENT_TARGET: "11"
-        _PYTHON_HOST_PLATFORM: "macosx-11.0-arm64"
-        ARCHFLAGS: "-arch arm64"
-    steps:
-      - uses: actions/checkout@master
-        with:
-          submodules: recursive
-      - name: Set up Python 3 for Conan
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.7
-      - name: Setup cmake
-        uses: jwlawson/actions-setup-cmake@v1.9
-        with:
-          cmake-version: '3.17.x'
-      - name: Install Python packages
-        # install specific version to avoid the wheel being
-        # forced up to 11.0. Strictly speaking, it should be, but
-        # python2 pip does not appear to handle wheels tagged 11.0
-        run: python2 -m pip install setuptools==41.0.1 wheel==0.33.1
-      - name: Install conan
-        run: python3 -m pip install conan==1.*
-      - name: Create default conan profile
-        run: conan profile new default --detect
-      - name: Add conancenter remote
-        run: conan remote add -f conancenter https://center.conan.io
-      - name: Build wheel
-        run: python2 ./setup.py bdist_wheel
-      - uses: actions/upload-artifact@v2
-        with:
-            name: mac-2_7-arm
-            path: dist/*.whl
 
   upload:
     name: Publish to PyPI
     runs-on: ubuntu-latest
-    needs: [build-source-archive, build-manylinux-3_X, build-manylinux-2_7, build-mac-3_X, build-mac-3_X-arm, build-mac-2_7, build-mac-2_7-arm]
+    needs: [build-source-archive, build-manylinux-3_X, build-mac-3_X, build-mac-3_X-arm]
     steps:
       - name: Create ./dist
         run: mkdir ./dist
@@ -205,23 +124,11 @@ jobs:
             path: dist
       - uses: actions/download-artifact@v2
         with:
-            name: manylinux-2_7
-            path: dist
-      - uses: actions/download-artifact@v2
-        with:
             name: mac-3_X
             path: dist
       - uses: actions/download-artifact@v2
         with:
             name: mac-3_X-arm
-            path: dist
-      - uses: actions/download-artifact@v2
-        with:
-            name: mac-2_7
-            path: dist
-      - uses: actions/download-artifact@v2
-        with:
-            name: mac-2_7-arm
             path: dist
       - name: Publish distribution to Test PyPI
         if: startsWith(github.ref, 'refs/tags/v')
