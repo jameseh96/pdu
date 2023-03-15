@@ -48,7 +48,7 @@ jobs:
         with:
           submodules: recursive
       - name: Create default conan profile
-        run: conan profile detect
+        run: conan profile new default --detect
       - name: Build wheel
         run: PYTHONPATH=$PYTHONPATH:/opt/rh/python27/root/usr/lib/python2.7/site-packages /usr/bin/python2.7 ./setup.py bdist_wheel
       - name: Auditwheel
@@ -76,7 +76,9 @@ jobs:
         with:
           cmake-version: '3.17.x'
       - name: Install Python packages
-        run: pip3 install conan setuptools wheel
+        run: pip3 install conan==1.* setuptools wheel
+      - name: Create default conan profile
+        run: conan profile new default --detect
       - name: Add conancenter remote
         run: conan remote add -f conancenter https://center.conan.io
       - name: build wheels
@@ -106,7 +108,9 @@ jobs:
         with:
           cmake-version: '3.17.x'
       - name: Install Python packages
-        run: pip3 install conan setuptools wheel
+        run: pip3 install conan==1.* setuptools wheel
+      - name: Create default conan profile
+        run: conan profile new default --detect
       - name: Add conancenter remote
         run: conan remote add -f conancenter https://center.conan.io
       - name: build wheels
@@ -135,9 +139,9 @@ jobs:
       - name: Install Python packages
         run: python2 -m pip install setuptools wheel
       - name: Install conan
-        run: python3 -m pip install conan
+        run: python3 -m pip install conan==1.*
       - name: Create default conan profile
-        run: conan profile detect
+        run: conan profile new default --detect
       - name: Add conancenter remote
         run: conan remote add -f conancenter https://center.conan.io
       - name: Build wheel
@@ -172,9 +176,9 @@ jobs:
         # python2 pip does not appear to handle wheels tagged 11.0
         run: python2 -m pip install setuptools==41.0.1 wheel==0.33.1
       - name: Install conan
-        run: python3 -m pip install conan
+        run: python3 -m pip install conan==1.*
       - name: Create default conan profile
-        run: conan profile detect
+        run: conan profile new default --detect
       - name: Add conancenter remote
         run: conan remote add -f conancenter https://center.conan.io
       - name: Build wheel
