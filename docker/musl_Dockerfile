@@ -1,0 +1,12 @@
+FROM quay.io/pypa/musllinux_1_1_x86_64
+
+# Image derived from standard manylinux Python wheel building env, with conan added.
+# Wraps conan in a bash script setting the appropriate PYTHONPATH.
+# If building the wheel for Python2, conan will fail to run as it will use the wrong
+# libs.
+
+RUN apk update && apk add python3 python3-dev
+RUN /usr/bin/python3 -m ensurepip --upgrade
+RUN  /usr/bin/python3 -m pip install --upgrade conan==1.* wheel
+RUN conan profile new default --detect
+RUN conan remote add -f conancenter https://center.conan.io
