@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
+include(CheckSymbolExists)
 include(conan.cmake)
 
 conan_cmake_configure(REQUIRES
@@ -33,6 +34,19 @@ if (CONAN_MACOS_ARM64)
 else()
     set(CONAN_PROFILE_HOST_ARG "")
 endif()
+
+
+# the pre-built fmt dep was compiled with _FORTIFY_SOURCE
+# and requires __snprintf_chk, normally provided by glibc.
+# If compiling for musl-based linux, e.g., Alpine, this is
+# not available.
+# In that case, use header-only fmt and accept the slower
+# compilation.
+check_symbol_exists(__snprintf_chk "" HAVE_SNPRINTF_CHK)
+
+if (NOT HAVE_SNPRINTF_CHK)
+    add_definitions(-DFMT_HEADER_ONLY)
+endif ()
 
 
 conan_cmake_install(PATH_OR_REFERENCE .
