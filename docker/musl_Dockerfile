@@ -1,4 +1,5 @@
-FROM quay.io/pypa/musllinux_1_1_x86_64
+ARG ARCH=x86_64
+FROM quay.io/pypa/musllinux_1_1_${ARCH}:latest
 
 # Image derived from standard manylinux Python wheel building env, with conan added.
 # Wraps conan in a bash script setting the appropriate PYTHONPATH.
