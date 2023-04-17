@@ -23,7 +23,7 @@ MappedNamedFileResource::MappedNamedFileResource(
         // nothing in the file, mapping will fail.
         return;
     }
-    mappedFile = {fileName.c_str(), read_only};
+    file_mapping mappedFile = {fileName.c_str(), read_only};
 
     loadMappable(mappedFile);
 }

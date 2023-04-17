@@ -67,7 +67,6 @@ struct MappedNamedFileResource : public MappedFileResource {
 
 protected:
     std::string directory;
-    file_mapping mappedFile;
 };
 
 std::shared_ptr<Resource> try_map_fd(int fd);
