@@ -40,26 +40,6 @@ jobs:
         with:
             name: manylinux-3_X
             path: wheelhouse/*.whl
-  build-manylinux-3_X-arm:
-    name: Build manylinux wheels (Python3.X + Arm)
-    runs-on: [self-hosted, linux, ARM64]
-    env:
-        CIBW_ARCHS: 'aarch64'
-        CIBW_BUILD: '{cp,pp}3*aarch64'
-        CIBW_MANYLINUX_AARCH64_IMAGE: "jamesharrisoncb/manylinux2014_aarch64_conan"
-        CIBW_MANYLINUX_PYPY_AARCH64_IMAGE: "jamesharrisoncb/manylinux2014_aarch64_conan"
-        CIBW_MUSLLINUX_AARCH64_IMAGE: "jamesharrisoncb/musllinux_1_1_aarch64_conan"
-        CIBW_MUSLLINUX_PYPY_AARCH64_IMAGE: "jamesharrisoncb/musllinux_1_1_aarch64_conan"
-    steps:
-      - uses: actions/checkout@master
-        with:
-          submodules: recursive
-      - name: build wheels
-        uses: pypa/cibuildwheel@v2.12.1
-      - uses: actions/upload-artifact@v2
-        with:
-            name: manylinux-3_X-arm
-            path: wheelhouse/*.whl
   build-mac-3_X:
     name: Build mac wheels (Python3.X)
     runs-on: macos-11
@@ -130,7 +110,7 @@ jobs:
   upload:
     name: Publish to PyPI
     runs-on: ubuntu-latest
-    needs: [build-source-archive, build-manylinux-3_X, build-manylinux-3_X-arm, build-mac-3_X, build-mac-3_X-arm]
+    needs: [build-source-archive, build-manylinux-3_X, build-mac-3_X, build-mac-3_X-arm]
     steps:
       - name: Create ./dist
         run: mkdir ./dist
@@ -141,10 +121,6 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
             name: manylinux-3_X
-            path: dist
-      - uses: actions/download-artifact@v2
-        with:
-            name: manylinux-3_X-arm
             path: dist
       - uses: actions/download-artifact@v2
         with:
