@@ -175,6 +175,10 @@ void Index::load(std::shared_ptr<Resource> res) {
 
     {
         std::ifstream metaF(metaPath.string(), std::ios::in);
+        if (!metaF.good()) {
+            throw std::runtime_error("Failed to open \"" + metaPath.string() +
+                                     "\" when trying to parse index meta");
+        }
         meta = nlohmann::json::parse(metaF);
         metaF.close();
     }
