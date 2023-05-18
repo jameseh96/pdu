@@ -107,12 +107,14 @@ void def_conversions(py::module m, py::class_<SampleSource>& cls) {
                 [](const SampleSource& ss,
                    TimestampUnits units,
                    bool filterNaNValues) {
-                    auto samples = to_samples(ss);
+                    auto samples = std::make_unique<std::vector<Sample>>();
+                    *samples = to_samples(ss);
 
-                    maybeConvertOrFilter(samples, units, filterNaNValues);
+                    maybeConvertOrFilter(*samples, units, filterNaNValues);
 
-                    return py::array_t(
-                            samples.size(), samples.data(), py::cast(samples));
+                    return py::array_t(samples->size(),
+                                       samples->data(),
+                                       py::cast(std::move(samples)));
                 },
                 "timestamp_units"_a = TimestampUnits::Milliseconds,
                 "filter_nan_values"_a = false);
