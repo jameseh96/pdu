@@ -179,7 +179,13 @@ void Index::load(std::shared_ptr<Resource> res) {
             throw std::runtime_error("Failed to open \"" + metaPath.string() +
                                      "\" when trying to parse index meta");
         }
-        meta = nlohmann::json::parse(metaF);
+        try {
+            meta = nlohmann::json::parse(metaF);
+        } catch (const nlohmann::json::exception& e) {
+            throw std::runtime_error(
+                    "Failed to parse JSON index metadata file \"" +
+                    metaPath.string() + "\" : " + e.what());
+        }
         metaF.close();
     }
 
