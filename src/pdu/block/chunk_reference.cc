@@ -43,9 +43,15 @@ std::optional<std::pair<size_t, ChunkReference>> readHeadChunkMeta(
 
     size_t dataLen = dec.read_varuint();
 
-    // skip data and 4 byte crc, leaving decoder at the start of the next
-    // chunk meta header.
-    dec.seek(dataLen + 4, std::ios_base::cur);
+    try {
+        // skip data and 4 byte crc, leaving decoder at the start of the next
+        // chunk meta header.
+        dec.seek(dataLen + 4, std::ios_base::cur);
+    } catch (const std::exception&) {
+        // if we fail to seek that far, assume that this file was partially
+        // written. There should be no later valid entries
+        return {};
+    }
 
     return {{seriesRef, std::move(ref)}};
 }
