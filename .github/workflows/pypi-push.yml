@@ -27,10 +27,10 @@ jobs:
     env:
         CIBW_BUILD: '{cp,pp}3*x86_64'
         CIBW_SKIP: '{cp,pp}3{6,7}*'
-        CIBW_MANYLINUX_X86_64_IMAGE: "jamesharrisoncb/manylinux2014_x86_64_conan"
-        CIBW_MANYLINUX_PYPY_X86_64_IMAGE: "jamesharrisoncb/manylinux2014_x86_64_conan"
-        CIBW_MUSLLINUX_X86_64_IMAGE: "jamesharrisoncb/musllinux_1_1_x86_64_conan"
-        CIBW_MUSLLINUX_PYPY_X86_64_IMAGE: "jamesharrisoncb/musllinux_1_1_x86_64_conan"
+        CIBW_MANYLINUX_X86_64_IMAGE: "jameseh96/manylinux2014_x86_64_conan"
+        CIBW_MANYLINUX_PYPY_X86_64_IMAGE: "jameseh96/manylinux2014_x86_64_conan"
+        CIBW_MUSLLINUX_X86_64_IMAGE: "jameseh96/musllinux_1_1_x86_64_conan"
+        CIBW_MUSLLINUX_PYPY_X86_64_IMAGE: "jameseh96/musllinux_1_1_x86_64_conan"
     steps:
       - uses: actions/checkout@master
         with:
