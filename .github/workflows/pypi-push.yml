@@ -16,7 +16,7 @@ jobs:
       - name: build sdist
         run: |
            python3 setup.py sdist
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
             name: source-archive
             path: dist/*.tar.gz
@@ -37,7 +37,7 @@ jobs:
           submodules: recursive
       - name: build wheels
         uses: pypa/cibuildwheel@v2.21.1
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
             name: manylinux-3_X
             path: wheelhouse/*.whl
@@ -72,7 +72,7 @@ jobs:
         run: conan remote add -f conancenter https://center.conan.io
       - name: build wheels
         uses: pypa/cibuildwheel@v2.21.1
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
             name: mac-3_X
             path: wheelhouse/*.whl
@@ -105,7 +105,7 @@ jobs:
         run: conan remote add -f conancenter https://center.conan.io
       - name: build wheels
         uses: pypa/cibuildwheel@v2.21.1
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
             name: mac-3_X-arm
             path: wheelhouse/*.whl
@@ -117,19 +117,19 @@ jobs:
     steps:
       - name: Create ./dist
         run: mkdir ./dist
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
             name: source-archive
             path: dist
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
             name: manylinux-3_X
             path: dist
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
             name: mac-3_X
             path: dist
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
             name: mac-3_X-arm
             path: dist
