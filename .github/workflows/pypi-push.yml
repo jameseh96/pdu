@@ -43,7 +43,7 @@ jobs:
             path: wheelhouse/*.whl
   build-mac-3_X:
     name: Build mac wheels (Python3.X)
-    runs-on: macos-11
+    runs-on: macos-12
     env:
         CIBW_BUILD: '{cp,pp}3*x86_64'
         CIBW_SKIP: '{cp,pp}3{6,7}*'
@@ -78,7 +78,7 @@ jobs:
             path: wheelhouse/*.whl
   build-mac-3_X-arm:
     name: Build mac wheels (Python3.X + Arm)
-    runs-on: macos-11
+    runs-on: macos-12
     env:
         CONAN_MACOS_ARM64: "ON"
         MACOSX_DEPLOYMENT_TARGET: "11"
