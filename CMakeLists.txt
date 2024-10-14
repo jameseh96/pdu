@@ -1,4 +1,22 @@
 cmake_minimum_required(VERSION 3.17)
+if(NOT CMAKE_TOOLCHAIN_FILE)
+if (NOT DEFINED "$ENV{VCPKG_ROOT}")
+    message(WARNING "VCPKG_ROOT env var not found, install vcpkg and set the env var")
+endif()
+set(vcpkg "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake")
+if (NOT EXISTS "${vcpkg}")
+set(vcpkg "$ENV{HOME}/vcpkg/scripts/buildsystems/vcpkg.cmake")
+endif()
+if (EXISTS "${vcpkg}")
+  set(CMAKE_TOOLCHAIN_FILE "${vcpkg}"
+      CACHE FILEPATH "CMake toolchain file")
+  message(STATUS "vcpkg toolchain found: ${CMAKE_TOOLCHAIN_FILE}")
+else()
+message(STATUS "vcpkg toolchain NOT found")
+endif()
+endif()
+set(VCPKG_OVERLAY_PORTS "${CMAKE_SOURCE_DIR}/ports/overlay")
+
 project(prometheus_disk_usage)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -7,33 +25,6 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
 include(CheckSymbolExists)
-include(conan.cmake)
-
-conan_cmake_configure(REQUIRES
-        fmt/6.1.2
-        boost/1.74.0
-        nlohmann_json/3.9.1
-        rapidjson/cci.20220822
-        snappy/1.1.9
-        gsl-lite/0.38.1
-        gtest/1.11.0
-        GENERATORS cmake_find_package)
-
-conan_cmake_autodetect(settings)
-
-option(CONAN_MACOS_ARM64 "Dowload (or build) MacOS Arm64 deps from conan" OFF)
-
-if(DEFINED ENV{CONAN_MACOS_ARM64})
-    if($ENV{CONAN_MACOS_ARM64} MATCHES "ON")
-        set(CONAN_MACOS_ARM64 ON)
-    endif()
-endif()
-
-if (CONAN_MACOS_ARM64)
-    set(CONAN_PROFILE_HOST_ARG "${PROJECT_SOURCE_DIR}/conan/profiles/armv8")
-else()
-    set(CONAN_PROFILE_HOST_ARG "")
-endif()
 
 
 # the pre-built fmt dep was compiled with _FORTIFY_SOURCE
@@ -47,13 +38,6 @@ check_symbol_exists(__snprintf_chk "" HAVE_SNPRINTF_CHK)
 if (NOT HAVE_SNPRINTF_CHK)
     add_definitions(-DFMT_HEADER_ONLY)
 endif ()
-
-
-conan_cmake_install(PATH_OR_REFERENCE .
-        BUILD missing
-        REMOTE conancenter
-        SETTINGS ${settings}
-        PROFILE_HOST ${CONAN_PROFILE_HOST_ARG})
 
 list(PREPEND CMAKE_MODULE_PATH "${CMAKE_BINARY_DIR}")
 

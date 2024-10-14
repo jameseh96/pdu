@@ -3,7 +3,7 @@ project(pypdu)
 
 set(CMAKE_CXX_STANDARD 17)
 
-find_package(RapidJSON)
+find_package(RapidJSON CONFIG REQUIRED)
 
 add_subdirectory(../../third_party/pybind11 ${CMAKE_CURRENT_BINARY_DIR}/pybind11)
 pybind11_add_module(pypdu
@@ -25,7 +25,7 @@ set_property(TARGET pypdu PROPERTY CXX_VISIBILITY_PRESET hidden)
 target_compile_definitions(pypdu PRIVATE VERSION_INFO=${EXAMPLE_VERSION_INFO}
                                          PYTHON_VERSION_MAJOR=${PYTHON_VERSION_MAJOR})
 
-target_link_libraries(pypdu PUBLIC plib RapidJSON::RapidJSON)
+target_link_libraries(pypdu PUBLIC plib rapidjson)
 
 
 # determine git revision
