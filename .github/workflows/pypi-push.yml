@@ -47,7 +47,6 @@ jobs:
     env:
         CIBW_BUILD: '{cp,pp}3*x86_64'
         CIBW_SKIP: '{cp,pp}3{6,7}*'
-        CIBW_BEFORE_BUILD: 'python3 -m pip install conan==1.*'
     steps:
       - uses: actions/checkout@master
         with:
