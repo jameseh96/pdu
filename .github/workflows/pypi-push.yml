@@ -52,24 +52,12 @@ jobs:
       - uses: actions/checkout@master
         with:
           submodules: recursive
-      - name: Set up Python 3 for Conan
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.7
+      - name: Setup vcpkg
+        uses: lukka/run-vcpkg@v11
       - name: Setup cmake
         uses: jwlawson/actions-setup-cmake@v1.9
         with:
           cmake-version: '3.17.x'
-      - name: Install Python packages
-        run: pip3 install conan==1.* setuptools wheel
-      - name: Check Conan
-        run: which conan
-      - name: Check Conan version
-        run: conan --version
-      - name: Create default conan profile
-        run: conan profile new default --detect
-      - name: Add conancenter remote
-        run: conan remote add -f conancenter https://center.conan.io
       - name: build wheels
         uses: pypa/cibuildwheel@v2.21.1
       - uses: actions/upload-artifact@v4
@@ -89,20 +77,12 @@ jobs:
       - uses: actions/checkout@master
         with:
           submodules: recursive
-      - name: Set up Python 3 for Conan
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.7
+      - name: Setup vcpkg
+        uses: lukka/run-vcpkg@v11
       - name: Setup cmake
         uses: jwlawson/actions-setup-cmake@v1.9
         with:
           cmake-version: '3.17.x'
-      - name: Install Python packages
-        run: pip3 install conan==1.* setuptools wheel
-      - name: Create default conan profile
-        run: conan profile new default --detect
-      - name: Add conancenter remote
-        run: conan remote add -f conancenter https://center.conan.io
       - name: build wheels
         uses: pypa/cibuildwheel@v2.21.1
       - uses: actions/upload-artifact@v4
