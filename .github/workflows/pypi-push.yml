@@ -25,10 +25,26 @@ jobs:
     name: Build manylinux wheels (Python3.X)
     runs-on: ubuntu-latest
     env:
-        CIBW_BUILD: '{cp,pp}3*x86_64'
+        CIBW_BUILD: '{cp,pp}3*manylinux*x86_64'
         CIBW_SKIP: '{cp,pp}3{6,7}*'
         CIBW_MANYLINUX_X86_64_IMAGE: "jameseh96/manylinux2014_x86_64_vcpkg"
         CIBW_MANYLINUX_PYPY_X86_64_IMAGE: "jameseh96/manylinux2014_x86_64_vcpkg"
+    steps:
+      - uses: actions/checkout@master
+        with:
+          submodules: recursive
+      - name: build wheels
+        uses: pypa/cibuildwheel@v2.21.1
+      - uses: actions/upload-artifact@v4
+        with:
+            name: manylinux-3_X
+            path: wheelhouse/*.whl
+  build-musllinux-3_X:
+    name: Build musllinux wheels (Python3.X)
+    runs-on: ubuntu-latest
+    env:
+        CIBW_BUILD: '{cp,pp}3*musllinux*x86_64'
+        CIBW_SKIP: '{cp,pp}3{6,7}*'
         CIBW_MUSLLINUX_X86_64_IMAGE: "jameseh96/musllinux_1_1_x86_64_vcpkg"
         CIBW_MUSLLINUX_PYPY_X86_64_IMAGE: "jameseh96/musllinux_1_1_x86_64_vcpkg"
     steps:
@@ -39,7 +55,7 @@ jobs:
         uses: pypa/cibuildwheel@v2.21.1
       - uses: actions/upload-artifact@v4
         with:
-            name: manylinux-3_X
+            name: musllinux-3_X
             path: wheelhouse/*.whl
   build-mac-3_X:
     name: Build mac wheels (Python3.X)
@@ -92,7 +108,7 @@ jobs:
   upload:
     name: Publish to PyPI
     runs-on: ubuntu-latest
-    needs: [build-source-archive, build-manylinux-3_X, build-mac-3_X, build-mac-3_X-arm]
+    needs: [build-source-archive, build-manylinux-3_X, build-musllinux-3_X, build-mac-3_X, build-mac-3_X-arm]
     steps:
       - name: Create ./dist
         run: mkdir ./dist
@@ -103,6 +119,10 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
             name: manylinux-3_X
+            path: dist
+      - uses: actions/download-artifact@v4
+        with:
+            name: musllinux-3_X
             path: dist
       - uses: actions/download-artifact@v4
         with:
