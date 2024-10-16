@@ -40,10 +40,10 @@ if (NOT HAVE_SNPRINTF_CHK)
     add_definitions(-DFMT_HEADER_ONLY)
 endif ()
 
-try_compile(FORTIFY_SOURCE_NOT_BROKEN PROJECT musl_feature_test
+try_compile(IPO_FORTIFY_SOURCE_WORKING PROJECT musl_feature_test
             SOURCE_DIR "${CMAKE_SOURCE_DIR}/src/musl_feature_test/"
             TARGET foo)
-if (FORTIFY_SOURCE_NOT_BROKEN)
+if (NOT IPO_FORTIFY_SOURCE_WORKING)
         message(WARNING "-D_FORTIFY_SOURCE will cause link time failures due to ipo/lto and vsnprintf, disabling")
         add_definitions(-U_FORTIFY_SOURCE)
 endif()
