@@ -5,6 +5,10 @@
       "version>=": "6.1.2"
     },
     {
+      "name": "boost-algorithm",
+      "version>=": "1.85.0"
+    },
+    {
       "name": "boost-filesystem",
       "version>=": "1.85.0"
     },
@@ -13,7 +17,15 @@
       "version>=": "1.85.0"
     },
     {
+      "name": "boost-interprocess",
+      "version>=": "1.85.0"
+    },
+    {
       "name": "boost-program-options",
+      "version>=": "1.85.0"
+    },
+    {
+      "name": "boost-variant",
       "version>=": "1.85.0"
     },
     {
@@ -43,6 +55,10 @@
       "version": "6.1.2"
     },
     {
+      "name": "boost-algorithm",
+      "version": "1.85.0#1"
+    },
+    {
       "name": "boost-filesystem",
       "version": "1.85.0#2"
     },
@@ -51,8 +67,16 @@
       "version": "1.85.0#1"
     },
     {
+      "name": "boost-interprocess",
+      "version": "1.85.0#1"
+    },
+    {
       "name": "boost-program-options",
       "version": "1.85.0#2"
+    },
+    {
+      "name": "boost-variant",
+      "version": "1.85.0#1"
     },
     {
       "name": "nlohmann-json",
