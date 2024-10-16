@@ -5,7 +5,11 @@
       "version>=": "6.1.2"
     },
     {
-      "name": "boost",
+      "name": "boost-filesystem",
+      "version>=": "1.85.0"
+    },
+    {
+      "name": "boost-iostreams",
       "version>=": "1.85.0"
     },
     {
@@ -39,8 +43,12 @@
       "version": "6.1.2"
     },
     {
-      "name": "boost",
-      "version": "1.85.0"
+      "name": "boost-filesystem",
+      "version": "1.85.0#2"
+    },
+    {
+      "name": "boost-iostreams",
+      "version": "1.85.0#1"
     },
     {
       "name": "boost-program-options",
