@@ -25,7 +25,8 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
 include(CheckSymbolExists)
-
+INCLUDE(CheckCXXSourceCompiles)
+cmake_policy(SET CMP0067 NEW)
 
 # the pre-built fmt dep was compiled with _FORTIFY_SOURCE
 # and requires __snprintf_chk, normally provided by glibc.
@@ -38,6 +39,14 @@ check_symbol_exists(__snprintf_chk "" HAVE_SNPRINTF_CHK)
 if (NOT HAVE_SNPRINTF_CHK)
     add_definitions(-DFMT_HEADER_ONLY)
 endif ()
+
+try_compile(FORTIFY_SOURCE_NOT_BROKEN PROJECT musl_feature_test
+            SOURCE_DIR "${CMAKE_SOURCE_DIR}/src/musl_feature_test/"
+            TARGET foo)
+if (FORTIFY_SOURCE_NOT_BROKEN)
+        message(WARNING "-D_FORTIFY_SOURCE will cause link time failures due to ipo/lto and vsnprintf, disabling")
+        add_definitions(-U_FORTIFY_SOURCE)
+endif()
 
 list(PREPEND CMAKE_MODULE_PATH "${CMAKE_BINARY_DIR}")
 
