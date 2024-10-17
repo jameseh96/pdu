@@ -19,7 +19,11 @@ Install from PyPI with `pip`:
 $ pip install pypdu
 ```
 
+**NOTE**: Outdated `pip` versions may try to build from source even though a suitable package has been published. If pip downloads a `tar.gz` and you encounter compilation issues, ensure you have a up-to-date `pip`.
+
 Wheels are currently only built and published for MacOS and Linux.
+
+Unsupported platforms/architectures may still be able to use `pypdu` even though a wheel has not been published. Installing via pip will download the source and attempt to build it; ensure you have the [Prerequisites](#prerequisites).
 
 Basic usage example:
 
@@ -214,16 +218,20 @@ Alternative output formats and filtering options may be implemented in the futur
 
 ---
 
+# Building From Source
 
-# Prerequisites
+## Prerequisites
 
-* [Conan](https://conan.io/) - [installation instructions](https://docs.conan.io/en/latest/installation.html).
+To build C++ tools you will need:
 
-Additionally, to build `pypdu` from source:
+* A modern C++ compiler (e.g., gcc, clang).
+* [vcpkg](https://vcpkg.io/) - [Installation instructions](https://learn.microsoft.com/en-us/vcpkg/get_started/get-started). Used to manage C++ dependencies.
+
+In addition, to build `pypdu` from source:
 
 * Python headers (typically provided by a `pythonX.X-dev` or `pythonX.X-devel` package)
 
-# Installing
+## Installing
 
 
 ```
